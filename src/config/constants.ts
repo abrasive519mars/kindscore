@@ -30,10 +30,16 @@ export const DRAW = {
   /** The tier whose unclaimed pool rolls over. */
   JACKPOT_MATCH_COUNT: 5,
   /**
-   * Algorithmic mode: weight = BASELINE_WEIGHT + (how many eligible users have that score).
-   * The baseline keeps every number possible — [decision] GAME.md §3.
+   * Algorithmic mode (GAME.md §3): count how many eligible users hold each number, smooth that
+   * count across ±2 neighbours with SMOOTHING_KERNEL, then weight = BASELINE + smoothed.
+   * The baseline keeps every number possible — [decision].
    */
   ALGORITHMIC_BASELINE_WEIGHT: 1,
+  /**
+   * Weights for offsets −2..+2 applied to the raw frequency tally. Removes single-number
+   * sampling gaps (31 with 9 holders between 30 and 32 with 40 each) — [decision].
+   */
+  SMOOTHING_KERNEL: [0.25, 0.5, 1, 0.5, 0.25] as const,
 } as const;
 
 /** Pool share per tier. Must sum to 10 000 bps; asserted in tests. */

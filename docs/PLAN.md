@@ -13,7 +13,7 @@ Already written (in `OneDrive/Desktop/Project Revamps/DigitalHeroes/`): `CLAUDE.
 | Stack | Next.js App Router + TS + Tailwind + Framer Motion · Supabase (Auth/Postgres/RLS/Storage) · Stripe test mode · Vercel · Vitest |
 | Pricing | ₹499/mo, ₹4,999/yr (INR) |
 | Draw | 5 distinct numbers 1–45; user's 5 scores compared; 5/4/3 matches → 40/35/25% of pool; jackpot-only rollover; equal split in tier; integer paise |
-| Modes | Random (uniform) · Algorithmic (score-frequency weight + baseline floor). **No seeding**: simulate saves numbers+winners as draft; publish flips status; re-simulate overwrites |
+| Modes | Random (uniform) · Algorithmic (count each user's distinct scores → smooth with kernel [¼,½,1,½,¼] over ±2 → weight = 1 + smoothed). **No seeding**: simulate saves numbers+winners as draft; publish flips status; re-simulate overwrites |
 | Eligibility | Active subscription + exactly 5 scores. Repeated score counts once |
 | Pool share | **30%** of each subscription (PRD says "fixed portion", no number — our decision, one constant) |
 | Charity | 10% min, **up to 70%** (= 100 − pool share, derived). At 70% platform takes nothing |
@@ -43,16 +43,39 @@ Each phase ends with its Definition of Done (Appendix B §9) and a ≤5-sentence
 - [x] Direction B chosen → `docs/specs/DESIGN.md`
 - [x] Curate 7 charity cover photos + 2 gallery each (Unsplash/Pexels, Indian context, dignity framing) → `public/seed/manifest.json` + `scripts/fetch-seed-photos.ts` (`pnpm seed:photos`) → 21 WebPs (3.2 MB), credits in `docs/CREDITS.md`
 
-### Phase 1 — Engine layer (pure TS + tests)
-- [ ] `engine/money/paise.ts` — `splitEqualPaise(total, n)` with remainder distribution, `formatInr` (Indian grouping)
-- [ ] `engine/charity/splitPayment.ts` — charity/pool/platform split in bps; cap check
-- [ ] `engine/scores/` — `validateScore`, `selectRetainedScores` (window 5 by played_on), `isBackdatedBeyondWindow`, duplicate-date detection
-- [ ] `engine/draw/` — `buildFrequencyMap`, `generateNumbers(mode, freq, rng)`, `matchEntries` (set semantics), `computePool`, `allocatePrizes` (tiers, remainder, rollover, unclaimed)
-- [ ] `engine/subscription/mapStripeStatus.ts`, `hasAccess`
-- [ ] `engine/verification/stateMachine.ts` — legal transitions, `IllegalTransition`
-- [ ] `engine/errors.ts` — `AppError` hierarchy
-- [ ] Tests for every function (Appendix B §1 cases: rolling-5, IST date, boundaries, dupes-count-once, Σ-invariants, rollover chain, zero eligible, property test ×1000 on generateNumbers)
-- Verify: `pnpm test` green, engine 100% covered
+### Phase 1 — Engine layer (pure TS + tests) — IN PROGRESS
+
+`src/engine/` may import only from `src/config` and itself. An ESLint `no-restricted-imports` rule for `next`, `@supabase/*`, `stripe`, `react` enforces it. Functions < 20 lines, guard clauses, no magic numbers (all from `src/config/constants.ts`).
+
+Design choices for this phase:
+- **Money is `number` (integer paise), not `bigint`** in TypeScript. Max safe integer ≈ ₹90 trillion; bigint would complicate JSON, Supabase and React. A `Paise` branded type + `assertPaise()` guard integers. The DB column stays `bigint`.
+- **Randomness is injected.** `generateNumbers(mode, freq, rng)` takes an `rng: () => number` in [0,1). Production passes `secureRng` (built on `globalThis.crypto.getRandomValues`, available in Node 20+ and browsers — not a framework import). Tests pass a fixed sequence. No seed is persisted (user decision).
+- **One weighted-sampling code path.** Random mode = all weights 1; algorithmic = `BASELINE + smoothedFrequency` where `smoothed(n) = 0.25·f(n−2) + 0.5·f(n−1) + f(n) + 0.5·f(n+1) + 0.25·f(n+2)` (kernel in `DRAW.SMOOTHING_KERNEL`; clipped at 1 and 45). The draw follows the *shape* of how golfers score, not one month's sampling noise (user decision 2026-09-21). Sampling without replacement: draw r in [0, total), walk the cumulative weights, remove the pick, repeat 5×.
+- **Matching is set-based.** `countMatches(scores, drawn)` = |set(scores) ∩ set(drawn)|. Eligibility = exactly 5 stored scores.
+- **Prize allocation** returns a full audit object: `{ tierPools, prizes[], rolloverOutPaise, unclaimedRetainedPaise }`. Jackpot absorbs rounding so tiers sum exactly to pool + rollover-in. Equal split gives the first k winners (sorted by userId) +1 paisa so totals are exact.
+- **Verification is a state machine** `transition(state, event)` → new state or `RuleViolationError`. States `{ review: awaiting_proof|submitted|approved|rejected, payout: pending|paid, resubmissions }`. Events `submit_proof | approve | reject | mark_paid`. One resubmit after rejection.
+- **Dates are `YYYY-MM-DD` strings** in the engine; `todayInTimezone(now, LOCALE.TIMEZONE)` via `Intl.DateTimeFormat`. No Date objects cross the engine boundary.
+
+Files (write → test → explain):
+- [x] `engine/errors.ts` — `AppError(code, status, userMessage)` + `ValidationError 400`, `AuthenticationError 401`, `ForbiddenError 403`, `SubscriptionRequiredError 403`, `NotFoundError 404`, `ConflictError 409`, `RuleViolationError 422`, `ExternalServiceError 502`, `isAppError()`
+- [ ] `engine/money/paise.ts` — `Paise`, `Bps` types; `assertPaise`; `applyBps(amount, bps)` (floor); `splitEqualPaise(total, n)` → shares summing exactly; `formatInr(paise)` → `₹1,80,000` via `Intl.NumberFormat(LOCALE.NUMBER_LOCALE)`
+- [ ] `engine/charity/splitPayment.ts` — `validateCharityBps` (min ≤ x ≤ max, step); `splitPayment(amountPaise, charityBps)` → `{ charityPaise, poolPaise, platformPaise }`, pool first, platform = remainder, sum invariant
+- [ ] `engine/scores/validateScore.ts` — integer within `SCORE.MIN..MAX` → `ValidationError` otherwise
+- [ ] `engine/time/dates.ts` — `todayInTimezone`, `isValidIsoDate`, `isFutureDate`, `compareIsoDates`
+- [ ] `engine/scores/latestFive.ts` — `ScoreEntry { id, score, playedOn, createdAt }`; `selectRetainedScores(entries)` → `{ retained, evicted }` by `playedOn desc, createdAt desc`, take `SCORE.WINDOW_SIZE`; `findEntryOnDate`; `isBackdatedBeyondWindow(playedOn, entries)`; `previewAddScore(entries, candidate)` → `{ retained, evicted }` or throws `ConflictError` (duplicate date) / `RuleViolationError` (backdated)
+- [ ] `engine/draw/rng.ts` — `Rng` type, `secureRng`, `sequenceRng(values)` for tests
+- [ ] `engine/draw/eligibility.ts` — `isEligibleTicket(scores)` (exactly `WINDOW_SIZE`), `EligibleEntry { userId, scores }`
+- [ ] `engine/draw/frequency.ts` — `buildFrequencyMap(entries)` counting each user's *distinct* scores; `smoothFrequency(freq)` applying `DRAW.SMOOTHING_KERNEL` with edge clipping
+- [ ] `engine/draw/generateNumbers.ts` — `buildWeights(mode, freq)`, `sampleWithoutReplacement(weights, count, rng)`, `generateNumbers(mode, freq, rng)` → sorted 5-tuple
+- [ ] `engine/draw/match.ts` — `countMatches`, `matchEntries(numbers, entries)` → `{ userId, scores, matchCount }[]`, `winningTierFor(matchCount)` → 5|4|3|null
+- [ ] `engine/prizes/pool.ts` — `monthlyEquivalentPoolPaise(interval)`, `computePoolPaise(subscriptions)`
+- [ ] `engine/prizes/allocate.ts` — `splitTierPools(poolPaise, rolloverInPaise)`, `allocatePrizes({ poolPaise, rolloverInPaise, matched })`
+- [ ] `engine/subscription/status.ts` — `mapStripeStatus(stripeStatus)`, `hasActiveAccess({ status, currentPeriodEnd }, now)`
+- [ ] `engine/verification/stateMachine.ts` — `VerificationState`, `VerificationEvent`, `initialVerificationState()`, `transition(state, event, at)`
+- [ ] `engine/index.ts` — public surface re-exports
+- [ ] `eslint.config.mjs` — restricted-imports rule scoped to `src/engine/**`
+- [ ] `tests/unit/engine/**` mirroring each file; QA §1 cases incl. property test ×1000 on `generateNumbers` (both modes), rollover chain Jun→Sep, `splitEqualPaise(3_750_000, 7)` exactness, IST midnight, dupes-count-once, zero eligible; smoothing: a lone spike spreads to ±2 neighbours with the kernel ratios and clips at 1/45
+- Verify: `pnpm test` green; `pnpm test:coverage` meets 100% lines/functions, 95% branches on `src/engine`; `pnpm lint` proves the import guard (a deliberate bad import fails, then is removed)
 
 ### Phase 2 — Database
 - [ ] `supabase init`; migrations `0001_enums_tables.sql`, `0002_triggers.sql` (profile-on-signup, rolling-5 eviction, updated_at, payment→ledger), `0003_rls.sql` (`is_admin`, `has_active_access`, all policies, column revokes), `0004_rpc.sql` (`save_simulation`, `publish_draw`), `0005_views.sql` (reports), `0006_storage.sql` (buckets + policies)

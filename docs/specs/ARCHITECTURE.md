@@ -96,7 +96,8 @@ Always upsert from the **retrieved Stripe object**, never from event ordering. I
 | Function | Input | Output |
 |---|---|---|
 | `buildFrequencyMap(entries)` | `EligibleEntry[]` | `Map<number, count>` over each user's *distinct* scores |
-| `generateNumbers(mode, freq, rng)` | `rng` injected (`crypto.randomInt` in prod, fixed in tests) | sorted 5-tuple, 1–45, distinct. Weight = `BASELINE_WEIGHT + freq[n]` (algorithmic) or `1` (random). One weighted-without-replacement code path |
+| `smoothFrequency(freq)` | frequency map | `smoothed(n) = Σ KERNEL[k]·freq(n+k)`, k ∈ −2..2, `KERNEL = [¼, ½, 1, ½, ¼]`, neighbours outside 1–45 ignored. Removes single-number sampling gaps so the draw follows the shape of how golfers score (GAME.md §3 decision) |
+| `generateNumbers(mode, freq, rng)` | `rng` injected (`crypto.randomInt` in prod, fixed in tests) | sorted 5-tuple, 1–45, distinct. Weight = `ALGORITHMIC_BASELINE_WEIGHT + smoothFrequency(freq)(n)` (algorithmic) or `1` (random). One weighted-without-replacement code path |
 | `matchEntries(numbers, entries)` | | `{userId, scores, matchCount}[]`, `matchCount = |set(scores) ∩ set(numbers)|` |
 | `computePool(activeSubs)` | `{interval}[]` | `Σ monthlyEquivalentPoolPaise(interval)` |
 | `allocatePrizes(pool, rolloverIn, matched)` | | `four = floor(pool×3500/10000)`, `three = floor(pool×2500/10000)`, `jackpot = pool − four − three + rolloverIn` (jackpot absorbs rounding so tiers sum exactly). Per tier: `share = floor(tier/n)`, first `tier − share×n` winners (sorted by userId) get +1 paise. `rolloverOut = jackpot if no 5-match else 0`; `unclaimedRetained = four/three tiers with zero winners` |
@@ -112,7 +113,7 @@ Always upsert from the **retrieved Stripe object**, never from event ordering. I
 src/
   config/         constants.ts (SCORE_MIN/MAX, SCORE_WINDOW=5, POOL_SHARE_BPS=3000,
                   TIER_BPS={5:4000,4:3500,3:2500}, CHARITY_MIN_BPS=1000, CHARITY_MAX_BPS derived,
-                  BASELINE_WEIGHT, PLANS, TIMEZONE, PROOF_MAX_BYTES, PROOF_MIME_TYPES)
+                  ALGORITHMIC_BASELINE_WEIGHT, SMOOTHING_KERNEL, PLANS, TIMEZONE, PROOF_MAX_BYTES, PROOF_MIME_TYPES)
                   env.ts (zod-parsed process.env, fails at boot)
   engine/         zero imports from next/supabase/stripe
     draw/  scores/  money/paise.ts  subscription/  charity/  verification/stateMachine.ts  errors.ts
