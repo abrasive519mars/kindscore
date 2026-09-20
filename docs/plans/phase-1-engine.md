@@ -1,4 +1,4 @@
-# Phase 1 — The engine
+# Phase 1 — The engine ✅ done 2026-09-21
 
 **Goal:** every rule of the game as pure TypeScript, proven correct by tests, before any database or screen exists.
 **Grades:** PRD §16 "Data handling — accuracy of score logic, draw engine, and prize calculations."
@@ -47,7 +47,7 @@ Each file: write → test → explain. Later files depend on earlier ones.
 | `splitEqualPaise(totalPaise, count)` | `count` shares; `floor(total/count)` each; the first `total mod count` shares get +1 paisa; **sum is exactly `total`**; `count = 0` → `[]` |
 | `formatInr(paise)`                   | `"₹1,80,000"` via `Intl.NumberFormat("en-IN")`, no decimals when whole rupees, `"₹2,500.50"` otherwise                                     |
 
-### 3.3 `engine/charity/splitPayment.ts`
+### 3.3 `engine/charity/splitPayment.ts` ✅
 
 | Function                                | Contract                                                                                                                                                                                                  |
 | --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -56,11 +56,11 @@ Each file: write → test → explain. Later files depend on earlier ones.
 
 Worked example: `splitPayment(49_900, 1_000)` → charity 4 990 · pool 14 970 · platform 29 940. At 7 000 bps → platform 0.
 
-### 3.4 `engine/scores/validateScore.ts`
+### 3.4 `engine/scores/validateScore.ts` ✅
 
 `validateScore(input: unknown): number` — integer, `SCORE.MIN ≤ n ≤ SCORE.MAX`; rejects `0`, `46`, `1.5`, `"abc"`, `""`, `null`. Accepts `1` and `45`.
 
-### 3.5 `engine/time/dates.ts`
+### 3.5 `engine/time/dates.ts` ✅
 
 Generic calendar-date helpers; used by scores (played-on), draws (draw month) and subscriptions (period end).
 
@@ -71,7 +71,7 @@ Generic calendar-date helpers; used by scores (played-on), draws (draw month) an
 | `compareIsoDates(a, b)`          | −1 / 0 / 1; string comparison is valid for this format                                                            |
 | `isFutureDate(date, today)`      | `date > today`                                                                                                    |
 
-### 3.6 `engine/scores/latestFive.ts`
+### 3.6 `engine/scores/latestFive.ts` ✅
 
 PRD §05 "only the latest 5 scores are retained; a new score replaces the oldest" as functions.
 
@@ -89,11 +89,11 @@ interface ScoreEntry { id: string; score: number; playedOn: IsoDate; createdAt: 
 
 The DB trigger in Phase 2 implements the same eviction; this is its testable twin and powers the UI preview ("this will replace your 19 Aug score").
 
-### 3.7 `engine/draw/rng.ts`
+### 3.7 `engine/draw/rng.ts` ✅
 
 `Rng` type · `secureRng()` from `globalThis.crypto.getRandomValues(new Uint32Array(1))[0] / 2**32` · `sequenceRng(values)` returns values in order and throws when exhausted (a test that consumes more randomness than expected fails loudly).
 
-### 3.8 `engine/draw/eligibility.ts`
+### 3.8 `engine/draw/eligibility.ts` ✅
 
 ```ts
 interface EligibleEntry { userId: string; scores: readonly number[] }
@@ -101,14 +101,14 @@ interface EligibleEntry { userId: string; scores: readonly number[] }
 
 `isEligibleTicket(scores)` — exactly `SCORE.WINDOW_SIZE` scores. (Active subscription is checked by the service layer; the engine only knows about scores.)
 
-### 3.9 `engine/draw/frequency.ts`
+### 3.9 `engine/draw/frequency.ts` ✅
 
 | Function | Contract |
 |---|---|
 | `buildFrequencyMap(entries)` | for each entry, count each **distinct** score once (a user with `33, 33, …` adds 1 to 33, not 2) → `ReadonlyMap<number, number>` |
 | `smoothFrequency(freq)` | `smoothed(n) = Σ_k KERNEL[k] · freq(n+k)` for k in −2..2 with `DRAW.SMOOTHING_KERNEL = [0.25, 0.5, 1, 0.5, 0.25]`; neighbours outside 1..45 are ignored. **[decision]** With a few hundred users the raw tally is noisy (31 might have 9 holders while 30 and 32 have 40); smoothing makes the draw follow the *shape* of how golfers score |
 
-### 3.10 `engine/draw/generateNumbers.ts`
+### 3.10 `engine/draw/generateNumbers.ts` ✅
 
 | Function                                        | Contract                                                                                                           |
 | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
@@ -119,7 +119,7 @@ interface EligibleEntry { userId: string; scores: readonly number[] }
 
 Empty frequency map in algorithmic mode degrades to uniform (baseline only) — the "no scores yet" fallback from QA §2. Pipeline: **count → smooth → floor → weighted draw without replacement**; random mode is the same pipeline with every weight 1.
 
-### 3.11 `engine/draw/match.ts`
+### 3.11 `engine/draw/match.ts` ✅
 
 | Function                       | Contract                                                             |
 | ------------------------------ | -------------------------------------------------------------------- |
@@ -127,14 +127,14 @@ Empty frequency map in algorithmic mode degrades to uniform (baseline only) — 
 | `winningTierFor(matchCount)`   | `5 → 5`, `4 → 4`, `3 → 3`, else `null` (from `WINNING_MATCH_COUNTS`) |
 | `matchEntries(drawn, entries)` | `{ userId, scores, matchCount, tier }[]` for every entry             |
 
-### 3.12 `engine/prizes/pool.ts`
+### 3.12 `engine/prizes/pool.ts` ✅
 
 | Function                                          | Contract                                                                                                                                           |
 | ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `monthlyEquivalentPoolPaise(interval)`            | month → `applyBps(PLANS.month.pricePaise, POOL_SHARE_BPS)` = 14 970; year → `floor(applyBps(PLANS.year.pricePaise, POOL_SHARE_BPS) / 12)` = 12 497 |
 | `computePoolPaise(subscriptions: { interval }[])` | Σ over active subscribers                                                                                                                          |
 
-### 3.13 `engine/prizes/allocate.ts`
+### 3.13 `engine/prizes/allocate.ts` ✅
 
 | Function                                                  | Contract                                                                                                                                                                                                                                                                                                                               |
 | --------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -143,14 +143,14 @@ Empty frequency map in algorithmic mode degrades to uniform (baseline only) — 
 
 **Invariant tested:** Σ prizes + rolloverOut + unclaimedRetained = pool + rolloverIn, always.
 
-### 3.14 `engine/subscription/status.ts`
+### 3.14 `engine/subscription/status.ts` ✅
 
 | Function                                             | Contract                                                                                                                                                                      |
 | ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `mapStripeStatus(stripeStatus)`                      | `active`, `trialing` → `active` · `past_due` → `past_due` · `canceled` → `cancelled` · `unpaid`, `incomplete`, `incomplete_expired`, `paused` → `lapsed` · unknown → `lapsed` |
 | `hasActiveAccess({ status, currentPeriodEnd }, now)` | `status === "active" && currentPeriodEnd > now` — the `> now` half self-heals a missed webhook                                                                                |
 
-### 3.15 `engine/verification/stateMachine.ts`
+### 3.15 `engine/verification/stateMachine.ts` ✅
 
 ```ts
 interface VerificationState { review: ReviewStatus; payout: PayoutStatus; resubmissions: number }
@@ -168,11 +168,11 @@ type VerificationEvent = "submit_proof" | "approve" | "reject" | "mark_paid"
 
 `transition(state, event)` returns a **new** state (never mutates). `initialVerificationState()`.
 
-### 3.16 `engine/index.ts`
+### 3.16 `engine/index.ts` ✅
 
 Re-exports the public surface so services import from `@/engine`, not from file paths.
 
-### 3.17 `eslint.config.mjs`
+### 3.17 `eslint.config.mjs` ✅
 
 Add a block for `src/engine/**/*.ts`: `no-restricted-imports` with patterns `next*`, `react*`, `@supabase/*`, `stripe`, `node:*`. Verified by adding a deliberate bad import, seeing lint fail, removing it.
 
