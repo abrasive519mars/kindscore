@@ -38,10 +38,10 @@ Each phase ends with its Definition of Done (Appendix B §9) and a ≤5-sentence
 - [x] Update `CLAUDE.md` with real commands (`pnpm dev/build/lint/typecheck/test/test:int/seed`, single test `pnpm vitest run tests/domain/draw/allocatePrizes.test.ts`)
 - Verify: ✅ `pnpm build` passes, `pnpm lint`/`typecheck` clean, `pnpm test` runs (0 tests), production page screenshotted in brand tokens (dark palette via OS preference)
 
-### Phase 0.5 — UI/UX research (research ✅; photo curation in progress)
+### Phase 0.5 — UI/UX research ✅ done 2026-09-21
 - [x] Three research passes → `docs/specs/UX_RESEARCH.md` (§12 line-by-line mapping)
 - [x] Direction B chosen → `docs/specs/DESIGN.md`
-- [ ] Curate 7 charity cover photos + 2–3 gallery each (Unsplash/Pexels, Indian context, dignity framing) → `public/seed/`, credits in `docs/CREDITS.md`
+- [x] Curate 7 charity cover photos + 2 gallery each (Unsplash/Pexels, Indian context, dignity framing) → `public/seed/manifest.json` + `scripts/fetch-seed-photos.ts` (`pnpm seed:photos`) → 21 WebPs (3.2 MB), credits in `docs/CREDITS.md`
 
 ### Phase 1 — Domain layer (pure TS + tests)
 - [ ] `domain/money/paise.ts` — `splitEqualPaise(total, n)` with remainder distribution, `formatInr` (Indian grouping)

@@ -37,3 +37,6 @@ tsconfig.tsbuildinfo
 # npm/yarn lockfiles — this repo uses pnpm only
 package-lock.json
 yarn.lock
+
+# session worktrees
+.claude/worktrees/
