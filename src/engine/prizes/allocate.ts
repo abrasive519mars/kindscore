@@ -13,14 +13,14 @@ export interface Prize {
 export interface PrizeAllocation {
   readonly tierPools: TierPools;
   readonly prizes: readonly Prize[];
-  /** Unclaimed jackpot carried into next month's jackpot (PRD §07). */
+  /** Unclaimed jackpot carried into next month's jackpot. */
   readonly rolloverOutPaise: Paise;
   /** Unclaimed 4- and 3-match pools; these do not roll over (GAME.md §6 decision). */
   readonly unclaimedRetainedPaise: Paise;
 }
 
 /**
- * PRD §07: 40% jackpot · 35% four-match · 25% three-match. The jackpot is computed as the
+ * 40% jackpot · 35% four-match · 25% three-match. The jackpot is computed as the
  * remainder so the three tiers always sum to pool + rollover-in to the paisa; last month's
  * unclaimed jackpot lands in this month's jackpot only.
  */

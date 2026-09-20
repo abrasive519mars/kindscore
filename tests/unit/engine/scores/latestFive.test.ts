@@ -27,7 +27,7 @@ describe("sortNewestFirst", () => {
     expect(sortNewestFirst(shuffled).map((e) => e.id)).toEqual(["e", "d", "c", "b", "a"]);
   });
 
-  it("breaks a date tie by creation time", () => {
+  it("stays deterministic even if handed duplicate dates (unreachable in practice: one score per date)", () => {
     const first = entry("x", "2026-09-12", 30, "2026-09-12T09:00:00Z");
     const later = entry("y", "2026-09-12", 31, "2026-09-12T11:00:00Z");
     expect(sortNewestFirst([first, later]).map((e) => e.id)).toEqual(["y", "x"]);

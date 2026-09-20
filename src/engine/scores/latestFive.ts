@@ -4,8 +4,10 @@ import { compareIsoDates, formatShortDate, type IsoDate } from "@/engine/time/da
 
 /**
  * PRD §05: "Only the latest 5 scores are retained at any time. A new score replaces the
- * oldest stored score automatically." Latest means by the date the round was played
- * (GAME.md §2 decision); entry time only breaks ties.
+ * oldest stored score automatically." Latest means by the date the round was played (GAME.md §2).
+ *
+ * One score per date means two of a member's rounds never share a playedOn, so the createdAt
+ * comparison below is not a business rule — it only makes the sort deterministic for any input.
  */
 export interface ScoreEntry {
   readonly id: string;

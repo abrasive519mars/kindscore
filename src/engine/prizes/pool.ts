@@ -6,7 +6,7 @@ export interface ActiveSubscription {
 }
 
 /**
- * What one active subscriber adds to a single month's pool (GAME.md §5 decision):
+ * What one active subscriber adds to a single month's pool:
  * a monthly payer contributes their full pool slice; a yearly payer's slice is spread over twelve draws.
  */
 export function monthlyEquivalentPoolPaise(interval: PlanInterval): Paise {
