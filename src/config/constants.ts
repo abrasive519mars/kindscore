@@ -6,7 +6,7 @@
 
 export const BRAND = {
   name: "Kindscore",
-  tagline: "Score kindly.",
+  tagline: "Give every month. Win some months.",
 } as const;
 
 // ── Scores ────────────────────────────────────────────────────────────
