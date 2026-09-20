@@ -1,0 +1,145 @@
+# Kindscore — QA, seed, deployment & submission spec
+
+Layers: **U** = Vitest unit on pure `src/domain` (no I/O) · **I** = Vitest integration against the seeded Supabase project (`pnpm test:int`) · **M** = manual on the deployed URL (scripted in the Submission PDF).
+
+## 1. Test matrix (PRD §16.1 → cases)
+
+| §16.1 line | Cases | Layer | Seed needed |
+|---|---|---|---|
+| Signup & login | Happy signup → `/app` shell (locked); duplicate email → "already registered"; wrong password; logout clears session; unauth `/app` → `/login?next=`; admin role cannot be set via public signup (column revoke) | I, M | — |
+| Subscription (monthly + yearly) | Monthly checkout → `status=active`, `plan_interval=month`, `current_period_end` ≈ +1 mo; yearly → +1 yr; abandoned checkout → still restricted; cancel → `cancel_at_period_end`, access kept until period end; `invoice.payment_failed` → `past_due` → restricted on next request; **replay same `event.id` → exactly one row, 200**; bad signature → 400; unknown customer → 200 + log | I (webhook handler with fixture payloads in `tests/fixtures/stripe/`), M (4242 card) | Stripe fixtures |
+| Score entry — 5-score rolling | 6th evicts oldest **by `played_on`**, not insert order; backdated beyond window → rejected with message; edit keeps date; delete → 4 → ineligible. **One per date:** second insert same date → 409 "You already logged a round on 12 Sep — edit it instead"; DB `unique(user_id, played_on)` asserted. **IST midnight:** 00:30 IST 13 Sep must store 13 Sep (client sends `YYYY-MM-DD`; column `date`). Future date rejected. Range: 0, 46, 1.5, "abc", "" rejected; 1 and 45 accepted. Newest-first order | U, I, M | priya (5), raj (3) |
+| Draw system logic + simulation | `generateNumbers` → 5 distinct ints in 1–45 (property ×1000, both modes); weighted mode never excludes a number (baseline floor); `matchCount([33,33,28,36,29],[33,12,29,36,41]) = 3`; 4-score user absent from entries; 0/1/2 matches → no tier. **Tier split in paise:** `allocate(pool=15_000_000)` → four 5,250,000 · three 3,750,000 · jackpot 6,000,000; `allocate(1001)` sums exactly (jackpot absorbs remainder); `splitEqual(3_750_000, 7)` → sum exact, first k winners (by userId) +1 paise. **Rollover chain:** Jun no 5-match → carry; Jul jackpot = base + carry, no winner → carry grows; Aug won → carry 0; Sep = base only. Jackpot won by 2 → equal split of full amount. **Zero eligible** → simulate succeeds, jackpot rolls, 4/3 tiers retained. Simulate writes draft + entries + results; re-simulate replaces; publish flips + is idempotent; one published per month; stale draft blocks publish | U (bulk), I, M | 3 published months, ≥ 300 members with 5 scores |
+| Charity selection + contribution | `splitPayment(49900, 1000)` → 4,990 / 14,970 / 29,940; `(49900, 7000)` → 34,930 / 14,970 / 0; 900 and 7100 rejected; changing charity mid-period affects next payment only; one-off donation ≥ ₹10 recorded + in totals; directory search/filter; delete-in-use → soft-delete | U, I, M | 7 charities, one featured |
+| Winner verification + payout | Transitions `awaiting_proof → submitted → approved → paid`, `submitted → rejected → submitted` (one resubmit). Illegal: `awaiting_proof → approved`, `rejected → paid`, `approved → rejected`, `paid → *` → `IllegalTransition`. Upload > 5 MB → 413; pdf/gif/exe → 415; png/jpg/webp ok; member A cannot read B's proof (RLS + signed URL); total won = approved + paid only | U, I, M | priya awaiting proof; member012 submitted; member017 paid |
+| User dashboard — all modules | Every §10 module non-empty for priya; "enter 5 scores" for raj; lapsed banner for anita; renewal date = `current_period_end` | M (+ I on loader) | the 3 personas |
+| Admin panel — full control | Non-admin `/admin` → 403; admin score edit uses same validation; admin lapses a sub → user redirected within one request; charity CRUD + image upload; report totals = SQL sums | I, M | admin |
+| Data accuracy across modules | Σ winners per tier = tier pool; Σ tiers = pool + rollover_in; reports "total prize pool" = Σ `payments.pool_paise`; charity totals = Σ ledger | I | full seed |
+| Responsive | 360×800, 390×844, 768, 1280, 1920: no horizontal scroll; nav collapses; one-handed score entry; admin tables scroll within container | M | — |
+| Error handling + edge cases | Every row of §2 exercised once | mixed | — |
+
+## 2. Error & edge-case catalogue (behaviour / copy)
+
+| Module | Failure | Behaviour |
+|---|---|---|
+| Auth | Session expired mid-form | `UNAUTHENTICATED` → inline "Signed out — please log in again"; form state kept in `sessionStorage` |
+| Subscription | Checkout abandoned | `/app/subscription?canceled=1`: "No charge was made. Pick a plan when you're ready." |
+| Subscription | User returns before webhook | Success page syncs from `session_id` (same code path as webhook). Fallback: "Payment received — activating, refresh in a moment." |
+| Subscription | Webhook replayed / out of order | `stripe_events(id pk)` insert-first; apply `subscription.updated` only if `event.created` ≥ stored |
+| Subscription | Lapsed mid-session | Server gate → `/app/subscription?reason=lapsed`; banner "Your subscription lapsed on 1 Sep. Renew to keep your scores in the draw." Scores retained |
+| Subscription | Cancelled, period not over | "Active until 30 Sep · won't renew · Resume" |
+| Scores | Duplicate date | Existing entry shown inline with Edit / Delete |
+| Scores | Range / future / non-integer | Field-level messages; server re-validates (Zod) → 422 |
+| Scores | Backdated beyond window | "That round is older than your five kept rounds" |
+| Scores | Edit while a draft draw exists | Draft marked **stale** (`entries_hash` mismatch); admin sees "Scores changed since simulation — re-simulate before publishing"; Publish disabled |
+| Scores | Admin edits after publish | Allowed; published snapshot immutable; `audit_log` row |
+| Draw | Simulate with zero eligible | "0 eligible members. Jackpot ₹X rolls to next month; 4- and 3-match tiers unpaid (₹Y retained)." |
+| Draw | Publish twice / two tabs | `update … where status='simulated'` → 0 rows → 409 "Already published"; button disables on first click |
+| Draw | Publish with no draft | Button hidden; API 400 "Simulate first" |
+| Draw | Month already published | Unique violation → "September's draw is already published" |
+| Draw | Weighted mode, no scores in system | Uniform fallback + note on the draft |
+| Charity | Delete charity in use | Soft-delete: "Hidden from directory; 12 members still contribute — reassign them to remove" |
+| Charity | Image upload fails | Keep form; "Charity saved without image — retry upload" |
+| Verification | > 5 MB / wrong type | Client pre-check + server 413/415: "Max 5 MB, PNG/JPG/WebP only" |
+| Verification | Non-winner hits upload | 403 "Only winners of a published draw can upload proof" |
+| Verification | Approve without proof / Paid before approve | Buttons hidden; API `IllegalTransition` → inline error |
+| Verification | Reject | Reason ≤ 200 chars required; winner sees reason + "Upload again" (once) |
+| Admin | Non-admin | 403 page, no data; RLS also denies |
+| Global | Unhandled server error | `error.tsx` per route group with request id; never a raw stack |
+
+## 3. Seed spec
+
+**Subscriptions are seeded directly** (`source='seed'`, `stripe_subscription_id='seed_sub_…'`, `stripe_customer_id='seed_cus_…'`); admin UI shows a "seeded" chip. The evaluator's own signup through Stripe Checkout is the live proof of the integration.
+
+**Accounts** (`@kindscore.test`, password `Kindscore!2026`):
+
+| Email | State | Purpose |
+|---|---|---|
+| `admin` | admin | Full panel |
+| `priya` | active **yearly** (renews 15 Mar 2027), charity Sahaj Shiksha 15%, scores 28/33/31/36/29 on 5 Sep dates, **3-match winner in Aug, awaiting proof** | Happy-path member; evaluator uploads proof |
+| `raj` | active **monthly** (renews 5 Oct), 3 scores | "Enter 2 more" state; evaluator adds 2 + a 6th to see eviction |
+| `anita` | **lapsed** (payment failed 1 Sep), 5 scores, one paid ₹ win in Jun | Restricted-access state, winnings history |
+| `member001`–`member300` | active, 5 scores each, bell-curve around 30, mixed charities/plans | Pool ≈ ₹45,000 so tiers have multiple winners and the frequency map is visibly skewed |
+
+`member012` proof **submitted** (pending review). `member017` **4-match winner in Aug, paid**. No 5-match in any seeded month so the rollover ladder climbs (Jun → Jul → Aug) and the landing jackpot reads ~₹54,000.
+
+**Charities (fictional, 7):** Sahaj Shiksha Foundation (rural girls' education, Telangana) · Neer Jal Trust (village water, Rayalaseema) · Hara Bhara Initiative (urban tree cover, Hyderabad) · Roshni Netra Care (cataract camps, Warangal) · Ashray Paws Rescue (street animals, Secunderabad) · Sanjeevani Rural Health Mission (mobile clinics, Adilabad) · **Udaan Girls' Sports Collective** (featured, Hyderabad). Each: outcome line ("₹50 a month = 5 school days for one girl"), 2–3 paragraphs, cover + 2 gallery images (`public/seed/`, credits in `docs/CREDITS.md`), 1–2 events e.g. "Charity Golf Day · Hyderabad Golf Association · 14 Nov 2026".
+
+**Draw history:** Jun (random), Jul (algorithmic), Aug (random) — published, **generated by running the real engine in `scripts/seed.ts`** so every figure is internally consistent. Sep not simulated (evaluator runs it). `payments` rows Jun–Sep per member so reports are non-zero.
+
+## 4. Deployment runbook
+
+1. **Supabase** (new project, `ap-south-1` Mumbai). Copy URL, anon key, service-role key, DB password. `supabase login` → `supabase link --project-ref …` → `supabase db push`. Buckets: `proofs` (private, 5 MB, `image/png,image/jpeg,image/webp`), `charity-media` (public, 2 MB). Auth: **disable "Confirm email"** (built-in SMTP ≈ 3 emails/hour would brick evaluator signup), Site URL = Vercel URL, Redirect URLs = `https://<app>/auth/callback` + `http://localhost:3000/auth/callback`, password min 8. `pnpm seed` (service role; `auth.admin.createUser` with `email_confirm: true`; idempotent — truncates seed-tagged rows first).
+2. **Stripe** (test mode). Products "Kindscore Monthly" ₹499/mo, "Kindscore Yearly" ₹4,999/yr, INR. Checkout `mode: 'subscription'`, `billing_address_collection: 'required'` (Indian Stripe accounts need name + address on INR charges even in test mode). Webhook `https://<app>/api/stripe/webhook` for `checkout.session.completed`, `customer.subscription.created/updated/deleted`, `invoice.paid`, `invoice.payment_failed`; copy `whsec_…`. Local: `stripe listen --forward-to localhost:3000/api/stripe/webhook`. Cards: `4242 4242 4242 4242`; India `4000 0035 6000 0008`; decline `4000 0000 0000 0002`; auth `4000 0025 0000 3155`. Note a possible RBI e-mandate consent screen in Checkout — document in PDF.
+3. **Vercel** (new account, GitHub import). Next.js, Node 20. Env (Production + Preview):
+   ```
+   NEXT_PUBLIC_SUPABASE_URL=
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=
+   SUPABASE_SERVICE_ROLE_KEY=          # server only
+   STRIPE_SECRET_KEY=sk_test_
+   STRIPE_WEBHOOK_SECRET=whsec_
+   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_
+   STRIPE_PRICE_MONTHLY=price_
+   STRIPE_PRICE_YEARLY=price_
+   NEXT_PUBLIC_APP_URL=https://kindscore-xxxx.vercel.app
+   CRON_SECRET=
+   SEED_PASSWORD=
+   ```
+   `vercel.json` cron `0 3 * * *` → `/api/cron/keepalive` (one SELECT) to stop free-tier pausing. `export const maxDuration = 60` on the simulate action.
+4. **Post-deploy smoke (10 min):** landing loads · signup new email → 4242 → success page shows Active · webhook log 200 · enter 5 scores · priya dashboard modules · admin simulate Sep → publish → priya sees reveal · proof upload → approve → mark paid · 390px pass · `robots.txt` / OG image.
+
+## 5. Submission PDF (8 pages)
+
+1. **Cover** — Kindscore, one-line pitch, live URL (QR), repo URL, date, author.
+2. **2-minute test script** — credential table (admin / priya / raj / anita / Stripe card), 12 numbered steps mapping 1:1 to §16.1, each with expected result.
+3. **Architecture** — diagram (App Router → server actions / route handlers → Supabase Postgres + RLS + Storage; Stripe Checkout / webhooks; Vercel cron) + "where the rules live" (`src/domain` pure functions, SQL RPCs for simulate/publish).
+4. **Data model** — `schema.png` + one-paragraph rationale per table (immutable `draw_entries` snapshot, paise integers, `stripe_events` idempotency).
+5. **Decisions table** — all `[decision]` lines from `docs/GAME.md`: PRD gap · options considered · chosen · why.
+6–7. **Screenshot gallery** — landing, charity profile, score entry, dashboard, admin draw (simulate → publish), winners queue, mobile.
+8. **Test evidence + next** — Vitest counts by layer, §16.1 checklist ticked, known limitations; "what we'd build next" (real payouts via Razorpay X, notifications, weighting dashboard, audit UI).
+
+Tooling: author `docs/submission/Kindscore-Submission.html` with `@page A4` print CSS; render with headless Edge: `& "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe" --headless --print-to-pdf="<out>\Kindscore-Submission.pdf" --no-pdf-header-footer file:///<path>/docs/submission/Kindscore-Submission.html`. Schema: `schema.dbml` → dbdiagram.io PNG (Supabase Studio visualizer as fallback).
+
+## 6. README outline
+
+Title + pitch + live URL + credentials table · 2-minute test script · How it works (link `docs/GAME.md`) · Architecture (folder map, request flow, **§ → file table**) · Local setup (`.env.example` table: var · where from · public/secret; `pnpm i`, `supabase db push`, `pnpm seed`, `stripe listen`, `pnpm dev`) · Deployment (condensed §4) · Scripts · Testing (layers, §16.1 mapping) · Decisions table · Known limitations & next steps.
+
+## 7. Notes-field blurb (≤ 2048 chars; placeholders filled at submit)
+
+> **Kindscore — a charity lottery for golfers.** Subscribers (₹499/mo or ₹4,999/yr) fund a charity they choose (10–70%) and a monthly prize pool (30%); their last 5 Stableford scores are their lottery numbers. Each month the admin simulates then publishes a draw of 5 numbers (random or score-weighted); 5/4/3 matches split 40/35/25% of the pool, unclaimed jackpots roll over, winners upload proof and are paid.
+>
+> Live: `<url>` · Repo: `<repo>`
+>
+> **Start with Kindscore-Submission.pdf (in the zip)** — page 2 is a 2-minute test script covering every §16.1 item.
+>
+> Admin: `admin@kindscore.test` / `Kindscore!2026` · Member with a win awaiting proof: `priya@kindscore.test` · 3 scores / ineligible: `raj@kindscore.test` · Lapsed: `anita@kindscore.test` (same password) · Stripe test card `4242 4242 4242 4242`, any future expiry/CVC.
+>
+> Stack: Next.js App Router + TypeScript, Supabase (Auth, Postgres + RLS, Storage), Stripe test mode, Vercel, Vitest. New Vercel account + new Supabase project as required. Seeded with 3 months of published draws incl. a jackpot rollover chain; September is left unpublished so you can run the draw yourself. Every PRD ambiguity and how we resolved it is in the PDF's decisions table.
+
+## 8. Risk register
+
+| # | Risk | L | I | Mitigation |
+|---|---|---|---|---|
+| 1 | Supabase SMTP rate limit blocks evaluator signup | H | H | Disable email confirmation; document |
+| 2 | Free Supabase project **pauses after 7 idle days** | H | H | Vercel cron keep-alive; check dashboard the morning of submission |
+| 3 | OneDrive + apostrophe path breaks CLIs / watcher / locks `.next` | H | M | Quote all paths; exclude `node_modules` + `.next` from sync; `WATCHPACK_POLLING=true` fallback |
+| 4 | Stripe India INR quirks (address required, e-mandate screen) | M | H | `billing_address_collection: required`; test on live URL on day one of Stripe work |
+| 5 | Webhook not reaching Vercel / wrong secret | M | H | Success-page fallback sync; webhook log in smoke test |
+| 6 | Over-engineering vs deadline | H | H | Scope = §16.1 lines; everything else → "what's next"; DoD gates per phase |
+| 7 | Vercel timeout on simulate | L | M | One RPC; O(n) in-memory matching; `maxDuration = 60` |
+| 8 | Money drift (floats, rounding) | M | H | Integer paise everywhere; Σ-invariant tests; no `number` arithmetic on rupees in UI |
+| 9 | RLS misconfiguration leaks or blocks | M | H | Integration tests as two different users; service role only in server code |
+| 10 | Zip > 50 MB or contains `.env` / `node_modules` | L | H | `scripts/package.ps1` builds from `git archive` and asserts |
+
+## 9. Definition of done (per phase)
+
+- [ ] `pnpm build` — zero TS errors
+- [ ] `pnpm lint` clean
+- [ ] `pnpm test` (+ `pnpm test:int` where relevant) green; new domain rules have tests
+- [ ] The phase's §16.1 line verified on the **deployed** URL, desktop + 390px
+- [ ] §2 rows for the module exercised at least once
+- [ ] README section updated; any new `[decision]` added to `docs/GAME.md`
+- [ ] `.env.example` updated if a variable was added
+- [ ] ≤ 5-sentence summary to the owner: what shipped, what was deliberately left out
+
+Phase extras: **Auth/Sub** — webhook replay test · **Scores** — IST-midnight test · **Draw** — Σ-invariants + publish-twice 409 · **Verification** — cross-user RLS test · **Submission** — zip < 50 MB, PDF script run end-to-end on the live URL, notes ≤ 2048 chars.

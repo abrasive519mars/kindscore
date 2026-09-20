@@ -1,0 +1,7 @@
+# pnpm 12 blocks dependency postinstall scripts unless listed here.
+# Only packages whose build step is genuinely required are allowed.
+allowBuilds:
+  esbuild: true         # vitest / tsx need the native binary check
+  supabase: true        # downloads the Supabase CLI binary
+  sharp: true           # next/image optimisation
+  unrs-resolver: false

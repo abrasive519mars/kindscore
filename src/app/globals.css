@@ -1,0 +1,172 @@
+@import "tailwindcss";
+
+/*
+ * Kindscore design tokens — docs/specs/DESIGN.md §2.
+ * Semantic tokens (--bg, --ink, --saffron …) are defined per theme on :root,
+ * then exposed to Tailwind once via @theme inline so utilities like bg-bg / text-ink
+ * follow the active theme automatically.
+ */
+
+/* ── Light (default) ─────────────────────────────────────────────────── */
+:root {
+  color-scheme: light;
+
+  --bg: #f7f3ec;
+  --surface: #fffdf9;
+  --surface-2: #f0eae0;
+  --ink: #171411;
+  --ink-2: #5f5850;
+  --ink-3: #8e867b;
+  --line: #ddd5c8;
+
+  --saffron: #d9791a;
+  --saffron-ink: #1a0f04;
+  --pool: #2b4a7a;
+  --success: #2e6b45;
+  --warn: #8f6414;
+  --danger: #933a2b;
+
+  --shadow-nav: 0 1px 0 rgb(23 20 17 / 0.06);
+  --shadow-modal: 0 24px 64px -24px rgb(23 20 17 / 0.35);
+}
+
+/* ── Dark ────────────────────────────────────────────────────────────── */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --bg: #131211;
+    --surface: #1c1a18;
+    --surface-2: #262321;
+    --ink: #f2ede4;
+    --ink-2: #a69e93;
+    --ink-3: #6f675d;
+    --line: #332f2a;
+
+    --saffron: #f2994a;
+    --saffron-ink: #1a0f04;
+    --pool: #8fb0e8;
+    --success: #5fbf85;
+    --warn: #e8b04c;
+    --danger: #f08a7a;
+
+    --shadow-nav: none;
+    --shadow-modal: none;
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg: #131211;
+  --surface: #1c1a18;
+  --surface-2: #262321;
+  --ink: #f2ede4;
+  --ink-2: #a69e93;
+  --ink-3: #6f675d;
+  --line: #332f2a;
+
+  --saffron: #f2994a;
+  --saffron-ink: #1a0f04;
+  --pool: #8fb0e8;
+  --success: #5fbf85;
+  --warn: #e8b04c;
+  --danger: #f08a7a;
+
+  --shadow-nav: none;
+  --shadow-modal: none;
+}
+
+/* ── Tailwind theme ──────────────────────────────────────────────────── */
+@theme inline {
+  /* colours → bg-bg, text-ink, border-line, bg-saffron … */
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-line: var(--line);
+  --color-saffron: var(--saffron);
+  --color-saffron-ink: var(--saffron-ink);
+  --color-pool: var(--pool);
+  --color-success: var(--success);
+  --color-warn: var(--warn);
+  --color-danger: var(--danger);
+
+  /* type → font-display, font-sans */
+  --font-display: var(--font-newsreader), Georgia, serif;
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+
+  /* radii → rounded-sm/md/lg */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 14px;
+
+  /* elevation → shadow-nav, shadow-modal */
+  --shadow-nav: var(--shadow-nav);
+  --shadow-modal: var(--shadow-modal);
+
+  /* motion → duration-fast … ease-enter … */
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-move: 320ms;
+  --duration-reveal: 600ms;
+  --duration-story: 900ms;
+  --ease-enter: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-move: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* ── Base ────────────────────────────────────────────────────────────── */
+@layer base {
+  html {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-feature-settings: "cv11", "ss01";
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+  }
+
+  h1,
+  h2,
+  h3,
+  .font-display {
+    font-family: var(--font-display);
+    font-weight: 500;
+    letter-spacing: -0.015em;
+  }
+
+  /* Every number in the product is tabular — scores, drawn numbers, rupees. */
+  .num,
+  table,
+  input[type="number"] {
+    font-variant-numeric: tabular-nums;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--saffron);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--saffron) 25%, transparent);
+  }
+}
+
+/* ── Motion preference ───────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
