@@ -63,7 +63,7 @@ Rules: saffron appears **once per viewport** as a highlight (a rule, a figure, a
 - **The five numerals** — a user's scores always render as five large tabular figures on a single hairline baseline, oldest on the right. Drawn numbers render the same way with a `pool`-blue ring. A match fills the figure saffron. This *is* the ticket; there is no ticket illustration.
 - **The Split** — one horizontal bar: saffron (charity) · pool-blue (prize pool) · `surface-2` (platform). Static on cards, interactive under a slider.
 - **The stepper** — state machines (draw: Draft → Simulated → Published; winner: Awaiting proof → Submitted → Approved → Paid/Rejected) render as a horizontal stepper: filled dot = done, ring = current, hollow = future, with a timestamp/actor line.
-- **Logomark** — wordmark "Kindscore" in Newsreader 500 with a single saffron dot after the y (`Kindscore.`). No icon.
+- **Logomark** — wordmark "Kindscore" in Newsreader 500 with a single saffron full stop (`Kindscore.`). **Favicon / app icon** = the full stop alone: ink rounded square, saffron circle offset to the bottom-right (`src/app/icon.svg`). Chosen 2026-09-21 over an initial "K" and a five-stroke mark for legibility at 16px.
 
 ### 2.5 Photography
 
