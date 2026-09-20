@@ -33,3 +33,7 @@ Thumbs.db
 
 # typescript incremental
 tsconfig.tsbuildinfo
+
+# npm/yarn lockfiles — this repo uses pnpm only
+package-lock.json
+yarn.lock

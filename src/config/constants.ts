@@ -1,7 +1,6 @@
 /**
  * Every business number in Kindscore lives here and nowhere else.
  * Each constant cites the PRD section (docs/PRD.md) or the decision (docs/GAME.md) it comes from.
- *
  * Money is always integer paise. Percentages are always basis points (1% = 100 bps).
  */
 
@@ -10,26 +9,25 @@ export const BRAND = {
   tagline: "Score kindly.",
 } as const;
 
-// ── Scores (§05) ────────────────────────────────────────────────────────────
+// ── Scores ────────────────────────────────────────────────────────────
 export const SCORE = {
-  /** Stableford lower bound. */
+  /** Stableford lower and upper bounds. */
   MIN: 1,
-  /** Stableford upper bound. */
   MAX: 45,
   /** "Only the latest 5 scores are retained at any time." */
   WINDOW_SIZE: 5,
 } as const;
 
-// ── Draw (§06, §07) ─────────────────────────────────────────────────────────
+// ── Draw ─────────────────────────────────────────────────────────
 export const DRAW = {
-  /** Numbers are drawn from the same range scores occupy — [decision] GAME.md §3. */
+  /** Numbers are drawn from the same range scores occupy. */
   NUMBER_MIN: SCORE.MIN,
   NUMBER_MAX: SCORE.MAX,
   /** Five distinct numbers per draw, matching the five kept scores. */
   NUMBERS_DRAWN: 5,
   /** Match counts that pay out (§06 "5-number / 4-number / 3-number match"). */
   WINNING_MATCH_COUNTS: [5, 4, 3] as const,
-  /** The tier whose unclaimed pool rolls over (§07 "5-match jackpot carries forward"). */
+  /** The tier whose unclaimed pool rolls over. */
   JACKPOT_MATCH_COUNT: 5,
   /**
    * Algorithmic mode: weight = BASELINE_WEIGHT + (how many eligible users have that score).
@@ -38,20 +36,20 @@ export const DRAW = {
   ALGORITHMIC_BASELINE_WEIGHT: 1,
 } as const;
 
-/** §07 pool share per tier. Must sum to 10 000 bps; asserted in tests. */
+/** Pool share per tier. Must sum to 10 000 bps; asserted in tests. */
 export const TIER_SHARE_BPS: Readonly<Record<5 | 4 | 3, number>> = {
   5: 4000,
   4: 3500,
   3: 2500,
 };
 
-// ── Money split (§07, §08.1) ────────────────────────────────────────────────
+// ── Money split ────────────────────────────────────────────────
 export const SPLIT = {
-  /** "A fixed portion of each subscription contributes to the prize pool" — [decision] 30%. */
+  /** "A fixed portion of each subscription contributes to the prize pool" - intentional decision to ensure company can keep running.*/
   POOL_SHARE_BPS: 3000,
-  /** "Minimum contribution: 10% of subscription fee" (§08.1). */
+  /** "Minimum contribution: 10% of subscription fee".*/
   CHARITY_MIN_BPS: 1000,
-  /** Derived: charity can take everything the pool does not — [decision] GAME.md §1. */
+  /** Derived: charity can potentially take everything the pool does not.*/
   get CHARITY_MAX_BPS(): number {
     return 10_000 - this.POOL_SHARE_BPS;
   },
@@ -60,7 +58,7 @@ export const SPLIT = {
   BPS_DENOMINATOR: 10_000,
 } as const;
 
-// ── Plans (§04) ─────────────────────────────────────────────────────────────
+// ── Plans ─────────────────────────────────────────────────────────────
 export type PlanInterval = "month" | "year";
 
 export const PLANS: Readonly<Record<PlanInterval, { pricePaise: number; label: string }>> = {
@@ -70,7 +68,7 @@ export const PLANS: Readonly<Record<PlanInterval, { pricePaise: number; label: s
 
 export const MONTHS_PER_YEAR = 12;
 
-// ── Verification uploads (§09) ──────────────────────────────────────────────
+// ── Verification uploads ──────────────────────────────────────────────
 export const PROOF_UPLOAD = {
   MAX_BYTES: 5 * 1024 * 1024,
   ALLOWED_MIME_TYPES: ["image/png", "image/jpeg", "image/webp"] as const,
@@ -85,7 +83,7 @@ export const CHARITY_MEDIA = {
 
 // ── Locale ──────────────────────────────────────────────────────────────────
 export const LOCALE = {
-  /** "One score per date" is a calendar date in India — [decision] GAME.md §2. */
+  /** Website-wide timezone. */
   TIMEZONE: "Asia/Kolkata",
   /** en-IN gives lakh/crore grouping: ₹1,80,000. */
   NUMBER_LOCALE: "en-IN",

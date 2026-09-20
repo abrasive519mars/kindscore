@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Kindscore mark: ink K on ivory, saffron full stop. Mirrors the wordmark "Kindscore." -->
+  <rect width="64" height="64" rx="12" fill="#F7F3EC"/>
+  <path d="M16 12h9v18.5L41.5 12H52L34.5 31 53 52H42L28.5 36.5 25 40.5V52h-9z" fill="#171411"/>
+  <circle cx="54" cy="47" r="5.5" fill="#D9791A"/>
+</svg>
