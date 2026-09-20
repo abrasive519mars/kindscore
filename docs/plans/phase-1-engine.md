@@ -38,7 +38,7 @@ Each file: write → test → explain. Later files depend on earlier ones.
 
 `AppError(code, status, userMessage)` and eight subclasses (400 Validation · 401 Authentication · 403 Forbidden / SubscriptionRequired · 404 NotFound · 409 Conflict · 422 RuleViolation · 502 ExternalService). `isAppError()` guard.
 
-### 3.2 `engine/money/paise.ts`
+### 3.2 `engine/money/paise.ts` ✅
 
 | Function                             | Contract                                                                                                                                   |
 | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -112,12 +112,12 @@ interface EligibleEntry { userId: string; scores: readonly number[] }
 
 | Function                                        | Contract                                                                                                           |
 | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `buildWeights(mode, freq)`                      | array indexed 1..45: random → `1` each; algorithmic → `ALGORITHMIC_BASELINE_WEIGHT + (freq.get(n) ?? 0)`           |
+| `buildWeights(mode, freq)` | array indexed 1..45: random → `1` each; algorithmic → `ALGORITHMIC_BASELINE_WEIGHT + smoothFrequency(freq)(n)`. **[decision]** The baseline keeps every number possible; the PRD never says a never-scored number is impossible |
 | `pickWeightedIndex(weights, r)`                 | `r ∈ [0,1)` × total weight, walk cumulative sums; pure                                                             |
 | `sampleWithoutReplacement(weights, count, rng)` | pick, zero that weight, repeat `count` times                                                                       |
 | `generateNumbers(mode, freq, rng)`              | `sampleWithoutReplacement(buildWeights(...), NUMBERS_DRAWN, rng)` sorted ascending; **always 5 distinct in 1..45** |
 
-Empty frequency map in algorithmic mode degrades to uniform (baseline only) — the "no scores yet" fallback from QA §2.
+Empty frequency map in algorithmic mode degrades to uniform (baseline only) — the "no scores yet" fallback from QA §2. Pipeline: **count → smooth → floor → weighted draw without replacement**; random mode is the same pipeline with every weight 1.
 
 ### 3.11 `engine/draw/match.ts`
 
@@ -189,7 +189,7 @@ Mirrors the source tree. Cases lifted from `docs/specs/QA.md` §1:
 | `scores/latestFive.test.ts`             | 6th evicts oldest by `playedOn` not insert order; duplicate date → `ConflictError`; backdated beyond window → `RuleViolationError`; backdated within window accepted and evicts the correct one; 4 entries + new → nothing evicted                             |
 | `draw/generateNumbers.test.ts`      | property ×1 000 both modes with `secureRng`: 5 distinct, all in 1..45, sorted; with `sequenceRng` produce a known tuple; algorithmic with empty map ≡ uniform weights; heavily weighted number is drawn first for `r = 0.5`                                    |
 | `draw/match.test.ts`                | `[33,33,28,36,29]` vs `[33,12,29,36,41]` → 3; 0/1/2 → `null` tier; 5 → jackpot                                                                                                                                                                                 |
-| `draw/frequency.test.ts`            | duplicates within a user count once                                                                                                                                                                                                                            |
+| `draw/frequency.test.ts` | duplicates within a user count once; a lone spike spreads to ±2 neighbours in kernel ratios (¼, ½, 1, ½, ¼); clips at 1 and 45; empty map → all zeros |
 | `prizes/allocate.test.ts`           | 15 000 000 → 5 250 000 / 3 750 000 / 6 000 000; 1 001 sums exactly; zero eligible → jackpot rolls, 4/3 retained; jackpot won by 2 → equal split of full amount incl. rollover; **rollover chain** Jun→Jul→Aug→Sep exactly as GAME.md §6 table; invariant sweep |
 | `prizes/pool.test.ts`               | 14 970 / 12 497; 300 mixed subs sums correctly                                                                                                                                                                                                                 |
 | `subscription/status.test.ts`       | every Stripe status; period-end boundary                                                                                                                                                                                                                       |
