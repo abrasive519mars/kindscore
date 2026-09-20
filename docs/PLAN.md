@@ -35,7 +35,7 @@ Each phase ends with its Definition of Done (Appendix B §9) and a ≤5-sentence
 - [x] Add deps: `@supabase/ssr @supabase/supabase-js stripe zod framer-motion lucide-react`; dev: `vitest @vitest/coverage-v8 supabase (CLI) stripe (CLI via scoop/winget) prettier`
 - [x] `src/config/constants.ts`, `src/config/env.ts` (zod-parsed), `.env.example`
 - [x] Tailwind theme tokens from `docs/specs/DESIGN.md` §2 (palette, Newsreader + Inter via `next/font`, radii, rules, durations, easings); `data-theme` dark mode; no texture
-- [x] Update `CLAUDE.md` with real commands (`pnpm dev/build/lint/typecheck/test/test:int/seed`, single test `pnpm vitest run tests/domain/draw/allocatePrizes.test.ts`)
+- [x] Update `CLAUDE.md` with real commands (`pnpm dev/build/lint/typecheck/test/test:int/seed`, single test `pnpm vitest run tests/engine/draw/allocatePrizes.test.ts`)
 - Verify: ✅ `pnpm build` passes, `pnpm lint`/`typecheck` clean, `pnpm test` runs (0 tests), production page screenshotted in brand tokens (dark palette via OS preference)
 
 ### Phase 0.5 — UI/UX research ✅ done 2026-09-21
@@ -43,16 +43,16 @@ Each phase ends with its Definition of Done (Appendix B §9) and a ≤5-sentence
 - [x] Direction B chosen → `docs/specs/DESIGN.md`
 - [x] Curate 7 charity cover photos + 2 gallery each (Unsplash/Pexels, Indian context, dignity framing) → `public/seed/manifest.json` + `scripts/fetch-seed-photos.ts` (`pnpm seed:photos`) → 21 WebPs (3.2 MB), credits in `docs/CREDITS.md`
 
-### Phase 1 — Domain layer (pure TS + tests)
-- [ ] `domain/money/paise.ts` — `splitEqualPaise(total, n)` with remainder distribution, `formatInr` (Indian grouping)
-- [ ] `domain/charity/splitPayment.ts` — charity/pool/platform split in bps; cap check
-- [ ] `domain/scores/` — `validateScore`, `selectRetainedScores` (window 5 by played_on), `isBackdatedBeyondWindow`, duplicate-date detection
-- [ ] `domain/draw/` — `buildFrequencyMap`, `generateNumbers(mode, freq, rng)`, `matchEntries` (set semantics), `computePool`, `allocatePrizes` (tiers, remainder, rollover, unclaimed)
-- [ ] `domain/subscription/mapStripeStatus.ts`, `hasAccess`
-- [ ] `domain/verification/stateMachine.ts` — legal transitions, `IllegalTransition`
-- [ ] `domain/errors.ts` — `AppError` hierarchy
+### Phase 1 — Engine layer (pure TS + tests)
+- [ ] `engine/money/paise.ts` — `splitEqualPaise(total, n)` with remainder distribution, `formatInr` (Indian grouping)
+- [ ] `engine/charity/splitPayment.ts` — charity/pool/platform split in bps; cap check
+- [ ] `engine/scores/` — `validateScore`, `selectRetainedScores` (window 5 by played_on), `isBackdatedBeyondWindow`, duplicate-date detection
+- [ ] `engine/draw/` — `buildFrequencyMap`, `generateNumbers(mode, freq, rng)`, `matchEntries` (set semantics), `computePool`, `allocatePrizes` (tiers, remainder, rollover, unclaimed)
+- [ ] `engine/subscription/mapStripeStatus.ts`, `hasAccess`
+- [ ] `engine/verification/stateMachine.ts` — legal transitions, `IllegalTransition`
+- [ ] `engine/errors.ts` — `AppError` hierarchy
 - [ ] Tests for every function (Appendix B §1 cases: rolling-5, IST date, boundaries, dupes-count-once, Σ-invariants, rollover chain, zero eligible, property test ×1000 on generateNumbers)
-- Verify: `pnpm test` green, domain 100% covered
+- Verify: `pnpm test` green, engine 100% covered
 
 ### Phase 2 — Database
 - [ ] `supabase init`; migrations `0001_enums_tables.sql`, `0002_triggers.sql` (profile-on-signup, rolling-5 eviction, updated_at, payment→ledger), `0003_rls.sql` (`is_admin`, `has_active_access`, all policies, column revokes), `0004_rpc.sql` (`save_simulation`, `publish_draw`), `0005_views.sql` (reports), `0006_storage.sql` (buckets + policies)
@@ -93,7 +93,7 @@ Each phase ends with its Definition of Done (Appendix B §9) and a ≤5-sentence
 - Verify: two simulates overwrite; publish twice → idempotent; scores edited after simulate → Publish disabled; Σ prizes = tiers = pool + rollover
 
 ### Phase 7 — Winner verification
-- [ ] `WinnerRepository`, `services/WinnerService.ts` (state machine from domain)
+- [ ] `WinnerRepository`, `services/WinnerService.ts` (state machine from engine)
 - [ ] `(member)/app/winnings`, `/app/winnings/[id]/proof` — FileDrop (5 MB, png/jpg/webp, client WebP re-encode), status timeline
 - [ ] `(admin)/admin/winners` — filter, ProofViewer (signed URL), Approve / Reject (reason) / Mark paid
 - Verify: cross-user proof read blocked by RLS; illegal transitions → 422

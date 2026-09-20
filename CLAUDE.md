@@ -16,11 +16,11 @@ pnpm build               # production build — must pass before any phase is "d
 pnpm typecheck           # next typegen && tsc --noEmit (typegen creates LayoutProps/PageProps globals)
 pnpm lint                # eslint . (next lint is removed in Next 16)
 pnpm format              # prettier --write .
-pnpm test                # Vitest unit project (tests/unit/**) — pure domain, no I/O
+pnpm test                # Vitest unit project (tests/unit/**) — pure engine, no I/O
 pnpm test:watch
-pnpm test:coverage       # domain coverage thresholds: 100% lines/functions, 95% branches
+pnpm test:coverage       # engine coverage thresholds: 100% lines/functions, 95% branches
 pnpm test:int            # Vitest integration project (tests/integration/**) against the seeded Supabase project
-pnpm vitest run tests/unit/domain/draw/allocatePrizes.test.ts   # single test file
+pnpm vitest run tests/unit/engine/draw/allocatePrizes.test.ts   # single test file
 pnpm db:push             # supabase db push (linked project)
 pnpm db:types            # regenerate src/types/database.types.ts
 pnpm seed                # tsx scripts/seed.ts (needs SUPABASE_SERVICE_ROLE_KEY)
@@ -41,16 +41,16 @@ Stack: Next.js 16.3 (App Router, Turbopack) · React 19 · TypeScript · Tailwin
 
 ```
 src/config/      constants.ts (every business number, PRD-cited) · env.ts (zod-validated, client vs server)
-src/domain/      PURE — no imports from next/supabase/stripe. Unit-tested to 100%.
+src/engine/      PURE — no imports from next/supabase/stripe. Unit-tested to 100%.
 src/schemas/     Zod schemas shared by forms and server actions
 src/repositories/ interfaces/ + supabase/ implementations
-src/services/    orchestration over repositories + domain
+src/services/    orchestration over repositories + engine
 src/lib/         supabase clients, stripe client, error mapping, auth guards
 src/app/         (marketing) · (auth) · (member)/app · (admin)/admin · api/
 src/components/  ui primitives · motion · feature components
 supabase/        migrations · config
 scripts/         seed.ts, package.ps1
-tests/           unit/ (mirrors src/domain) · integration/
+tests/           unit/ (mirrors src/engine) · integration/
 docs/            PRD, GAME, PLAN, DELIVERABLES, specs/
 ```
 

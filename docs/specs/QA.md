@@ -1,6 +1,6 @@
 # Kindscore — QA, seed, deployment & submission spec
 
-Layers: **U** = Vitest unit on pure `src/domain` (no I/O) · **I** = Vitest integration against the seeded Supabase project (`pnpm test:int`) · **M** = manual on the deployed URL (scripted in the Submission PDF).
+Layers: **U** = Vitest unit on pure `src/engine` (no I/O) · **I** = Vitest integration against the seeded Supabase project (`pnpm test:int`) · **M** = manual on the deployed URL (scripted in the Submission PDF).
 
 ## 1. Test matrix (PRD §16.1 → cases)
 
@@ -92,7 +92,7 @@ Layers: **U** = Vitest unit on pure `src/domain` (no I/O) · **I** = Vitest inte
 
 1. **Cover** — Kindscore, one-line pitch, live URL (QR), repo URL, date, author.
 2. **2-minute test script** — credential table (admin / priya / raj / anita / Stripe card), 12 numbered steps mapping 1:1 to §16.1, each with expected result.
-3. **Architecture** — diagram (App Router → server actions / route handlers → Supabase Postgres + RLS + Storage; Stripe Checkout / webhooks; Vercel cron) + "where the rules live" (`src/domain` pure functions, SQL RPCs for simulate/publish).
+3. **Architecture** — diagram (App Router → server actions / route handlers → Supabase Postgres + RLS + Storage; Stripe Checkout / webhooks; Vercel cron) + "where the rules live" (`src/engine` pure functions, SQL RPCs for simulate/publish).
 4. **Data model** — `schema.png` + one-paragraph rationale per table (immutable `draw_entries` snapshot, paise integers, `stripe_events` idempotency).
 5. **Decisions table** — all `[decision]` lines from `docs/GAME.md`: PRD gap · options considered · chosen · why.
 6–7. **Screenshot gallery** — landing, charity profile, score entry, dashboard, admin draw (simulate → publish), winners queue, mobile.
@@ -135,7 +135,7 @@ Title + pitch + live URL + credentials table · 2-minute test script · How it w
 
 - [ ] `pnpm build` — zero TS errors
 - [ ] `pnpm lint` clean
-- [ ] `pnpm test` (+ `pnpm test:int` where relevant) green; new domain rules have tests
+- [ ] `pnpm test` (+ `pnpm test:int` where relevant) green; new engine rules have tests
 - [ ] The phase's §16.1 line verified on the **deployed** URL, desktop + 390px
 - [ ] §2 rows for the module exercised at least once
 - [ ] README section updated; any new `[decision]` added to `docs/GAME.md`

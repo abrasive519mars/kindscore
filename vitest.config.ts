@@ -5,7 +5,7 @@ const srcAlias = { "@": path.resolve(__dirname, "src") };
 
 /**
  * Two projects, deliberately separate:
- *  - unit:        pure domain logic, no I/O, runs in milliseconds, runs on every save.
+ *  - unit:        pure engine logic, no I/O, runs in milliseconds, runs on every save.
  *  - integration: talks to the seeded Supabase project via env vars; opt-in via `pnpm test:int`.
  */
 export default defineConfig({
@@ -33,7 +33,7 @@ export default defineConfig({
     ],
     coverage: {
       provider: "v8",
-      include: ["src/domain/**/*.ts"],
+      include: ["src/engine/**/*.ts"],
       thresholds: { lines: 100, functions: 100, branches: 95, statements: 100 },
     },
   },

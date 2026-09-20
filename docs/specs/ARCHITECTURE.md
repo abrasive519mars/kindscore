@@ -31,7 +31,7 @@ Conventions: **all money is `bigint` paise**; **all percentages are basis points
 | Rule | Where | Why |
 |---|---|---|
 | Create profile on signup | DB trigger (`security definer`) | Must happen even if client dies mid-signup |
-| Rolling-5 eviction | DB trigger `after insert or update on scores` → delete rows not in top 5 by `played_on desc, created_at desc` | Invariant holds for admin edits and seeds too. Domain has a pure `selectRetainedScores()` twin for UI preview + tests |
+| Rolling-5 eviction | DB trigger `after insert or update on scores` → delete rows not in top 5 by `played_on desc, created_at desc` | Invariant holds for admin edits and seeds too. Engine has a pure `selectRetainedScores()` twin for UI preview + tests |
 | Backdated score older than all 5 kept | **Application: reject** with "older than your 5 kept scores" | Silent insert-then-evict would confuse users |
 | `updated_at` | trigger | boilerplate |
 | Payment / paid donation → ledger row | trigger | Supabase JS has no transactions; trigger guarantees atomicity |
@@ -85,13 +85,13 @@ $$;
 
 Always upsert from the **retrieved Stripe object**, never from event ordering. Insert `stripe_events.id` first; unique violation → return 200 immediately.
 
-**Status mapping** (`domain/subscription/mapStripeStatus.ts`): `active|trialing → active`; `past_due → past_due`; `canceled → cancelled`; `unpaid|incomplete_expired|incomplete → lapsed`. Access = `active && period_end > now`. `cancel_at_period_end = true` stays `active` with UI "ends on {date}".
+**Status mapping** (`engine/subscription/mapStripeStatus.ts`): `active|trialing → active`; `past_due → past_due`; `canceled → cancelled`; `unpaid|incomplete_expired|incomplete → lapsed`. Access = `active && period_end > now`. `cancel_at_period_end = true` stays `active` with UI "ends on {date}".
 
 **Cheap real-time check (§04):** never call Stripe on read. Middleware refreshes auth cookie only. `(member)` layout calls `getAccessState()` wrapped in React `cache()` → one indexed query per request. Every mutating server action calls `requireActiveSubscriber()` — layouts don't protect actions. Success page (`?session_id=`) calls `syncSubscriptionFromStripe` once as a fallback when the webhook hasn't landed.
 
-**Split** (`domain/charity/splitPayment.ts`): `charity = floor(amount × charity_bps / 10000)`, `pool = floor(amount × POOL_SHARE_BPS / 10000)`, `platform = amount − charity − pool`.
+**Split** (`engine/charity/splitPayment.ts`): `charity = floor(amount × charity_bps / 10000)`, `pool = floor(amount × POOL_SHARE_BPS / 10000)`, `platform = amount − charity − pool`.
 
-## 4. Draw engine (`src/domain/draw/`, pure TS)
+## 4. Draw engine (`src/engine/draw/`, pure TS)
 
 | Function | Input | Output |
 |---|---|---|
@@ -114,7 +114,7 @@ src/
                   TIER_BPS={5:4000,4:3500,3:2500}, CHARITY_MIN_BPS=1000, CHARITY_MAX_BPS derived,
                   BASELINE_WEIGHT, PLANS, TIMEZONE, PROOF_MAX_BYTES, PROOF_MIME_TYPES)
                   env.ts (zod-parsed process.env, fails at boot)
-  domain/         zero imports from next/supabase/stripe
+  engine/         zero imports from next/supabase/stripe
     draw/  scores/  money/paise.ts  subscription/  charity/  verification/stateMachine.ts  errors.ts
   schemas/        zod: score, charity, event, draw, donation, profile (shared by form + action)
   repositories/
@@ -132,11 +132,11 @@ src/
     api/stripe/webhook/route.ts   api/cron/keepalive/route.ts
   components/     ui/ (primitives) motion/ marketing/ dashboard/ admin/
   types/          database.types.ts (generated)
-supabase/migrations/  scripts/seed.ts  tests/ (mirrors domain/)
+supabase/migrations/  scripts/seed.ts  tests/ (mirrors engine/)
 ```
 Server actions (colocated `actions.ts`) for every first-party mutation → `ActionResult<T>`. Route handlers only for third-party callers (Stripe webhook raw body + signature; Supabase auth callback; cron).
 
-**Errors:** `AppError(code, status, userMessage)` → `ValidationError 400`, `AuthenticationError 401`, `SubscriptionRequiredError 403`, `ForbiddenError 403`, `NotFoundError 404`, `ConflictError 409` (duplicate date, already published), `DomainRuleError 422` (range, <5 scores, illegal transition), `ExternalServiceError 502`. Actions catch → `{ok:false, error}`; route handlers `toResponse(err)`; UI shows `userMessage` via `useActionState`; unknown → log + generic + `error.tsx`.
+**Errors:** `AppError(code, status, userMessage)` → `ValidationError 400`, `AuthenticationError 401`, `SubscriptionRequiredError 403`, `ForbiddenError 403`, `NotFoundError 404`, `ConflictError 409` (duplicate date, already published), `RuleViolationError 422` (range, <5 scores, illegal transition), `ExternalServiceError 502`. Actions catch → `{ok:false, error}`; route handlers `toResponse(err)`; UI shows `userMessage` via `useActionState`; unknown → log + generic + `error.tsx`.
 
 ## 6. Auth & roles
 
