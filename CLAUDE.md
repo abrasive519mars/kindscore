@@ -8,6 +8,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Read in this order before touching code: `docs/GAME.md` (rules + every `[decision]`), `docs/PLAN.md` (phase checklist — tick items as you go), `docs/specs/ARCHITECTURE.md`, `docs/specs/DESIGN.md`, `docs/specs/QA.md`.
 
+**Every phase gets its own plan before execution:** `docs/plans/phase-N-<name>.md` — goal, boundaries, file-by-file contracts, test cases, order of work, what is explicitly out of scope. Write it, get it approved, then build. Phase 1's is `docs/plans/phase-1-engine.md`.
+
 ## Commands
 
 ```bash
