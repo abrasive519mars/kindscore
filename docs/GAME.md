@@ -47,7 +47,14 @@ The admin chooses **one of two ways** to pick the numbers:
 Every number from 1 to 45 has an equal chance. Pure luck.
 
 ### Algorithmic (§06 "weighted by score frequency")
-The system first looks at what scores subscribers are *actually* getting right now. Most golfers score 25–40; almost nobody scores 3 or 45. Numbers that many people have scored are made **more likely** to be drawn; rare numbers less likely. The result is more winners and more excitement — a lever the admin can pull. **[decision]** Every number keeps a small baseline chance so nothing is ever impossible to draw.
+The system first looks at what scores subscribers are *actually* getting right now. Most golfers score 25–40; almost nobody scores 3 or 45. Numbers that many people have scored are made **more likely** to be drawn; rare numbers less likely. The result is more winners and more excitement — a lever the admin can pull.
+
+Exactly how, in three steps:
+1. **Count** — for each number 1–45, how many eligible users have it among their five scores (a repeated score counts once per user).
+2. **Smooth** — blend each number's count with its neighbours: `¼·count(n−2) + ½·count(n−1) + count(n) + ½·count(n+1) + ¼·count(n+2)`. **[decision]** The PRD says only "weighted by score frequency"; with a few hundred users the raw tally is noisy (31 might have 9 holders while 30 and 32 have 40 each), and smoothing makes the draw follow the *shape* of how golfers score rather than one month's sampling accidents.
+3. **Floor** — weight = 1 + smoothed count. **[decision]** Every number keeps a small baseline chance so nothing is ever impossible to draw; the PRD never says a never-scored number should be excluded.
+
+Then five numbers are drawn one at a time in proportion to their weights, each drawn number removed before the next pick. Random mode is the same machine with every weight set to 1.
 
 Say this month's draw picks: **33, 12, 29, 36, 41**
 
