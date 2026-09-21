@@ -13,6 +13,7 @@ export * from "@/engine/draw/eligibility";
 export * from "@/engine/draw/frequency";
 export * from "@/engine/draw/generateNumbers";
 export * from "@/engine/draw/match";
+export * from "@/engine/draw/fingerprint";
 export * from "@/engine/prizes/pool";
 export * from "@/engine/prizes/allocate";
 export * from "@/engine/subscription/status";

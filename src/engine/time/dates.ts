@@ -52,3 +52,34 @@ export function formatShortDate(date: IsoDate): string {
     timeZone: "UTC",
   }).format(new Date(Date.UTC(year, month - 1, day)));
 }
+
+/** "2026-09-21" → "2026-09-01": the first day of that month, which is how draws are keyed. */
+export function firstOfMonth(date: IsoDate): IsoDate {
+  return `${date.slice(0, 7)}-01`;
+}
+
+/** "2026-12-01" → "2027-01-01". */
+export function addOneMonth(monthStart: IsoDate): IsoDate {
+  const [year, month] = monthStart.split("-").map(Number);
+  const next = new Date(Date.UTC(year, month, 1));
+  return `${next.getUTCFullYear()}-${String(next.getUTCMonth() + 1).padStart(2, "0")}-01`;
+}
+
+/**
+ * Draws run in calendar order: the month after the last published one, or this month for the
+ * very first draw. Months can never be skipped or duplicated (GAME.md §7 decision).
+ */
+export function nextDrawMonth(lastPublishedMonth: IsoDate | null, today: IsoDate): IsoDate {
+  if (!lastPublishedMonth) return firstOfMonth(today);
+  return addOneMonth(firstOfMonth(lastPublishedMonth));
+}
+
+/** "2026-10-01" → "October 2026". */
+export function formatMonth(monthStart: IsoDate): string {
+  const [year, month] = monthStart.split("-").map(Number);
+  return new Intl.DateTimeFormat("en-IN", {
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(Date.UTC(year, month - 1, 1)));
+}

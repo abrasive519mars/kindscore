@@ -831,6 +831,7 @@ export type Database = {
           draw_month: string | null;
           five_match_winners: number | null;
           four_match_winners: number | null;
+          four_pool_paise: number | null;
           jackpot_pool_paise: number | null;
           mode: Database["public"]["Enums"]["draw_mode"] | null;
           numbers: number[] | null;
@@ -840,6 +841,8 @@ export type Database = {
           rollover_in_paise: number | null;
           rollover_out_paise: number | null;
           three_match_winners: number | null;
+          three_pool_paise: number | null;
+          unclaimed_retained_paise: number | null;
         };
         Relationships: [];
       };
@@ -858,6 +861,13 @@ export type Database = {
       };
     };
     Functions: {
+      active_subscriber_counts: {
+        Args: never;
+        Returns: {
+          plan_interval: Database["public"]["Enums"]["plan_interval"];
+          subscribers: number;
+        }[];
+      };
       has_active_access: { Args: { uid: string }; Returns: boolean };
       is_admin: { Args: never; Returns: boolean };
       mark_winner_paid: {

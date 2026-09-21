@@ -19,3 +19,14 @@ export function monthlyEquivalentPoolPaise(interval: PlanInterval): Paise {
 export function computePoolPaise(subscriptions: readonly ActiveSubscription[]): Paise {
   return subscriptions.reduce((total, sub) => total + monthlyEquivalentPoolPaise(sub.interval), 0);
 }
+
+/** Active subscribers per plan. Two integers — safe to expose where subscription rows are not. */
+export type SubscriberCounts = Readonly<Record<PlanInterval, number>>;
+
+/** Same arithmetic as computePoolPaise, from counts — for the projected jackpot shown before a draw. */
+export function computePoolPaiseFromCounts(counts: SubscriberCounts): Paise {
+  return (
+    counts.month * monthlyEquivalentPoolPaise("month") +
+    counts.year * monthlyEquivalentPoolPaise("year")
+  );
+}

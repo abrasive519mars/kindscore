@@ -148,7 +148,14 @@ Nothing is re-rolled at publish. What the admin previewed is exactly what goes o
 Two safeguards **[decision]**:
 
 - When the admin simulates, the system takes a **snapshot** of every eligible user's five scores at that moment and stores it with the draw. The published result always refers to the snapshot, so later score edits can never change history.
-- If any eligible user's scores change _between_ simulate and publish, the draft is marked **stale** and Publish is disabled until the admin re-simulates. The admin never publishes a result that no longer matches what members have.
+- If any eligible user's scores change _between_ simulate and publish, the draft is marked **stale** and Publish is disabled until the admin re-simulates. The admin never publishes a result that no longer matches what members have. **[decision]** Staleness is checked twice — when the admin opens the draft and again inside Publish — so two tabs or a slow click can never publish a stale result.
+
+More rules the draw follows **[decision]**:
+
+- **Who funds vs who can win.** Every _active_ subscriber funds the month's pool (they paid); only those with exactly five scores are _in_ the draw. The admin's page shows both numbers.
+- **Tier winner counts are public; identities are not.** A member sees "you share ₹3,013 with 7 other members"; a visitor sees "8 winners"; only the admin sees who.
+- **Draws run in calendar order.** The next draw is always the month after the last published one (or the current month for the very first), so months can't be skipped or duplicated by accident.
+- **The jackpot shown before a draw is an estimate** — 40% of the pool the current active subscribers would fund, plus the carried rollover — and is labelled as such. The published draw's figure is the truth.
 
 ---
 

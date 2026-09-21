@@ -166,3 +166,7 @@ Server actions (colocated `actions.ts`) for every first-party mutation → `Acti
 | 10  | OneDrive path with apostrophe + spaces      | Repo stays in OneDrive (user decision). Quote every path; exclude `node_modules` + `.next` from OneDrive sync (Settings → Sync → Choose folders); use `pnpm`; `WATCHPACK_POLLING=true` if the watcher fails |
 | 11  | Supabase free tier pauses after 7 idle days | Vercel cron `0 3 * * *` → `/api/cron/keepalive` (one SELECT, `CRON_SECRET`)                                                                                                                                 |
 | 12  | `Math.random` for a lottery                 | `crypto.randomInt`                                                                                                                                                                                          |
+
+### Phase 6 note — what the public may read about a draw
+
+`draw_statistics` runs as its owner (not `security_invoker`) and is granted to `anon` and `authenticated`: it exposes only aggregate winner counts and pool figures of **published** draws, which PRD §06 makes public. `active_subscriber_counts()` (security definer) returns two integers so the projected jackpot can be computed by the engine on any page without reading `subscriptions`. Entries and results stay behind their "own rows after publish" policies.

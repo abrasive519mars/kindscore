@@ -1,10 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { LOCALE } from "@/config/constants";
 import {
+  addOneMonth,
   compareIsoDates,
+  firstOfMonth,
+  formatMonth,
   formatShortDate,
   isFutureDate,
   isIsoDate,
+  nextDrawMonth,
   todayInTimezone,
 } from "@/engine/time/dates";
 
@@ -58,5 +62,26 @@ describe("compareIsoDates / isFutureDate", () => {
 describe("formatShortDate", () => {
   it("renders day and short month", () => {
     expect(formatShortDate("2026-09-12")).toBe("12 Sept");
+  });
+});
+
+describe("draw months", () => {
+  it("firstOfMonth keys any date to its month", () => {
+    expect(firstOfMonth("2026-09-21")).toBe("2026-09-01");
+  });
+
+  it("addOneMonth rolls over the year", () => {
+    expect(addOneMonth("2026-12-01")).toBe("2027-01-01");
+    expect(addOneMonth("2026-01-01")).toBe("2026-02-01");
+  });
+
+  it("nextDrawMonth is this month for the first draw, else the month after the last published", () => {
+    expect(nextDrawMonth(null, "2026-09-21")).toBe("2026-09-01");
+    expect(nextDrawMonth("2026-09-01", "2026-09-21")).toBe("2026-10-01");
+    expect(nextDrawMonth("2026-12-01", "2027-03-05")).toBe("2027-01-01");
+  });
+
+  it("formatMonth names the month", () => {
+    expect(formatMonth("2026-10-01")).toBe("October 2026");
   });
 });

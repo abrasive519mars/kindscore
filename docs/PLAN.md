@@ -124,14 +124,16 @@ Files (write → test → explain):
 - [x] Tests: 44 new unit (snapshots, sync service, checkout service, webhook pipeline with fakes) → 244; `tests/integration/webhook.test.ts` signs fixture events with Stripe's helper against local Postgres (activate, pay + ledger, replay → one row, bad signature → 400, stale event ignored, payment failed → `past_due` + gate closed, deleted → cancelled, unknown customer → 200) → 58
 - Verify: ✅ `scripts/walkthrough-phase5.ts` drives real Stripe Checkout (4242, Indian address) → back with `session_id` → Active, renews +1 month, `payments` row 49,900 → 7,485 / 14,970 / 27,445 at 15%, ledger row → cancel → "won't renew" → resume → portal → 390px; screenshots in `docs/screenshots/phase-5/`
 
-### Phase 6 — Draw (admin + member)
+### Phase 6 — Draw (admin + member) ✅ done 2026-09-21 (plan: `docs/plans/phase-6-draws.md`)
 
-- [ ] `DrawRepository`, `services/DrawService.ts` (simulate → RPC; publish → RPC; stale guard)
-- [ ] `(admin)/admin/draws` — month picker, ModeToggle + Histogram45, Simulate → draft panel + Stepper, WinnersTable, Publish confirm restating consequences, rollover chip
-- [ ] `(member)/app/draws`, `/app/draws/[id]` — Draw Reveal (DESIGN.md §4.1: roll-in + match fill first view, result-first on return), WinnersSummary, outcome line
-- [ ] JackpotOdometer component (DESIGN.md §4.2) on dashboard + admin + landing
-- [ ] `(marketing)/draws` public history
-- Verify: two simulates overwrite; publish twice → idempotent; scores edited after simulate → Publish disabled; Σ prizes = tiers = pool + rollover
+- [x] Engine: `entriesFingerprint` (stale guard), `computePoolPaiseFromCounts`, `nextDrawMonth`/`firstOfMonth`/`addOneMonth`/`formatMonth`; migration `…001000_draw_visibility.sql` (public `draw_statistics` for published draws, `active_subscriber_counts()`) — local + cloud
+- [x] `DrawRepository` + `SupabaseDrawRepository` (RPC error mapping in one place); `services/DrawService.ts` — `openNextDraw`, `simulate(mode, rng)`, `checkFreshness`, `publish` (stale checked on page and inside publish), `describeWeights`, `projectedJackpot`
+- [x] `(admin)/admin/draws` (open draw / "Open October's draw", published history) and `/admin/draws/[id]` — mode cards + `Histogram45` (holders + weight curve), Simulate / Re-simulate, draft report (numbers, pool breakdown, rollover/retained line, `WinnersTable` by tier with names), stale banner + disabled Publish, two-step Publish, published read-only report
+- [x] `(member)/app/draws` (next draw eligibility, past outcomes) and `/app/draws/[id]` — `DrawReveal` per DESIGN.md §4.1 (roll-in, matches fill, outcome line, jackpot confetti, result-first on return via sessionStorage, reduced-motion final frame)
+- [x] `JackpotOdometer` on dashboard + `/draws`; dashboard Draws module (entered count, latest outcome, next-draw status)
+- [x] `(marketing)/draws` public history with estimate jackpot
+- [x] Tests: 27 new unit (engine additions, `DrawService` with fake repo: Σ invariants, zero-eligible rollover, stale guard, idempotent publish, projected jackpot) → 271; `tests/integration/drawService.test.ts` runs the real service as admin/member/anon against local Postgres (entries snapshot, member edit → stale → refused → re-simulate → publish → own outcome + public counts, anon sees statistics only) → 66
+- Verify: ✅ `scripts/walkthrough-phase6.ts` — 60 seeded members, open draw → random → weighted (histogram) → member edit → stale banner + disabled Publish → re-simulate → two-step publish → history → a 4-match winner watches the reveal (₹376.74 shared with 7) → return visit result-first → public `/draws` → 390px; screenshots in `docs/screenshots/phase-6/`
 
 ### Phase 7 — Winner verification
 

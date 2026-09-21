@@ -1,11 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { PLANS, SCORE } from "@/config/constants";
+import { LOCALE, PLANS, SCORE } from "@/config/constants";
 import { formatInr } from "@/engine/money/paise";
+import { formatMonth, nextDrawMonth, todayInTimezone } from "@/engine/time/dates";
 import { getAccess, type SignedInAccess } from "@/lib/auth/access";
+import { createDrawRepository, createDrawService } from "@/lib/draws";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import type { MemberDrawOutcome } from "@/repositories/interfaces/DrawRepository";
 import { SupabaseScoreRepository } from "@/repositories/supabase/SupabaseScoreRepository";
 import { ScoreService } from "@/services/ScoreService";
+import { DrawNumbers } from "@/components/draw/DrawNumbers";
+import { JackpotOdometer } from "@/components/draw/JackpotOdometer";
 import { Button } from "@/components/ui/Button";
 import { Badge, Card, EmptyState, Figure, Rule } from "@/components/ui/primitives";
 import { SplitBar } from "@/components/ui/Split";
@@ -19,7 +24,8 @@ export default async function DashboardPage() {
   const access = (await getAccess()) as SignedInAccess;
   const supabase = await createSupabaseServerClient();
   const scoreService = new ScoreService(new SupabaseScoreRepository(supabase));
-  const [scores, { data: charity }, { data: rollover }] = await Promise.all([
+  const [drawRepo, drawService] = await Promise.all([createDrawRepository(), createDrawService()]);
+  const [scores, { data: charity }, jackpot, outcomes, lastMonth] = await Promise.all([
     scoreService.list(access.userId),
     access.profile.charity_id
       ? supabase
@@ -28,8 +34,11 @@ export default async function DashboardPage() {
           .eq("id", access.profile.charity_id)
           .maybeSingle()
       : Promise.resolve({ data: null }),
-    supabase.rpc("next_rollover_in"),
+    drawService.projectedJackpot(),
+    drawRepo.listMemberOutcomes(access.userId),
+    drawRepo.lastPublishedMonth(),
   ]);
+  const upcoming = nextDrawMonth(lastMonth, todayInTimezone(new Date(), LOCALE.TIMEZONE));
 
   const kept = scores.map((entry) => entry.score);
   const remaining = SCORE.WINDOW_SIZE - kept.length;
@@ -54,9 +63,9 @@ export default async function DashboardPage() {
         </Card>
         <Card>
           <Figure
-            label="Jackpot carried"
-            value={formatInr(rollover ?? 0)}
-            hint="Rolls over until someone matches all five"
+            label={`${formatMonth(upcoming).split(" ")[0]} jackpot · estimate`}
+            value={<JackpotOdometer paise={jackpot} />}
+            hint="40% of this month's pool plus what rolled over"
             accent
           />
         </Card>
@@ -125,13 +134,75 @@ export default async function DashboardPage() {
           )}
         </Card>
         <Card className="flex flex-col gap-4">
-          <h2 className="text-2xl">Draws</h2>
-          <EmptyState
-            title="No draws yet"
-            body="Draws entered and results will appear here once the first monthly draw is published."
+          <div className="flex items-baseline justify-between">
+            <h2 className="text-2xl">Draws</h2>
+            <Link href="/app/draws" className="text-sm text-ink-2 hover:text-ink">
+              All draws →
+            </Link>
+          </div>
+          <DrawsModule
+            outcomes={outcomes}
+            upcoming={upcoming}
+            inNextDraw={unlocked && remaining === 0}
           />
         </Card>
       </section>
+    </div>
+  );
+}
+
+/** PRD §10 participation summary: draws entered, the latest result, and whether you're in the next one. */
+function DrawsModule({
+  outcomes,
+  upcoming,
+  inNextDraw,
+}: {
+  outcomes: readonly MemberDrawOutcome[];
+  upcoming: string;
+  inNextDraw: boolean;
+}) {
+  const entered = outcomes.filter((o) => o.entry).length;
+  const latest = outcomes[0];
+  return (
+    <div className="flex flex-col gap-3 text-sm">
+      <p>
+        <span className="num font-medium">{entered}</span> {entered === 1 ? "draw" : "draws"}{" "}
+        entered · {formatMonth(upcoming)}:{" "}
+        {inNextDraw ? (
+          <Badge tone="success">You&apos;re in</Badge>
+        ) : (
+          <Badge tone="warn">Not yet in</Badge>
+        )}
+      </p>
+      {latest ? (
+        <div className="flex flex-col gap-2">
+          <p className="text-ink-2">Latest · {formatMonth(latest.draw.drawMonth)}</p>
+          <DrawNumbers
+            numbers={latest.draw.numbers}
+            size="sm"
+            matched={
+              latest.entry
+                ? new Set(latest.entry.scores.filter((s) => latest.draw.numbers.includes(s)))
+                : undefined
+            }
+          />
+          <p>
+            {!latest.entry
+              ? "You weren't in this one."
+              : latest.prizePaise
+                ? `${latest.entry.matchCount} matches — you won ${formatInr(latest.prizePaise)}.`
+                : `${latest.entry.matchCount} ${latest.entry.matchCount === 1 ? "match" : "matches"} — no prize this time.`}{" "}
+            <Link
+              href={`/app/draws/${latest.draw.drawId}`}
+              className="underline underline-offset-4"
+            >
+              See the draw
+            </Link>
+          </p>
+        </div>
+      ) : (
+        <p className="text-ink-2">No draw has been published yet. The first one lands here.</p>
+      )}
     </div>
   );
 }

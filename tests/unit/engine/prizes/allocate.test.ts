@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 import type { MatchedEntry } from "@/engine/draw/match";
 import { allocatePrizes, splitTierPools, type PrizeAllocation } from "@/engine/prizes/allocate";
-import { computePoolPaise, monthlyEquivalentPoolPaise } from "@/engine/prizes/pool";
+import {
+  computePoolPaise,
+  computePoolPaiseFromCounts,
+  monthlyEquivalentPoolPaise,
+} from "@/engine/prizes/pool";
 
 function winner(userId: string, matchCount: 5 | 4 | 3 | 0): MatchedEntry {
   const tier = matchCount === 0 ? null : matchCount;
@@ -32,6 +36,15 @@ describe("pool", () => {
     ];
     expect(computePoolPaise(subs)).toBe(200 * 14_970 + 100 * 12_497);
     expect(computePoolPaise([])).toBe(0);
+  });
+
+  it("gives the same pool from counts as from the list", () => {
+    const subs = [
+      ...Array.from({ length: 200 }, () => ({ interval: "month" as const })),
+      ...Array.from({ length: 100 }, () => ({ interval: "year" as const })),
+    ];
+    expect(computePoolPaiseFromCounts({ month: 200, year: 100 })).toBe(computePoolPaise(subs));
+    expect(computePoolPaiseFromCounts({ month: 0, year: 0 })).toBe(0);
   });
 });
 
