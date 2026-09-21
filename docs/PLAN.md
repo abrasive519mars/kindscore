@@ -77,12 +77,12 @@ Files (write → test → explain):
 - [x] `tests/unit/engine/**` mirroring each file; QA §1 cases incl. property test ×1000 on `generateNumbers` (both modes), rollover chain Jun→Sep, `splitEqualPaise(3_750_000, 7)` exactness, IST midnight, dupes-count-once, zero eligible; smoothing: a lone spike spreads to ±2 neighbours with the kernel ratios and clips at 1/45
 - Verify: ✅ 150 tests green in 0.8 s; coverage 100% statements / branches / functions / lines on `src/engine`; import guard proven with a probe file; lint, typecheck, build clean
 
-### Phase 2 — Database
-- [ ] `supabase init`; migrations `0001_enums_tables.sql`, `0002_triggers.sql` (profile-on-signup, rolling-5 eviction, updated_at, payment→ledger), `0003_rls.sql` (`is_admin`, `has_active_access`, all policies, column revokes), `0004_rpc.sql` (`save_simulation`, `publish_draw`), `0005_views.sql` (reports), `0006_storage.sql` (buckets + policies)
-- [ ] `supabase db push` to the **new** Supabase project (user creates it; Mumbai region); auth: disable email confirmation, set redirect URLs
-- [ ] `supabase gen types` → `src/types/database.types.ts`
-- [ ] Minimal seed: admin + 7 charities (Appendix B §3 names) + images to Storage
-- [ ] RLS smoke script: anon / member / admin reads against each table
+### Phase 2 — Database ✅ done 2026-09-21 (plan: `docs/plans/phase-2-database.md`)
+- [x] `supabase init`; migrations `0001_enums_tables.sql`, `0002_triggers.sql` (profile-on-signup, rolling-5 eviction, updated_at, payment→ledger), `0003_rls.sql` (`is_admin`, `has_active_access`, all policies, column revokes), `0004_rpc.sql` (`save_simulation`, `publish_draw`), `0005_views.sql` (reports), `0006_storage.sql` (buckets + policies)
+- [x] `supabase db push` to the **new** Supabase project (user creates it; Mumbai region); auth: disable email confirmation, set redirect URLs
+- [x] `supabase gen types` → `src/types/database.types.ts`
+- [x] Minimal seed: admin + 7 charities (Appendix B §3 names) + images to Storage
+- [x] RLS smoke script: anon / member / admin reads against each table
 - Verify: policies behave; `schema.dbml` exported (for schema.png later)
 
 ### Phase 3 — Auth + shell

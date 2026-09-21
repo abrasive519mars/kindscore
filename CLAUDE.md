@@ -21,10 +21,15 @@ pnpm format              # prettier --write .
 pnpm test                # Vitest unit project (tests/unit/**) — pure engine, no I/O
 pnpm test:watch
 pnpm test:coverage       # engine coverage thresholds: 100% lines/functions, 95% branches
-pnpm test:int            # Vitest integration project (tests/integration/**) against the seeded Supabase project
+pnpm test:int            # Vitest integration project (tests/integration/**) against LOCAL Supabase (.env.test); files run sequentially
 pnpm vitest run tests/unit/engine/draw/allocatePrizes.test.ts   # single test file
-pnpm db:push             # supabase db push (linked project)
-pnpm db:types            # regenerate src/types/database.types.ts
+pnpm db:start            # supabase start — local Postgres/Auth/Storage in Docker (Docker Desktop must be running)
+pnpm db:reset            # drop + re-apply every migration + supabase/seed.sql on local
+pnpm db:stop
+pnpm db:types            # regenerate src/types/database.types.ts from LOCAL (run after every migration)
+pnpm db:types:cloud      # same, from the linked cloud project
+pnpm db:push             # supabase db push — apply migrations to the linked cloud project (nvduvsskhxkypmckfwil)
+pnpm exec supabase db query --linked --file supabase/seed.sql   # seed the cloud charities (db push skips seeds)
 pnpm seed                # tsx scripts/seed.ts (needs SUPABASE_SERVICE_ROLE_KEY)
 pnpm stripe:listen       # forward Stripe test webhooks to localhost:3000
 ```

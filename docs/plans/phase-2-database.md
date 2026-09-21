@@ -1,4 +1,4 @@
-# Phase 2 — The database
+# Phase 2 — The database ✅ done 2026-09-21
 
 **Goal:** the schema, triggers, row-level security, transactional RPCs, storage buckets and reports views that every later phase writes to — developed and tested locally against a real Postgres, then pushed once to the new Supabase project.
 **Grades:** PRD §16 "System design — quality of architecture decisions and data modelling" · §15 "Database — backend connected with proper schema".
@@ -223,6 +223,13 @@ Run: `supabase start` → `supabase db reset` → `pnpm test:int`.
 8. **You create the cloud project + keys** (§0.1, §0.2) — any time before this step
 9. `supabase link` → `supabase db push` → you toggle the Auth settings (§0.3) → I smoke-test with the cloud anon key
 10. Export `schema.dbml` for the submission diagram (Phase 11 uses it)
+
+## 6.1 What actually happened
+
+- Everything in §3 landed as planned, plus one design change discovered by tests: **`winner_verifications` has no client update policy at all.** The original plan had a member update policy + column revoke; Supabase has only `anon`/`authenticated`, so a column revoke would block admins too. All four state-machine events are RPCs instead (`submit_winner_proof`, `review_winner`, `mark_winner_paid`, plus `publish_draw` creating the rows).
+- **Privilege bug caught by `rls.test.ts`:** `revoke update (role, …) on profiles from authenticated` did nothing because column privileges are additive to Supabase's default table-level grant — the test signed in as a member and promoted itself to admin. Fixed by revoking table-level `UPDATE` and granting back only `full_name, charity_id, charity_bps, updated_at`.
+- Integration files run sequentially (`fileParallelism: false`): the `one_open_draw` index makes parallel suites collide, which is the index doing its job.
+- Cloud: linked to `nvduvsskhxkypmckfwil` (ap-south-1), 8 migrations pushed, charities seeded via `supabase db query --linked --file supabase/seed.sql`.
 
 ## 7. Explicitly not in this phase
 
