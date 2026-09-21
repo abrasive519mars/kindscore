@@ -29,8 +29,9 @@ export default defineConfig({
           include: ["tests/integration/**/*.test.ts"],
           environment: "node",
           alias: srcAlias,
-          setupFiles: ["tests/integration/setup.ts"],
           testTimeout: 30_000,
+          // One real database: suites share state (e.g. the one-open-draw rule), so run files one at a time.
+          fileParallelism: false,
         },
       },
     ],

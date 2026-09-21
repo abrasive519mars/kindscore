@@ -1,7 +1,7 @@
 import { RuleViolationError } from "@/engine/errors";
 
 /**
- * PRD §09: a winner uploads proof; admin approves or rejects; payout goes Pending → Paid.
+ * A winner uploads proof; admin approves or rejects; payout goes Pending → Paid.
  * Modelled as an explicit state machine so every illegal move is a rule violation, not a bug.
  */
 export type ReviewStatus = "awaiting_proof" | "submitted" | "approved" | "rejected";
@@ -14,7 +14,7 @@ export interface VerificationState {
   readonly resubmissions: number;
 }
 
-/** A rejected winner gets one more attempt (QA §1 decision). */
+/** A rejected winner gets one more attempt. */
 const MAX_RESUBMISSIONS = 1;
 
 export function initialVerificationState(): VerificationState {

@@ -1,5 +1,5 @@
 /**
- * Our four subscription states (PRD §04: renewal, cancellation, lapsed) and the rule for access.
+ * Our four subscription states (renewal, cancellation, lapsed) and the rule for access.
  * Stripe's vocabulary is translated here once; nothing else in the app sees Stripe status strings.
  */
 export type SubscriptionStatus = "active" | "past_due" | "cancelled" | "lapsed";
