@@ -165,7 +165,7 @@ export default async function AdminMemberPage({ params }: PageProps<"/admin/user
                     </span>
                   </span>
                   <code
-                    className="num block max-w-full truncate text-xs text-ink-3"
+                    className="num block max-w-full truncate text-xs text-ink-2"
                     title={JSON.stringify(a.diff)}
                   >
                     {JSON.stringify(a.diff)}

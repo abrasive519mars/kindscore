@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect } from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui/Button";
+import { Wordmark } from "@/components/ui/Wordmark";
 
 /** Root error boundary: one line, one action, a request id for support — never a stack trace. */
 export default function GlobalError({
@@ -17,6 +19,7 @@ export default function GlobalError({
 
   return (
     <main className="mx-auto flex max-w-md flex-1 flex-col justify-center gap-4 px-4 py-24">
+      <Wordmark />
       <p className="text-sm font-medium uppercase tracking-[0.06em] text-ink-2">
         Something went wrong
       </p>
@@ -24,8 +27,13 @@ export default function GlobalError({
       <p className="text-ink-2">
         Nothing was lost. Try again, and if it keeps happening, tell us the code below.
       </p>
-      {error.digest && <p className="num text-xs text-ink-3">Reference {error.digest}</p>}
-      <Button onClick={reset}>Try again</Button>
+      {error.digest && <p className="num text-xs text-ink-2">Reference {error.digest}</p>}
+      <div className="flex flex-wrap gap-3">
+        <Button onClick={reset}>Try again</Button>
+        <Link href="/">
+          <Button variant="ghost">Back to the start</Button>
+        </Link>
+      </div>
     </main>
   );
 }

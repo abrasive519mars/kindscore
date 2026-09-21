@@ -14,7 +14,7 @@ export default async function MemberLayout({ children }: LayoutProps<"/app">) {
   return (
     <div className="flex min-h-full flex-1 flex-col pb-16 md:pb-0">
       <AppNav fullName={access.profile.full_name} isAdmin={access.kind === "admin"} />
-      <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-8">
+      <main id="main" className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-8">
         {access.kind === "member" && <SubscriptionBanner subscription={access.subscription} />}
         {children}
       </main>

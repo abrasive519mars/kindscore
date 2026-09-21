@@ -88,7 +88,7 @@ export function ScoreManager({ initialEntries, today }: ScoreManagerProps) {
             onEditRequest={setEditingId}
             entries={entries}
           />
-          <p className="text-xs text-ink-3">
+          <p className="text-xs text-ink-2">
             Oldest kept round:{" "}
             {entries.length ? formatShortDate(entries[entries.length - 1].playedOn) : "—"}. Anything
             older than that can&apos;t be added.

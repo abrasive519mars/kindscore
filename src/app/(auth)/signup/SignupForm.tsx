@@ -105,7 +105,7 @@ export function SignupForm({ charities, defaultCharityId }: SignupFormProps) {
       <Button type="submit" pending={pending} size="lg" variant="saffron">
         Create account
       </Button>
-      <p className="text-xs text-ink-3">
+      <p className="text-xs text-ink-2">
         You can change your charity and share at any time. Cancel anytime.
       </p>
     </form>

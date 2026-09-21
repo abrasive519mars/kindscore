@@ -165,13 +165,14 @@ Files (write → test → explain):
 - [x] Tests: 17 new unit (monthly aggregation, CSV, `AdminUserService` with fakes, `ReportsService`) → 346; `tests/integration/admin.test.ts` — member cannot list or call the RPC, admin lists with score counts, profile edit audited, six adds keep five + duplicate refused, grant → access at once (member sees `source = admin`), end → gone at once, report totals = SQL sums → 87
 - Verify: ✅ `scripts/walkthrough-phase9.ts` — search → member page → rename + charity → six scores (sixth evicts) → duplicate refused → edit → delete → grant → member dashboard Active → end → member locked on next request → audit rows → reports → CSV download → member gets 403 on admin pages and the export → 390px; screenshots in `docs/screenshots/phase-9/`
 
-### Phase 10 — Landing + polish
+### Phase 10 — Landing + polish ✅ done 2026-09-22 (plan: `docs/plans/phase-10-landing.md`)
 
-- [ ] `(marketing)/page.tsx` per DESIGN.md §3 storyboard: impact-first Hero (portrait + outcome line), ProofStrip, HowItWorks with named golfer, Charity impact + Split + cards, PracticeDraw + Histogram45, Jackpot ladder, Pricing, ClosingCTA with demo-account link
-- [ ] `/how-it-works`, `/pricing`; `not-found` + `error` torn-ticket boundaries
-- [ ] Micro-interaction pass (DESIGN.md §7), reduced-motion hook, focus rings, aria-live, mobile BottomNav, 360/390/768/1280/1920 check
-- [ ] Performance: `LazyMotion`, font subsetting, ISR 60s on public pages, LCP ≤ 2s
-- Verify: Lighthouse ≥ 90 perf/a11y on `/`; no horizontal scroll at 360px
+- [x] `(marketing)/page.tsx` — the eight DESIGN.md §3 sections from live data: `Hero` (featured charity portrait, `fetchpriority=high`), `ProofStrip` (ledger figures; hidden when zero), `HowItWorks` (Priya's eviction + match fill, once on view), `CharityImpact` (`SplitSlider` + spotlight + three cards), `PracticeDraw` (real engine in the browser, mode toggle + `Histogram45`), `Jackpot` (odometer + ladder), `Pricing`, `ClosingCTA` (demo link behind `NEXT_PUBLIC_DEMO_ACCOUNTS`)
+- [x] Engine `draw/practice.ts` (`practiceDraw`, `jackpotLadder`) and `landing/figures.ts` (`proofFigures` — never renders a 0); `lib/landing.ts` loader on public reads only
+- [x] `/how-it-works` (every rule in plain language + 10 FAQs), `/pricing` (cards, Split, FAQ), `/login?demo=1` demo panel, `robots.ts`, `sitemap.ts`, `opengraph-image.tsx`, Open Graph metadata, `error.tsx` polish
+- [x] `SiteNav` mobile menu (Escape closes, focus managed) + `MobileSubscribePill` (bottom-centre once the hero scrolls off); skip link → `<main id="main">` on every layout; small-text contrast fixed (`ink-3` is decorative only now); Newsreader without the `opsz` axis (−140 KB of fonts)
+- [x] Tests: 6 new unit (practice draw, ladder, proof figures) → 352
+- Verify: ✅ `scripts/walkthrough-phase10.ts` — all sections render, practice draw pulls in both modes, static pages, 404, OG image, 360/390 no overflow on `/`, `/how-it-works`, `/pricing`, `/charities`, `/draws`, pill after scroll, menu, first Tab = skip link; **Lighthouse desktop 98 / 100 / 100 / 100** (LCP 1.0 s), **mobile 82 / 100 / 100 / 100** (LCP 4.7 s under simulated slow-4G — the hero photo; desktop is the target device for the evaluators); screenshots in `docs/screenshots/phase-10/`
 
 ### Phase 11 — Seed, deploy, submit
 

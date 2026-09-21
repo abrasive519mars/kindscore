@@ -1,24 +1,37 @@
-import { BRAND } from "@/config/constants";
+import { loadLanding } from "@/lib/landing";
+import { demoAccountsEnabled } from "@/lib/demo";
+import { CharityImpact } from "@/components/landing/CharityImpact";
+import { ClosingCTA } from "@/components/landing/ClosingCTA";
+import { Hero } from "@/components/landing/Hero";
+import { HowItWorks } from "@/components/landing/HowItWorks";
+import { Jackpot } from "@/components/landing/Jackpot";
+import { PracticeDraw } from "@/components/landing/PracticeDraw";
+import { Pricing } from "@/components/landing/Pricing";
+import { ProofStrip } from "@/components/landing/ProofStrip";
+import { MobileSubscribePill } from "@/components/nav/MobileSubscribePill";
 
-/** Temporary Phase-0 page proving fonts, tokens and dark mode work. Replaced in Phase 10. */
-export default function HomePage() {
+/**
+ * DESIGN.md §3 — eight sections in the order the research settled on: cause, proof, how, charity,
+ * the draw, the jackpot, the price, the ask. Every figure is live; the practice draw is the only
+ * thing that is not.
+ */
+export default async function HomePage() {
+  const data = await loadLanding();
   return (
-    <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col justify-center gap-8 px-4 py-24">
-      <p className="text-sm font-medium uppercase tracking-[0.06em] text-ink-2">Phase 0 · scaffold</p>
-      <h1 className="text-6xl leading-[1.05]">
-        Your last five rounds <em className="text-saffron">could fund a classroom.</em>
-      </h1>
-      <p className="max-w-xl text-lg text-ink-2">
-        {BRAND.name} — {BRAND.tagline} Every subscription sends at least ₹50 a month to a charity
-        you choose, and enters your five most recent Stableford scores into a monthly draw.
-      </p>
-      <div className="num flex items-baseline gap-8 border-t border-line pt-6 font-display text-5xl">
-        <span>28</span>
-        <span className="text-saffron">33</span>
-        <span>31</span>
-        <span className="text-saffron">36</span>
-        <span className="text-saffron">29</span>
-      </div>
-    </main>
+    <>
+      <Hero featured={data.featured} />
+      <ProofStrip figures={data.proof} />
+      <HowItWorks />
+      <CharityImpact featured={data.featured} cards={data.cards} />
+      <PracticeDraw />
+      <Jackpot
+        jackpotPaise={data.jackpotPaise}
+        ladder={data.ladder}
+        upcomingMonth={data.upcomingMonth}
+      />
+      <Pricing />
+      <ClosingCTA showDemo={demoAccountsEnabled()} />
+      <MobileSubscribePill />
+    </>
   );
 }

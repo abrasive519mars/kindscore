@@ -33,7 +33,7 @@ export function EventList({ events }: { events: readonly CharityEvent[] }) {
           <div className="flex flex-col gap-1">
             <p className="font-medium">{event.title}</p>
             {event.description && <p className="text-sm text-ink-2">{event.description}</p>}
-            {event.location && <p className="text-sm text-ink-3">{event.location}</p>}
+            {event.location && <p className="text-sm text-ink-2">{event.location}</p>}
           </div>
         </li>
       ))}

@@ -125,3 +125,15 @@ export const LOCALE = {
   NUMBER_LOCALE: "en-IN",
   CURRENCY: "INR",
 } as const;
+
+// ── Demo accounts (Phase 11 seed) ─────────────────────────────────────
+// Shown on /login?demo=1 only when NEXT_PUBLIC_DEMO_ACCOUNTS=1 (the evaluators' deployment).
+export const DEMO_ACCOUNTS = {
+  password: "Kindscore!2026",
+  personas: [
+    { email: "admin@kindscore.app", role: "Admin" },
+    { email: "priya@kindscore.app", role: "Member · a win awaiting proof" },
+    { email: "raj@kindscore.app", role: "Member · three scores, not yet eligible" },
+    { email: "anita@kindscore.app", role: "Member · lapsed subscription" },
+  ],
+} as const;

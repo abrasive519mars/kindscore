@@ -4,6 +4,7 @@ import { formatInr } from "@/engine/money/paise";
 import { getAccess } from "@/lib/auth/access";
 import { Button } from "@/components/ui/Button";
 import { Wordmark } from "@/components/ui/Wordmark";
+import { MobileMenu } from "@/components/nav/MobileMenu";
 import { NavLink } from "@/components/nav/NavLink";
 
 const LINKS = [
@@ -17,9 +18,11 @@ const LINKS = [
 export async function SiteNav() {
   const access = await getAccess();
   const signedIn = access.kind !== "anonymous";
+  const accountHref = signedIn ? (access.kind === "admin" ? "/admin" : "/app") : "/login";
+  const accountLabel = signedIn ? "Dashboard" : "Log in";
 
   return (
-    <header className="sticky top-0 z-20 border-b border-line bg-bg/90 shadow-nav backdrop-blur">
+    <header className="relative sticky top-0 z-20 border-b border-line bg-bg/90 shadow-nav backdrop-blur">
       <nav
         className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4"
         aria-label="Main"
@@ -32,22 +35,14 @@ export async function SiteNav() {
             </li>
           ))}
         </ul>
-        <div className="flex items-center gap-3">
-          {signedIn ? (
-            <Link
-              href={access.kind === "admin" ? "/admin" : "/app"}
-              className="text-sm text-ink-2 hover:text-ink"
-            >
-              Dashboard
-            </Link>
-          ) : (
-            <Link href="/login" className="text-sm text-ink-2 hover:text-ink">
-              Log in
-            </Link>
-          )}
+        <div className="flex items-center gap-2 md:gap-3">
+          <Link href={accountHref} className="hidden text-sm text-ink-2 hover:text-ink md:inline">
+            {accountLabel}
+          </Link>
           <Link href={signedIn ? "/app/subscription" : "/signup"}>
             <Button size="sm">Subscribe · {formatInr(PLANS.month.pricePaise)}/mo</Button>
           </Link>
+          <MobileMenu links={LINKS} accountHref={accountHref} accountLabel={accountLabel} />
         </div>
       </nav>
     </header>

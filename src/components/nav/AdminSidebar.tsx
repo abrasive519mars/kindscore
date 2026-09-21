@@ -37,7 +37,7 @@ export function AdminSidebar() {
           ))}
         </ul>
       </nav>
-      <div className="hidden px-4 pt-6 text-xs text-ink-3 md:block">
+      <div className="hidden px-4 pt-6 text-xs text-ink-2 md:block">
         <Link href="/app" className="hover:text-ink">
           ← Member view
         </Link>
