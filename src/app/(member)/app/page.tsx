@@ -4,6 +4,8 @@ import { PLANS, SCORE } from "@/config/constants";
 import { formatInr } from "@/engine/money/paise";
 import { getAccess, type SignedInAccess } from "@/lib/auth/access";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { SupabaseScoreRepository } from "@/repositories/supabase/SupabaseScoreRepository";
+import { ScoreService } from "@/services/ScoreService";
 import { Button } from "@/components/ui/Button";
 import { Badge, Card, EmptyState, Figure, Rule } from "@/components/ui/primitives";
 import { SplitBar } from "@/components/ui/Split";
@@ -16,15 +18,16 @@ export const metadata: Metadata = { title: "Dashboard" };
 export default async function DashboardPage() {
   const access = (await getAccess()) as SignedInAccess;
   const supabase = await createSupabaseServerClient();
-  const [{ data: scores }, { data: charity }, { data: rollover }] = await Promise.all([
-    supabase.from("scores").select("score").eq("user_id", access.userId).order("played_on", { ascending: false }),
+  const scoreService = new ScoreService(new SupabaseScoreRepository(supabase));
+  const [scores, { data: charity }, { data: rollover }] = await Promise.all([
+    scoreService.list(access.userId),
     access.profile.charity_id
       ? supabase.from("charities").select("name, outcome_line, city").eq("id", access.profile.charity_id).maybeSingle()
       : Promise.resolve({ data: null }),
     supabase.rpc("next_rollover_in"),
   ]);
 
-  const kept = (scores ?? []).map((s) => s.score);
+  const kept = scores.map((entry) => entry.score);
   const remaining = SCORE.WINDOW_SIZE - kept.length;
   const unlocked = access.kind === "admin" || access.subscription.hasAccess;
 

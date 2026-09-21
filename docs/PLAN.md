@@ -97,11 +97,14 @@ Files (write → test → explain):
 - [x] Tests: 31 new unit (action-result, redirects, auth schemas, deriveAccess) → 181; auth integration → 50; `scripts/walkthrough-phase3.ts` (Playwright) drives signup → locked shell → settings → 403 → logout → wrong password → login with ?next → admin overview → 390px, screenshots in `docs/screenshots/phase-3/`
 - Verify: ✅ all of the above green; build clean; found and fixed: React 19 form reset wiping the email after a failed login (email now controlled), LockedCard overlay overflow, admin seeing the subscription banner
 
-### Phase 4 — Scores
-- [ ] `repositories/interfaces/ScoreRepository.ts` + supabase impl; `services/ScoreService.ts`
-- [ ] `(member)/app/scores` — ScoreRow + inline form (DESIGN.md §4.4): new figure slides in, oldest fades, inline edit, duplicate-date shows existing entry inline, hollow slots "enter N more"
-- [ ] Server actions: add/edit/delete with Zod + `requireActiveSubscriber`; `unique_violation` → `ConflictError`
-- Verify on deployed DB: 6th score evicts oldest by date; same date → 409; backdated beyond window → rejected; boundaries 1/45
+### Phase 4 — Scores ✅ done 2026-09-21 (plan: `docs/plans/phase-4-scores.md`)
+- [x] `repositories/interfaces/ScoreRepository.ts` + `SupabaseScoreRepository` (`23505` → `ConflictError`); `services/ScoreService.ts` (list/add/update/remove over the engine's `latestFive`)
+- [x] `schemas/score.ts` (1–45 integer, real date, not in the future)
+- [x] `(member)/app/scores` — `ScoreManager` (client list, `AnimatePresence` add/remove), `ScoreForm` (±1 steppers, inline "Saved — replaced your 12 Sept round (28)", conflict with "Edit that round" link), `ScoreListItem` (inline edit, two-click delete); hollow slots "enter N more"; locked card for non-subscribers
+- [x] Server actions add/edit/delete: `requireActiveSubscriber` → Zod → service → `revalidatePath`
+- [x] Dashboard reads through `ScoreService.list` (one code path for both pages)
+- [x] Tests: 19 new unit (score schema, `ScoreService` with a fake repository) → 200; `scripts/walkthrough-phase4.ts` (Playwright) drives locked → unlocked → 5 rounds → 6th evicts → duplicate → edit → backdated → 46 → future → delete → DB agrees → 390px; screenshots in `docs/screenshots/phase-4/`
+- Verify: ✅ all of the above green on local Supabase; build clean. Found and fixed: a `useEffect` keyed on the parent callback re-added the same entry on every render (callbacks now run inside the action), `ScoreRow` overflowing at 390px
 
 ### Phase 5 — Stripe + subscription
 - [ ] Stripe test mode: products/prices INR; `lib/stripe.ts`; `startCheckout(interval)` action (`billing_address_collection: required`)

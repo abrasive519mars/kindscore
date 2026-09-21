@@ -34,6 +34,9 @@ Rules:
 - Scores are shown newest first.
 - **[decision]** A score dated *earlier* than all five kept scores is rejected with a message ("older than your five kept rounds") rather than silently added and immediately dropped.
 - **[decision]** Dates are calendar dates in India (Asia/Kolkata). A round logged at 00:30 on 13 Sep is 13 Sep, whatever the server's clock says.
+- **[decision]** Future dates are refused — a round can't have been played tomorrow.
+- **[decision]** Deleting a round is allowed and immediate (§05: "an existing entry may only be edited or deleted"). Dropping to four rounds makes the member ineligible for the next draw, and the page says so.
+- **[decision]** Editing a round to a date another kept round already has is refused the same way as adding one — one score per date holds across edits too.
 
 Example — Priya's current 5 scores: **28, 33, 31, 36, 29**
 
