@@ -17,7 +17,9 @@ export function AdminSidebar() {
     <aside className="border-b border-line bg-bg md:w-56 md:border-b-0 md:border-r">
       <div className="flex h-16 items-center px-4">
         <Wordmark href="/admin" />
-        <span className="ml-2 rounded-sm bg-surface-2 px-1.5 text-[11px] font-medium uppercase tracking-wider text-ink-2">Admin</span>
+        <span className="ml-2 rounded-sm bg-surface-2 px-1.5 text-[11px] font-medium uppercase tracking-wider text-ink-2">
+          Admin
+        </span>
       </div>
       <nav aria-label="Admin">
         <ul className="flex gap-1 overflow-x-auto px-2 pb-2 text-sm md:flex-col md:pb-0">

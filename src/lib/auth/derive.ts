@@ -20,7 +20,12 @@ export interface SubscriptionState {
 
 export type Access =
   | { readonly kind: "anonymous" }
-  | { readonly kind: "member" | "admin"; readonly userId: string; readonly profile: ProfileRow; readonly subscription: SubscriptionState };
+  | {
+      readonly kind: "member" | "admin";
+      readonly userId: string;
+      readonly profile: ProfileRow;
+      readonly subscription: SubscriptionState;
+    };
 
 export type SignedInAccess = Extract<Access, { kind: "member" | "admin" }>;
 
@@ -41,7 +46,12 @@ export function deriveAccess(
 ): Access {
   if (!userId || !profile) return { kind: "anonymous" };
   const state = subscription ? toSubscriptionState(subscription, now) : NO_SUBSCRIPTION;
-  return { kind: profile.role === "admin" ? "admin" : "member", userId, profile, subscription: state };
+  return {
+    kind: profile.role === "admin" ? "admin" : "member",
+    userId,
+    profile,
+    subscription: state,
+  };
 }
 
 function toSubscriptionState(row: SubscriptionRow, now: Date): SubscriptionState {
@@ -50,7 +60,9 @@ function toSubscriptionState(row: SubscriptionRow, now: Date): SubscriptionState
     interval: row.plan_interval,
     currentPeriodEnd: row.current_period_end,
     cancelAtPeriodEnd: row.cancel_at_period_end,
-    hasAccess: hasActiveAccess({ status: row.status, currentPeriodEnd: row.current_period_end }, now),
+    hasAccess: hasActiveAccess(
+      { status: row.status, currentPeriodEnd: row.current_period_end },
+      now,
+    ),
   };
 }
-

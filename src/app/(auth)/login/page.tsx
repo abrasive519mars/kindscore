@@ -13,7 +13,9 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
     <div className="flex flex-col gap-8">
       <div className="flex flex-col gap-2">
         <h1 className="text-4xl">Welcome back.</h1>
-        <p className="text-ink-2">Log in to see your scores, your charity and this month&apos;s draw.</p>
+        <p className="text-ink-2">
+          Log in to see your scores, your charity and this month&apos;s draw.
+        </p>
       </div>
       <LoginForm next={next} />
       <p className="text-sm text-ink-2">

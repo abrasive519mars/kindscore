@@ -49,7 +49,11 @@ describe("splitPayment", () => {
 
   it("always sums to the amount and never goes negative across a sweep", () => {
     for (let amount = 1; amount < 5_000; amount += 37) {
-      for (let bps = SPLIT.CHARITY_MIN_BPS; bps <= SPLIT.CHARITY_MAX_BPS; bps += SPLIT.CHARITY_STEP_BPS) {
+      for (
+        let bps = SPLIT.CHARITY_MIN_BPS;
+        bps <= SPLIT.CHARITY_MAX_BPS;
+        bps += SPLIT.CHARITY_STEP_BPS
+      ) {
         const { charityPaise, poolPaise, platformPaise } = splitPayment(amount, bps);
         expect(charityPaise + poolPaise + platformPaise).toBe(amount);
         expect(platformPaise).toBeGreaterThanOrEqual(0);

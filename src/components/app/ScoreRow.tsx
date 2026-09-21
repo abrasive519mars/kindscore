@@ -15,7 +15,13 @@ interface ScoreRowProps {
 export function ScoreRow({ scores, matched, size = "lg" }: ScoreRowProps) {
   const slots = Array.from({ length: SCORE.WINDOW_SIZE }, (_, i) => scores[i]);
   return (
-    <ol className={cn("num flex items-baseline gap-4 border-b border-line pb-3 font-display sm:gap-6", size === "lg" ? "text-4xl sm:text-5xl" : "text-3xl")} aria-label="Your last five scores, newest first">
+    <ol
+      className={cn(
+        "num flex items-baseline gap-4 border-b border-line pb-3 font-display sm:gap-6",
+        size === "lg" ? "text-4xl sm:text-5xl" : "text-3xl",
+      )}
+      aria-label="Your last five scores, newest first"
+    >
       {slots.map((score, index) =>
         score === undefined ? (
           <li key={index} className="text-ink-3/40" aria-label="No round yet">

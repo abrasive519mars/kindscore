@@ -53,13 +53,23 @@ describe("deriveAccess", () => {
   });
 
   it("has access when active and inside the period", () => {
-    const access = deriveAccess("u1", profile(), subscription("active", "2026-10-05T00:00:00Z"), now);
+    const access = deriveAccess(
+      "u1",
+      profile(),
+      subscription("active", "2026-10-05T00:00:00Z"),
+      now,
+    );
     if (access.kind === "anonymous") throw new Error();
     expect(access.subscription.hasAccess).toBe(true);
   });
 
   it("loses access once the period has ended even if status is stale", () => {
-    const access = deriveAccess("u1", profile(), subscription("active", "2026-09-20T00:00:00Z"), now);
+    const access = deriveAccess(
+      "u1",
+      profile(),
+      subscription("active", "2026-09-20T00:00:00Z"),
+      now,
+    );
     if (access.kind === "anonymous") throw new Error();
     expect(access.subscription.hasAccess).toBe(false);
   });

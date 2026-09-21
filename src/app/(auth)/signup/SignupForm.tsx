@@ -99,7 +99,9 @@ export function SignupForm({ charities }: { charities: readonly CharityOption[] 
       <Button type="submit" pending={pending} size="lg" variant="saffron">
         Create account
       </Button>
-      <p className="text-xs text-ink-3">You can change your charity and share at any time. Cancel anytime.</p>
+      <p className="text-xs text-ink-3">
+        You can change your charity and share at any time. Cancel anytime.
+      </p>
     </form>
   );
 }

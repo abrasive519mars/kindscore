@@ -5,7 +5,10 @@
  */
 export const DEFAULT_AFTER_LOGIN = "/app";
 
-export function safeNextPath(raw: string | null | undefined, fallback = DEFAULT_AFTER_LOGIN): string {
+export function safeNextPath(
+  raw: string | null | undefined,
+  fallback = DEFAULT_AFTER_LOGIN,
+): string {
   if (!raw) return fallback;
   const isRelativePath = raw.startsWith("/") && !raw.startsWith("//") && !raw.startsWith("/\\");
   return isRelativePath ? raw : fallback;

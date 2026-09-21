@@ -14,12 +14,18 @@ describe("isIsoDate", () => {
     expect(isIsoDate("2028-02-29")).toBe(true); // leap year
   });
 
-  it.each(["2026-02-30", "2026-13-01", "2027-02-29", "2026-9-12", "12/09/2026", "", 20260912, null])(
-    "rejects %s",
-    (value) => {
-      expect(isIsoDate(value)).toBe(false);
-    },
-  );
+  it.each([
+    "2026-02-30",
+    "2026-13-01",
+    "2027-02-29",
+    "2026-9-12",
+    "12/09/2026",
+    "",
+    20260912,
+    null,
+  ])("rejects %s", (value) => {
+    expect(isIsoDate(value)).toBe(false);
+  });
 });
 
 describe("todayInTimezone", () => {

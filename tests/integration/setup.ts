@@ -42,7 +42,10 @@ export interface TestUser {
 const PASSWORD = "Kindscore!2026";
 
 /** Creates a confirmed auth user (the profile trigger fires) and optionally promotes it. */
-export async function createUser(role: "member" | "admin" = "member", charityId?: string): Promise<TestUser> {
+export async function createUser(
+  role: "member" | "admin" = "member",
+  charityId?: string,
+): Promise<TestUser> {
   const email = `${role}-${crypto.randomUUID().slice(0, 8)}@kindscore.test`;
   const { data, error } = await admin.auth.admin.createUser({
     email,
@@ -52,7 +55,10 @@ export async function createUser(role: "member" | "admin" = "member", charityId?
   });
   if (error || !data.user) throw error ?? new Error("createUser returned no user");
   if (role === "admin") {
-    const { error: promote } = await admin.from("profiles").update({ role: "admin" }).eq("id", data.user.id);
+    const { error: promote } = await admin
+      .from("profiles")
+      .update({ role: "admin" })
+      .eq("id", data.user.id);
     if (promote) throw promote;
   }
   return { id: data.user.id, email, password: PASSWORD };
@@ -61,7 +67,10 @@ export async function createUser(role: "member" | "admin" = "member", charityId?
 /** A client whose requests carry this user's session, so RLS applies as it would in the app. */
 export async function clientAs(user: TestUser): Promise<Db> {
   const client = createClient<Database>(url, anonKey, noSession);
-  const { error } = await client.auth.signInWithPassword({ email: user.email, password: user.password });
+  const { error } = await client.auth.signInWithPassword({
+    email: user.email,
+    password: user.password,
+  });
   if (error) throw error;
   return client;
 }
@@ -71,7 +80,10 @@ export async function deleteUser(user: TestUser): Promise<void> {
 }
 
 /** Gives a member an active subscription without Stripe, the same way scripts/seed.ts will. */
-export async function grantActiveSubscription(userId: string, interval: "month" | "year" = "month"): Promise<void> {
+export async function grantActiveSubscription(
+  userId: string,
+  interval: "month" | "year" = "month",
+): Promise<void> {
   const start = new Date();
   const end = new Date(start);
   end.setMonth(end.getMonth() + (interval === "month" ? 1 : 12));

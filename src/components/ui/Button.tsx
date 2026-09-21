@@ -26,7 +26,15 @@ const SIZE: Record<Size, string> = {
 };
 
 /** DESIGN.md §6 — press scales to .97 (CSS), 120ms ease-out; no hover lift. */
-export function Button({ variant = "ink", size = "md", pending = false, className, children, disabled, ...rest }: ButtonProps) {
+export function Button({
+  variant = "ink",
+  size = "md",
+  pending = false,
+  className,
+  children,
+  disabled,
+  ...rest
+}: ButtonProps) {
   return (
     <button
       {...rest}
@@ -49,7 +57,11 @@ function PendingDots() {
   return (
     <span className="inline-flex gap-1" aria-label="Working">
       {[0, 1, 2].map((i) => (
-        <span key={i} className="h-1.5 w-1.5 animate-pulse rounded-full bg-current" style={{ animationDelay: `${i * 150}ms` }} />
+        <span
+          key={i}
+          className="h-1.5 w-1.5 animate-pulse rounded-full bg-current"
+          style={{ animationDelay: `${i * 150}ms` }}
+        />
       ))}
     </span>
   );

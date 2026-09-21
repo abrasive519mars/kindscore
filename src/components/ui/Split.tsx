@@ -23,15 +23,29 @@ export function SplitBar({ amountPaise, charityBps, compact = false }: SplitBarP
   const pct = (paise: number) => `${(paise / amountPaise) * 100}%`;
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex h-3 w-full overflow-hidden rounded-full bg-surface-2" role="img" aria-label={splitLabel(charityPaise, poolPaise, platformPaise)}>
-        <div className="h-full bg-saffron transition-[width] duration-move ease-move" style={{ width: pct(charityPaise) }} />
-        <div className="h-full bg-pool transition-[width] duration-move ease-move" style={{ width: pct(poolPaise) }} />
+      <div
+        className="flex h-3 w-full overflow-hidden rounded-full bg-surface-2"
+        role="img"
+        aria-label={splitLabel(charityPaise, poolPaise, platformPaise)}
+      >
+        <div
+          className="h-full bg-saffron transition-[width] duration-move ease-move"
+          style={{ width: pct(charityPaise) }}
+        />
+        <div
+          className="h-full bg-pool transition-[width] duration-move ease-move"
+          style={{ width: pct(poolPaise) }}
+        />
       </div>
       {!compact && (
         <dl className="num grid grid-cols-3 gap-2 text-sm">
           <SplitLegend swatch="bg-saffron" label="Your charity" value={formatInr(charityPaise)} />
           <SplitLegend swatch="bg-pool" label="Prize pool" value={formatInr(poolPaise)} />
-          <SplitLegend swatch="bg-surface-2" label="Kindscore" value={platformPaise === 0 ? "Nothing" : formatInr(platformPaise)} />
+          <SplitLegend
+            swatch="bg-surface-2"
+            label="Kindscore"
+            value={platformPaise === 0 ? "Nothing" : formatInr(platformPaise)}
+          />
         </dl>
       )}
     </div>
@@ -61,7 +75,12 @@ interface SplitSliderProps {
 }
 
 /** Slider 10–70% in 5% steps; the bar and rupee figures follow live. */
-export function SplitSlider({ name, defaultBps = SPLIT.CHARITY_MIN_BPS, amountPaise = PLANS.month.pricePaise, outcomeLine }: SplitSliderProps) {
+export function SplitSlider({
+  name,
+  defaultBps = SPLIT.CHARITY_MIN_BPS,
+  amountPaise = PLANS.month.pricePaise,
+  outcomeLine,
+}: SplitSliderProps) {
   const [bps, setBps] = useState(defaultBps);
   const id = useId();
   const percent = bps / 100;

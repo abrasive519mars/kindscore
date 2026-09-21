@@ -97,7 +97,7 @@ These cut across schema, API, and UI — get them right in the data layer first.
 - **Subscription gating:** real-time subscription status check on every authenticated request. Non-subscribers get restricted access. Handle renewal, cancellation, and lapsed states.
 - **Rolling 5-score window:** a user keeps exactly their latest 5 Stableford scores (range 1–45), each with a date. A new score evicts the oldest automatically. Display most-recent-first.
 - **One score per date:** duplicate dates are rejected; an existing entry can only be edited or deleted.
-- **Draw engine:** monthly cadence; two selectable modes — *random* (standard lottery) and *algorithmic* (weighted by score frequency). Admin must be able to run a **simulation before publishing**. Match tiers: 5-number, 4-number, 3-number.
+- **Draw engine:** monthly cadence; two selectable modes — _random_ (standard lottery) and _algorithmic_ (weighted by score frequency). Admin must be able to run a **simulation before publishing**. Match tiers: 5-number, 4-number, 3-number.
 - **Prize pool:** a fixed portion of each subscription funds the pool. Tier split is fixed — 5-match 40%, 4-match 35%, 3-match 25%. Pool tiers auto-calculate from active subscriber count. Multiple winners in a tier split equally. **Only the 5-match jackpot rolls over** if unclaimed.
 - **Charity:** chosen at signup; minimum 10% of the subscription fee, user may raise it; plus an independent one-off donation path not tied to gameplay. Charity directory needs search/filter, profile pages (description, images, upcoming events), and a homepage spotlight.
 - **Winner verification:** winners only. They upload a screenshot proof from their golf platform; admin approves/rejects; payout state goes Pending → Paid.
@@ -124,4 +124,5 @@ The PDF file has 13 pages; page "11 / 14" (§13 Technical requirements and §14 
 The submission form accepts a file upload (max 50 MB combined; zip, pdf, doc, ppt, xls, png, jpg, mp3, mp4 only) plus an assignment link and required notes (≤2048 chars). Plan for a zipped repo and/or a live URL plus a short notes blurb.
 
 # Next.js 16 agent rules (auto-maintained by `next dev`)
+
 @AGENTS.md

@@ -64,7 +64,9 @@ export class SupabaseScoreRepository implements ScoreRepository {
 /** The service checks for a duplicate date first; this catches the race between two tabs. */
 function mapWriteError(error: { code?: string; message: string }, write: ScoreWrite) {
   if (error.code === UNIQUE_VIOLATION) {
-    return new ConflictError(`You already logged a round on ${formatShortDate(write.playedOn)} — edit it instead`);
+    return new ConflictError(
+      `You already logged a round on ${formatShortDate(write.playedOn)} — edit it instead`,
+    );
   }
   return new ExternalServiceError("Scores", error);
 }

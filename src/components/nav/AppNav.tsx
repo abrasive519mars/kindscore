@@ -19,7 +19,10 @@ interface AppNavProps {
 export function AppNav({ fullName, isAdmin }: AppNavProps) {
   return (
     <header className="border-b border-line bg-bg">
-      <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4" aria-label="App">
+      <nav
+        className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4"
+        aria-label="App"
+      >
         <div className="flex items-center gap-8">
           <Wordmark href="/app" />
           <ul className="hidden items-center gap-6 text-sm md:flex">

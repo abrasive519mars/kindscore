@@ -53,7 +53,11 @@ export interface AllocateInput {
   readonly matched: readonly MatchedEntry[];
 }
 
-export function allocatePrizes({ poolPaise, rolloverInPaise, matched }: AllocateInput): PrizeAllocation {
+export function allocatePrizes({
+  poolPaise,
+  rolloverInPaise,
+  matched,
+}: AllocateInput): PrizeAllocation {
   const tierPools = splitTierPools(poolPaise, rolloverInPaise);
   const winners = winnersByTier(matched);
 

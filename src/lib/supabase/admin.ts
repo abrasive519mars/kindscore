@@ -12,7 +12,11 @@ import type { Database } from "@/types/database.types";
  * and `server-only` makes any client-bundle import a build error.
  */
 export function createSupabaseAdminClient() {
-  return createClient<Database>(clientEnv.NEXT_PUBLIC_SUPABASE_URL, serverEnv().SUPABASE_SERVICE_ROLE_KEY, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
+  return createClient<Database>(
+    clientEnv.NEXT_PUBLIC_SUPABASE_URL,
+    serverEnv().SUPABASE_SERVICE_ROLE_KEY,
+    {
+      auth: { persistSession: false, autoRefreshToken: false },
+    },
+  );
 }

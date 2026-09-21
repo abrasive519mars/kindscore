@@ -9,7 +9,9 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
       <div className="mx-auto w-full max-w-6xl px-4 pt-6">
         <Wordmark />
       </div>
-      <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 py-12">{children}</main>
+      <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 py-12">
+        {children}
+      </main>
     </div>
   );
 }

@@ -15,7 +15,12 @@ class FakeScoreRepository implements ScoreRepository {
   }
   async insert(_userId: string, write: ScoreWrite): Promise<ScoreEntry> {
     this.inserts++;
-    const entry = { id: `r${++this.seq}`, score: write.score, playedOn: write.playedOn, createdAt: `${write.playedOn}T10:00:00Z` };
+    const entry = {
+      id: `r${++this.seq}`,
+      score: write.score,
+      playedOn: write.playedOn,
+      createdAt: `${write.playedOn}T10:00:00Z`,
+    };
     this.rows.push(entry);
     return entry;
   }
@@ -60,12 +65,16 @@ describe("add", () => {
   });
 
   it("refuses a duplicate date before touching storage", async () => {
-    await expect(service.add("u1", { score: 40, playedOn: "2026-09-10" })).rejects.toThrow(ConflictError);
+    await expect(service.add("u1", { score: 40, playedOn: "2026-09-10" })).rejects.toThrow(
+      ConflictError,
+    );
     expect(repo.inserts).toBe(5);
   });
 
   it("refuses a round older than the five kept, before touching storage", async () => {
-    await expect(service.add("u1", { score: 40, playedOn: "2026-08-20" })).rejects.toThrow(RuleViolationError);
+    await expect(service.add("u1", { score: 40, playedOn: "2026-08-20" })).rejects.toThrow(
+      RuleViolationError,
+    );
     expect(repo.inserts).toBe(5);
   });
 });
@@ -77,15 +86,21 @@ describe("update", () => {
   });
 
   it("allows keeping the same date", async () => {
-    await expect(service.update("u1", "r3", { score: 41, playedOn: "2026-09-10" })).resolves.toBeDefined();
+    await expect(
+      service.update("u1", "r3", { score: 41, playedOn: "2026-09-10" }),
+    ).resolves.toBeDefined();
   });
 
   it("refuses moving onto a date another round already has", async () => {
-    await expect(service.update("u1", "r3", { score: 41, playedOn: "2026-09-15" })).rejects.toThrow(ConflictError);
+    await expect(service.update("u1", "r3", { score: 41, playedOn: "2026-09-15" })).rejects.toThrow(
+      ConflictError,
+    );
   });
 
   it("refuses an unknown or foreign id", async () => {
-    await expect(service.update("u1", "nope", { score: 41, playedOn: "2026-09-11" })).rejects.toThrow(NotFoundError);
+    await expect(
+      service.update("u1", "nope", { score: 41, playedOn: "2026-09-11" }),
+    ).rejects.toThrow(NotFoundError);
   });
 });
 

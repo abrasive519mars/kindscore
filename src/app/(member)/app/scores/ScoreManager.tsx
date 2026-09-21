@@ -28,10 +28,14 @@ export function ScoreManager({ initialEntries, today }: ScoreManagerProps) {
   const remaining = SCORE.WINDOW_SIZE - entries.length;
 
   function onAdded(entry: ScoreEntry) {
-    setEntries((current) => [...selectRetainedScores([...current.filter((e) => e.id !== entry.id), entry]).retained]);
+    setEntries((current) => [
+      ...selectRetainedScores([...current.filter((e) => e.id !== entry.id), entry]).retained,
+    ]);
   }
   function onUpdated(entry: ScoreEntry) {
-    setEntries((current) => [...selectRetainedScores(current.map((e) => (e.id === entry.id ? entry : e))).retained]);
+    setEntries((current) => [
+      ...selectRetainedScores(current.map((e) => (e.id === entry.id ? entry : e))).retained,
+    ]);
     setEditingId(null);
   }
   function onDeleted(id: string) {
@@ -77,9 +81,17 @@ export function ScoreManager({ initialEntries, today }: ScoreManagerProps) {
 
         <Card className="flex flex-col gap-4 self-start">
           <h2 className="text-2xl">Add a round</h2>
-          <ScoreForm today={today} usedDates={entries.map((e) => e.playedOn)} onAdded={onAdded} onEditRequest={setEditingId} entries={entries} />
+          <ScoreForm
+            today={today}
+            usedDates={entries.map((e) => e.playedOn)}
+            onAdded={onAdded}
+            onEditRequest={setEditingId}
+            entries={entries}
+          />
           <p className="text-xs text-ink-3">
-            Oldest kept round: {entries.length ? formatShortDate(entries[entries.length - 1].playedOn) : "—"}. Anything older than that can&apos;t be added.
+            Oldest kept round:{" "}
+            {entries.length ? formatShortDate(entries[entries.length - 1].playedOn) : "—"}. Anything
+            older than that can&apos;t be added.
           </p>
         </Card>
       </div>

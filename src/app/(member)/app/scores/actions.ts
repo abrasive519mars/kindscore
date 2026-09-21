@@ -20,7 +20,10 @@ function revalidateScores() {
   revalidatePath("/app/scores");
 }
 
-export async function addScore(_prev: ActionResult<AddScoreResult> | null, formData: FormData): Promise<ActionResult<AddScoreResult>> {
+export async function addScore(
+  _prev: ActionResult<AddScoreResult> | null,
+  formData: FormData,
+): Promise<ActionResult<AddScoreResult>> {
   return runAction(async () => {
     const { userId } = await requireActiveSubscriber();
     const input = scoreInputSchema.parse(Object.fromEntries(formData));
@@ -30,7 +33,10 @@ export async function addScore(_prev: ActionResult<AddScoreResult> | null, formD
   });
 }
 
-export async function updateScore(_prev: ActionResult<ScoreEntry> | null, formData: FormData): Promise<ActionResult<ScoreEntry>> {
+export async function updateScore(
+  _prev: ActionResult<ScoreEntry> | null,
+  formData: FormData,
+): Promise<ActionResult<ScoreEntry>> {
   return runAction(async () => {
     const { userId } = await requireActiveSubscriber();
     const { id } = scoreIdSchema.parse({ id: formData.get("id") });
@@ -41,7 +47,10 @@ export async function updateScore(_prev: ActionResult<ScoreEntry> | null, formDa
   });
 }
 
-export async function deleteScore(_prev: ActionResult | null, formData: FormData): Promise<ActionResult> {
+export async function deleteScore(
+  _prev: ActionResult | null,
+  formData: FormData,
+): Promise<ActionResult> {
   return runAction(async () => {
     const { userId } = await requireActiveSubscriber();
     const { id } = scoreIdSchema.parse({ id: formData.get("id") });

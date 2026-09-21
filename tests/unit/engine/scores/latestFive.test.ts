@@ -9,7 +9,12 @@ import {
   type ScoreEntry,
 } from "@/engine/scores/latestFive";
 
-function entry(id: string, playedOn: string, score = 30, createdAt = `${playedOn}T10:00:00Z`): ScoreEntry {
+function entry(
+  id: string,
+  playedOn: string,
+  score = 30,
+  createdAt = `${playedOn}T10:00:00Z`,
+): ScoreEntry {
   return { id, score, playedOn, createdAt };
 }
 

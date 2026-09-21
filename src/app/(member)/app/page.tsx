@@ -22,7 +22,11 @@ export default async function DashboardPage() {
   const [scores, { data: charity }, { data: rollover }] = await Promise.all([
     scoreService.list(access.userId),
     access.profile.charity_id
-      ? supabase.from("charities").select("name, outcome_line, city").eq("id", access.profile.charity_id).maybeSingle()
+      ? supabase
+          .from("charities")
+          .select("name, outcome_line, city")
+          .eq("id", access.profile.charity_id)
+          .maybeSingle()
       : Promise.resolve({ data: null }),
     supabase.rpc("next_rollover_in"),
   ]);
@@ -34,16 +38,27 @@ export default async function DashboardPage() {
   return (
     <div className="flex flex-col gap-8">
       <header className="flex flex-col gap-1">
-        <p className="text-sm text-ink-2">Hello, {access.profile.full_name.split(" ")[0] || "there"}.</p>
+        <p className="text-sm text-ink-2">
+          Hello, {access.profile.full_name.split(" ")[0] || "there"}.
+        </p>
         <h1 className="text-4xl">Your month at a glance.</h1>
       </header>
 
       <section className="grid gap-6 md:grid-cols-3" aria-label="Status">
         <Card>
-          <Figure label="Subscription" value={<SubscriptionValue access={access} />} hint={renewalHint(access)} />
+          <Figure
+            label="Subscription"
+            value={<SubscriptionValue access={access} />}
+            hint={renewalHint(access)}
+          />
         </Card>
         <Card>
-          <Figure label="Jackpot carried" value={formatInr(rollover ?? 0)} hint="Rolls over until someone matches all five" accent />
+          <Figure
+            label="Jackpot carried"
+            value={formatInr(rollover ?? 0)}
+            hint="Rolls over until someone matches all five"
+            accent
+          />
         </Card>
         <Card>
           <Figure label="Total won" value={formatInr(0)} hint="Winnings appear here after a draw" />
@@ -73,11 +88,16 @@ export default async function DashboardPage() {
                 }
               />
             ) : (
-              <p className="text-sm text-ink-2">You&apos;re in the next draw. <Badge tone="success">Eligible</Badge></p>
+              <p className="text-sm text-ink-2">
+                You&apos;re in the next draw. <Badge tone="success">Eligible</Badge>
+              </p>
             )}
           </Card>
         ) : (
-          <LockedCard title="Your five scores go here" body="Subscribe to log your Stableford rounds — they become your numbers in the monthly draw.">
+          <LockedCard
+            title="Your five scores go here"
+            body="Subscribe to log your Stableford rounds — they become your numbers in the monthly draw."
+          >
             <ScoreRow scores={[28, 33, 31, 36, 29]} />
           </LockedCard>
         )}
@@ -91,16 +111,25 @@ export default async function DashboardPage() {
               <p className="font-medium">
                 {charity.name} <span className="text-ink-2">· {charity.city}</span>
               </p>
-              <SplitBar amountPaise={PLANS.month.pricePaise} charityBps={access.profile.charity_bps} />
+              <SplitBar
+                amountPaise={PLANS.month.pricePaise}
+                charityBps={access.profile.charity_bps}
+              />
               <p className="text-sm text-ink-2">{charity.outcome_line}</p>
             </>
           ) : (
-            <EmptyState title="Choose a charity" body="Part of every payment goes to a cause you pick." />
+            <EmptyState
+              title="Choose a charity"
+              body="Part of every payment goes to a cause you pick."
+            />
           )}
         </Card>
         <Card className="flex flex-col gap-4">
           <h2 className="text-2xl">Draws</h2>
-          <EmptyState title="No draws yet" body="Draws entered and results will appear here once the first monthly draw is published." />
+          <EmptyState
+            title="No draws yet"
+            body="Draws entered and results will appear here once the first monthly draw is published."
+          />
         </Card>
       </section>
     </div>
@@ -118,8 +147,11 @@ function SubscriptionValue({ access }: { access: SignedInAccess }) {
 function renewalHint(access: SignedInAccess): string {
   const { currentPeriodEnd, cancelAtPeriodEnd, interval } = access.subscription;
   if (!currentPeriodEnd) return "Monthly or yearly — cancel anytime";
-  const day = new Intl.DateTimeFormat("en-IN", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Kolkata" }).format(
-    new Date(currentPeriodEnd),
-  );
+  const day = new Intl.DateTimeFormat("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: "Asia/Kolkata",
+  }).format(new Date(currentPeriodEnd));
   return `${cancelAtPeriodEnd ? "Ends" : "Renews"} ${day} · ${interval === "year" ? "yearly" : "monthly"}`;
 }

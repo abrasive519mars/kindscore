@@ -95,7 +95,10 @@ async function main() {
   const { data: user } = await admin.from("profiles").select("id").eq("email", email).single();
   await grantSubscription(user!.id);
   await page.goto(`${BASE}/app/scores`);
-  log("unlocked — empty state", (await page.getByText(/Enter 5 more rounds/).textContent())?.trim());
+  log(
+    "unlocked — empty state",
+    (await page.getByText(/Enter 5 more rounds/).textContent())?.trim(),
+  );
   await shot(page, "02-scores-empty");
 
   // 3. Add five rounds on different days (out of date order to prove ordering is by date)
@@ -142,14 +145,21 @@ async function main() {
   // 9. Two-click delete of the newest round
   const firstRow = page.locator(ROWS).first();
   await firstRow.getByRole("button", { name: "Delete" }).click();
-  log("first click arms", (await firstRow.getByRole("button", { name: "Delete?" }).textContent())?.trim());
+  log(
+    "first click arms",
+    (await firstRow.getByRole("button", { name: "Delete?" }).textContent())?.trim(),
+  );
   await firstRow.getByRole("button", { name: "Delete?" }).click();
   await page.locator(ROWS).nth(4).waitFor({ state: "hidden" });
   log("after delete", (await listedScores(page)).join(" "));
   await shot(page, "07-scores-deleted");
 
   // 10. Database agrees with the screen
-  const { data: rows } = await admin.from("scores").select("score, played_on").eq("user_id", user!.id).order("played_on", { ascending: false });
+  const { data: rows } = await admin
+    .from("scores")
+    .select("score, played_on")
+    .eq("user_id", user!.id)
+    .order("played_on", { ascending: false });
   log("db rows", rows?.map((r) => `${r.score}@${r.played_on}`).join(" "));
 
   // 11. Dashboard reflects the same list
@@ -157,12 +167,19 @@ async function main() {
   log("dashboard", (await page.getByText(/Enter 1 more round/).textContent())?.trim());
 
   // 12. Phone viewport
-  const phone = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+  const phone = await browser.newContext({
+    viewport: { width: 390, height: 844 },
+    deviceScaleFactor: 2,
+    isMobile: true,
+    hasTouch: true,
+  });
   await phone.addCookies(await desktop.cookies());
   const mobile = await phone.newPage();
   await mobile.goto(`${BASE}/app/scores`);
   await mobile.screenshot({ path: `${OUT}/08-scores-mobile.png`, fullPage: true });
-  const overflow = await mobile.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
+  const overflow = await mobile.evaluate(
+    () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
+  );
   log("390px horizontal overflow", String(overflow));
 
   // cleanup
@@ -175,4 +192,3 @@ main().catch((error) => {
   console.error(error);
   process.exit(1);
 });
-

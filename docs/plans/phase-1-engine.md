@@ -76,7 +76,12 @@ Generic calendar-date helpers; used by scores (played-on), draws (draw month) an
 PRD §05 "only the latest 5 scores are retained; a new score replaces the oldest" as functions.
 
 ```ts
-interface ScoreEntry { id: string; score: number; playedOn: IsoDate; createdAt: string }
+interface ScoreEntry {
+  id: string;
+  score: number;
+  playedOn: IsoDate;
+  createdAt: string;
+}
 ```
 
 | Function                                     | Contract                                                                                                                                                                                                                             |
@@ -96,26 +101,29 @@ The DB trigger in Phase 2 implements the same eviction; this is its testable twi
 ### 3.8 `engine/draw/eligibility.ts` ✅
 
 ```ts
-interface EligibleEntry { userId: string; scores: readonly number[] }
+interface EligibleEntry {
+  userId: string;
+  scores: readonly number[];
+}
 ```
 
 `isEligibleTicket(scores)` — exactly `SCORE.WINDOW_SIZE` scores. (Active subscription is checked by the service layer; the engine only knows about scores.)
 
 ### 3.9 `engine/draw/frequency.ts` ✅
 
-| Function | Contract |
-|---|---|
-| `buildFrequencyMap(entries)` | for each entry, count each **distinct** score once (a user with `33, 33, …` adds 1 to 33, not 2) → `ReadonlyMap<number, number>` |
-| `smoothFrequency(freq)` | `smoothed(n) = Σ_k KERNEL[k] · freq(n+k)` for k in −2..2 with `DRAW.SMOOTHING_KERNEL = [0.25, 0.5, 1, 0.5, 0.25]`; neighbours outside 1..45 are ignored. **[decision]** With a few hundred users the raw tally is noisy (31 might have 9 holders while 30 and 32 have 40); smoothing makes the draw follow the *shape* of how golfers score |
+| Function                     | Contract                                                                                                                                                                                                                                                                                                                                    |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `buildFrequencyMap(entries)` | for each entry, count each **distinct** score once (a user with `33, 33, …` adds 1 to 33, not 2) → `ReadonlyMap<number, number>`                                                                                                                                                                                                            |
+| `smoothFrequency(freq)`      | `smoothed(n) = Σ_k KERNEL[k] · freq(n+k)` for k in −2..2 with `DRAW.SMOOTHING_KERNEL = [0.25, 0.5, 1, 0.5, 0.25]`; neighbours outside 1..45 are ignored. **[decision]** With a few hundred users the raw tally is noisy (31 might have 9 holders while 30 and 32 have 40); smoothing makes the draw follow the _shape_ of how golfers score |
 
 ### 3.10 `engine/draw/generateNumbers.ts` ✅
 
-| Function                                        | Contract                                                                                                           |
-| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `buildWeights(mode, freq)` | array indexed 1..45: random → `1` each; algorithmic → `ALGORITHMIC_BASELINE_WEIGHT + smoothFrequency(freq)(n)`. **[decision]** The baseline keeps every number possible; the PRD never says a never-scored number is impossible |
-| `pickWeightedIndex(weights, r)`                 | `r ∈ [0,1)` × total weight, walk cumulative sums; pure                                                             |
-| `sampleWithoutReplacement(weights, count, rng)` | pick, zero that weight, repeat `count` times                                                                       |
-| `generateNumbers(mode, freq, rng)`              | `sampleWithoutReplacement(buildWeights(...), NUMBERS_DRAWN, rng)` sorted ascending; **always 5 distinct in 1..45** |
+| Function                                        | Contract                                                                                                                                                                                                                        |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `buildWeights(mode, freq)`                      | array indexed 1..45: random → `1` each; algorithmic → `ALGORITHMIC_BASELINE_WEIGHT + smoothFrequency(freq)(n)`. **[decision]** The baseline keeps every number possible; the PRD never says a never-scored number is impossible |
+| `pickWeightedIndex(weights, r)`                 | `r ∈ [0,1)` × total weight, walk cumulative sums; pure                                                                                                                                                                          |
+| `sampleWithoutReplacement(weights, count, rng)` | pick, zero that weight, repeat `count` times                                                                                                                                                                                    |
+| `generateNumbers(mode, freq, rng)`              | `sampleWithoutReplacement(buildWeights(...), NUMBERS_DRAWN, rng)` sorted ascending; **always 5 distinct in 1..45**                                                                                                              |
 
 Empty frequency map in algorithmic mode degrades to uniform (baseline only) — the "no scores yet" fallback from QA §2. Pipeline: **count → smooth → floor → weighted draw without replacement**; random mode is the same pipeline with every weight 1.
 
@@ -153,8 +161,12 @@ Empty frequency map in algorithmic mode degrades to uniform (baseline only) — 
 ### 3.15 `engine/verification/stateMachine.ts` ✅
 
 ```ts
-interface VerificationState { review: ReviewStatus; payout: PayoutStatus; resubmissions: number }
-type VerificationEvent = "submit_proof" | "approve" | "reject" | "mark_paid"
+interface VerificationState {
+  review: ReviewStatus;
+  payout: PayoutStatus;
+  resubmissions: number;
+}
+type VerificationEvent = "submit_proof" | "approve" | "reject" | "mark_paid";
 ```
 
 | From               | Event        | To                   | Guard                                                               |
@@ -185,11 +197,11 @@ Mirrors the source tree. Cases lifted from `docs/specs/QA.md` §1:
 | `money/paise.test.ts`               | `splitEqualPaise(3_750_000, 7)` sums exactly, first 2 get +1 (wait: 3 750 000 mod 7 = 3 750 000 − 535 714×7 = 2 → first 2); `splitEqualPaise(10, 0)` → `[]`; `formatInr(18_000_000)` → `"₹1,80,000"`; `assertPaise(1.5)` throws                                |
 | `charity/splitPayment.test.ts`      | 49 900 @ 1 000 → 4 990 / 14 970 / 29 940; @ 7 000 → platform 0; 900 and 7 100 rejected; 1 050 (not a step) rejected; sum invariant over a sweep of amounts × bps                                                                                               |
 | `scores/validateScore.test.ts`      | 1 and 45 accepted; 0, 46, 1.5, "abc", "", null rejected                                                                                                                                                                                                        |
-| `time/dates.test.ts`              | IST midnight: `2026-09-12T19:00:00Z` → `"2026-09-13"`; `2026-09-12T18:00:00Z` → `"2026-09-12"`; `2026-02-30` invalid; future detection                                                                                                                         |
-| `scores/latestFive.test.ts`             | 6th evicts oldest by `playedOn` not insert order; duplicate date → `ConflictError`; backdated beyond window → `RuleViolationError`; backdated within window accepted and evicts the correct one; 4 entries + new → nothing evicted                             |
+| `time/dates.test.ts`                | IST midnight: `2026-09-12T19:00:00Z` → `"2026-09-13"`; `2026-09-12T18:00:00Z` → `"2026-09-12"`; `2026-02-30` invalid; future detection                                                                                                                         |
+| `scores/latestFive.test.ts`         | 6th evicts oldest by `playedOn` not insert order; duplicate date → `ConflictError`; backdated beyond window → `RuleViolationError`; backdated within window accepted and evicts the correct one; 4 entries + new → nothing evicted                             |
 | `draw/generateNumbers.test.ts`      | property ×1 000 both modes with `secureRng`: 5 distinct, all in 1..45, sorted; with `sequenceRng` produce a known tuple; algorithmic with empty map ≡ uniform weights; heavily weighted number is drawn first for `r = 0.5`                                    |
 | `draw/match.test.ts`                | `[33,33,28,36,29]` vs `[33,12,29,36,41]` → 3; 0/1/2 → `null` tier; 5 → jackpot                                                                                                                                                                                 |
-| `draw/frequency.test.ts` | duplicates within a user count once; a lone spike spreads to ±2 neighbours in kernel ratios (¼, ½, 1, ½, ¼); clips at 1 and 45; empty map → all zeros |
+| `draw/frequency.test.ts`            | duplicates within a user count once; a lone spike spreads to ±2 neighbours in kernel ratios (¼, ½, 1, ½, ¼); clips at 1 and 45; empty map → all zeros                                                                                                          |
 | `prizes/allocate.test.ts`           | 15 000 000 → 5 250 000 / 3 750 000 / 6 000 000; 1 001 sums exactly; zero eligible → jackpot rolls, 4/3 retained; jackpot won by 2 → equal split of full amount incl. rollover; **rollover chain** Jun→Jul→Aug→Sep exactly as GAME.md §6 table; invariant sweep |
 | `prizes/pool.test.ts`               | 14 970 / 12 497; 300 mixed subs sums correctly                                                                                                                                                                                                                 |
 | `subscription/status.test.ts`       | every Stripe status; period-end boundary                                                                                                                                                                                                                       |

@@ -9,7 +9,10 @@ import { loginSchema, signupSchema } from "@/schemas/auth";
 
 /** Server actions for signup, login and logout. Each: parse → Supabase Auth → redirect. */
 
-export async function signUp(_prev: ActionResult | null, formData: FormData): Promise<ActionResult> {
+export async function signUp(
+  _prev: ActionResult | null,
+  formData: FormData,
+): Promise<ActionResult> {
   const result = await runAction(async () => {
     const input = signupSchema.parse(Object.fromEntries(formData));
     const supabase = await createSupabaseServerClient();
@@ -17,7 +20,13 @@ export async function signUp(_prev: ActionResult | null, formData: FormData): Pr
     const { error } = await supabase.auth.signUp({
       email: input.email,
       password: input.password,
-      options: { data: { full_name: input.fullName, charity_id: input.charityId, charity_bps: input.charityBps } },
+      options: {
+        data: {
+          full_name: input.fullName,
+          charity_id: input.charityId,
+          charity_bps: input.charityBps,
+        },
+      },
     });
     if (error) throw mapSignupError(error.code, error.message);
   });

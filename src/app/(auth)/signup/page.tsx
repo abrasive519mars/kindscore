@@ -20,7 +20,10 @@ export default async function SignupPage() {
         <h1 className="text-4xl">
           Play a round. <em className="text-saffron">Fund a cause.</em>
         </h1>
-        <p className="text-ink-2">Create your account and pick the charity your subscription will support. You choose the plan next.</p>
+        <p className="text-ink-2">
+          Create your account and pick the charity your subscription will support. You choose the
+          plan next.
+        </p>
       </div>
       <SignupForm charities={charities ?? []} />
       <p className="text-sm text-ink-2">

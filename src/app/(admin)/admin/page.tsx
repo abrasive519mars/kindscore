@@ -10,7 +10,11 @@ export default async function AdminOverviewPage() {
   const supabase = await createSupabaseServerClient();
   const [{ data: summary }, { data: openDraw }] = await Promise.all([
     supabase.from("reports_summary").select("*").single(),
-    supabase.from("draws").select("draw_month, status, mode").neq("status", "published").maybeSingle(),
+    supabase
+      .from("draws")
+      .select("draw_month, status, mode")
+      .neq("status", "published")
+      .maybeSingle(),
   ]);
 
   return (
@@ -31,7 +35,11 @@ export default async function AdminOverviewPage() {
           <Figure label="Pool this month" value={formatInr(summary?.pool_this_month_paise ?? 0)} />
         </Card>
         <Card>
-          <Figure label="Given to charities" value={formatInr(summary?.charity_total_paise ?? 0)} accent />
+          <Figure
+            label="Given to charities"
+            value={formatInr(summary?.charity_total_paise ?? 0)}
+            accent
+          />
         </Card>
         <Card>
           <Figure label="Proofs to review" value={summary?.proofs_awaiting_review ?? 0} />
@@ -43,14 +51,24 @@ export default async function AdminOverviewPage() {
           <h2 className="text-2xl">This month&apos;s draw</h2>
           {openDraw ? (
             <p className="flex items-center gap-2 text-sm">
-              {new Date(openDraw.draw_month).toLocaleDateString("en-IN", { month: "long", year: "numeric" })}
-              <Badge tone={openDraw.status === "simulated" ? "warn" : "neutral"}>{openDraw.status === "simulated" ? "Simulated" : "Draft"}</Badge>
+              {new Date(openDraw.draw_month).toLocaleDateString("en-IN", {
+                month: "long",
+                year: "numeric",
+              })}
+              <Badge tone={openDraw.status === "simulated" ? "warn" : "neutral"}>
+                {openDraw.status === "simulated" ? "Simulated" : "Draft"}
+              </Badge>
               <Badge tone="pool">{openDraw.mode}</Badge>
             </p>
           ) : (
-            <EmptyState title="No draw open" body="Create the month's draw, simulate it, then publish — from Draws once that page ships." />
+            <EmptyState
+              title="No draw open"
+              body="Create the month's draw, simulate it, then publish — from Draws once that page ships."
+            />
           )}
-          <p className="text-sm text-ink-2">Jackpot carried into the next draw: {formatInr(summary?.current_rollover_paise ?? 0)}</p>
+          <p className="text-sm text-ink-2">
+            Jackpot carried into the next draw: {formatInr(summary?.current_rollover_paise ?? 0)}
+          </p>
         </Card>
         <Card className="flex flex-col gap-3">
           <h2 className="text-2xl">Payouts</h2>

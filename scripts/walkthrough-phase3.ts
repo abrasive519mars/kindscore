@@ -45,10 +45,17 @@ async function main() {
 
   const banner = await page.locator('[role="status"]').first().textContent();
   log("locked banner", banner?.trim().slice(0, 60));
-  log("Subscribe to unlock visible", String(await page.getByRole("button", { name: "Subscribe to unlock" }).isVisible()));
+  log(
+    "Subscribe to unlock visible",
+    String(await page.getByRole("button", { name: "Subscribe to unlock" }).isVisible()),
+  );
 
   // 2. Profile trigger stored the metadata
-  const { data: profile } = await admin.from("profiles").select("full_name, charity_bps, role").eq("email", email).single();
+  const { data: profile } = await admin
+    .from("profiles")
+    .select("full_name, charity_bps, role")
+    .eq("email", email)
+    .single();
   log("profile row", JSON.stringify(profile));
 
   // 3. Subscription + settings pages
@@ -94,13 +101,20 @@ async function main() {
   await shot(page, "06-admin-overview");
 
   // 8. Phone viewport
-  const phone = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+  const phone = await browser.newContext({
+    viewport: { width: 390, height: 844 },
+    deviceScaleFactor: 2,
+    isMobile: true,
+    hasTouch: true,
+  });
   const cookies = await desktop.cookies();
   await phone.addCookies(cookies);
   const mobile = await phone.newPage();
   await mobile.goto(`${BASE}/app`);
   await mobile.screenshot({ path: `${OUT}/07-dashboard-mobile.png`, fullPage: true });
-  const overflow = await mobile.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
+  const overflow = await mobile.evaluate(
+    () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
+  );
   log("390px horizontal overflow", String(overflow));
   await mobile.goto(`${BASE}/signup`);
   await mobile.screenshot({ path: `${OUT}/08-signup-mobile.png`, fullPage: true });

@@ -8,13 +8,13 @@
 
 ## 0. Who does what
 
-| Step | Who | When |
-|---|---|---|
-| Start **Docker Desktop** (whale icon in the tray, wait until it says "running") | **You** | Before I run `supabase start` — I'll tell you when |
-| Everything local: migrations, tests, types | Me | Throughout |
-| Create the **new Supabase account + project** (§0.1 below) | **You** | Any time during the phase; needed only for the final push |
-| Paste the three keys into `.env.local` (§0.2) | **You** | After creating the project |
-| `supabase link` + `db push` + dashboard settings check (§0.3) | Me (settings check needs your dashboard login — I'll list what to verify) | End of phase |
+| Step                                                                            | Who                                                                       | When                                                      |
+| ------------------------------------------------------------------------------- | ------------------------------------------------------------------------- | --------------------------------------------------------- |
+| Start **Docker Desktop** (whale icon in the tray, wait until it says "running") | **You**                                                                   | Before I run `supabase start` — I'll tell you when        |
+| Everything local: migrations, tests, types                                      | Me                                                                        | Throughout                                                |
+| Create the **new Supabase account + project** (§0.1 below)                      | **You**                                                                   | Any time during the phase; needed only for the final push |
+| Paste the three keys into `.env.local` (§0.2)                                   | **You**                                                                   | After creating the project                                |
+| `supabase link` + `db push` + dashboard settings check (§0.3)                   | Me (settings check needs your dashboard login — I'll list what to verify) | End of phase                                              |
 
 ### 0.1 Create the Supabase project — your steps
 
@@ -49,12 +49,12 @@ SUPABASE_SERVICE_ROLE_KEY=eyJ…
 
 Migrations can't change Auth settings, so these are dashboard clicks (I'll walk you through them; each is one toggle):
 
-| Where | Setting | Value | Why |
-|---|---|---|---|
-| Authentication → Providers → Email | **Confirm email** | **OFF** | Supabase's built-in SMTP allows ~3 emails/hour; an evaluator signing up would never get the link |
-| Authentication → URL Configuration | Site URL | `http://localhost:3000` now; the Vercel URL in Phase 11 | Where auth redirects land |
-| Authentication → URL Configuration | Redirect URLs | `http://localhost:3000/auth/callback`, later `https://<app>.vercel.app/auth/callback` | Allow-list |
-| Authentication → Providers → Email | Minimum password length | 8 | Sensible default |
+| Where                              | Setting                 | Value                                                                                 | Why                                                                                              |
+| ---------------------------------- | ----------------------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| Authentication → Providers → Email | **Confirm email**       | **OFF**                                                                               | Supabase's built-in SMTP allows ~3 emails/hour; an evaluator signing up would never get the link |
+| Authentication → URL Configuration | Site URL                | `http://localhost:3000` now; the Vercel URL in Phase 11                               | Where auth redirects land                                                                        |
+| Authentication → URL Configuration | Redirect URLs           | `http://localhost:3000/auth/callback`, later `https://<app>.vercel.app/auth/callback` | Allow-list                                                                                       |
+| Authentication → Providers → Email | Minimum password length | 8                                                                                     | Sensible default                                                                                 |
 
 Storage buckets and their policies are created by migration, not by hand.
 
@@ -78,16 +78,16 @@ Ports (from `supabase/config.toml` defaults): API `54321`, DB `54322`, Studio `5
 
 ## 2. Conventions
 
-| Thing | SQL | Why |
-|---|---|---|
-| Money | `bigint`, paise | matches `engine/money` |
-| Percentages | `smallint`, basis points | matches `Bps` |
-| Calendar dates | `date` | "one score per date" is a calendar day; never `timestamptz` |
-| Timestamps | `timestamptz`, default `now()` | |
-| IDs | `uuid default gen_random_uuid()` | |
-| Enums | Postgres `enum` types | the type system enforces the vocabulary |
-| Naming | `snake_case`, singular enum names, plural table names | Postgres norm |
-| Security | RLS **enabled on every table**; policies use `(select is_admin())` | deny by default; the subselect is evaluated once per statement |
+| Thing          | SQL                                                                | Why                                                            |
+| -------------- | ------------------------------------------------------------------ | -------------------------------------------------------------- |
+| Money          | `bigint`, paise                                                    | matches `engine/money`                                         |
+| Percentages    | `smallint`, basis points                                           | matches `Bps`                                                  |
+| Calendar dates | `date`                                                             | "one score per date" is a calendar day; never `timestamptz`    |
+| Timestamps     | `timestamptz`, default `now()`                                     |                                                                |
+| IDs            | `uuid default gen_random_uuid()`                                   |                                                                |
+| Enums          | Postgres `enum` types                                              | the type system enforces the vocabulary                        |
+| Naming         | `snake_case`, singular enum names, plural table names              | Postgres norm                                                  |
+| Security       | RLS **enabled on every table**; policies use `(select is_admin())` | deny by default; the subselect is evaluated once per statement |
 
 ## 3. Migrations, in order
 
@@ -112,37 +112,37 @@ Mirror of the engine's string unions — one vocabulary, both sides.
 
 Every table from `ARCHITECTURE.md` §1, with these details made explicit:
 
-| Table | Notable constraints |
-|---|---|
-| `profiles` | `id uuid pk references auth.users on delete cascade` · `role app_role not null default 'member'` · `charity_bps smallint not null check (charity_bps between 1000 and 7000)` · `stripe_customer_id text unique` |
-| `charities` | `slug text unique` · `outcome_line text` (the "₹50 a month = …" sentence) · `featured_rank int` · `is_active bool default true` · `cover_path text` |
-| `charity_media` | `(charity_id, sort_order)` index |
-| `charity_events` | `starts_at timestamptz` |
-| `subscriptions` | `stripe_subscription_id text unique` · `source text not null default 'stripe'` · **partial unique** `create unique index one_live_subscription on subscriptions (user_id) where status in ('active','past_due')` |
-| `payments` | `stripe_invoice_id text unique` · `check (charity_paise + pool_paise + platform_paise = amount_paise)` · charity_id + charity_bps snapshotted |
-| `donations` | `stripe_checkout_session_id text unique` · `paid bool default false` |
-| `charity_contributions` | `check (num_nonnulls(payment_id, donation_id) = 1)` — exactly one source |
-| `scores` | `score smallint check (score between 1 and 45)` · `played_on date` · **`unique (user_id, played_on)`** · index `(user_id, played_on desc)` |
-| `draws` | `draw_month date unique check (extract(day from draw_month) = 1)` · `numbers smallint[] check (numbers is null or cardinality(numbers) = 5)` · money columns `bigint not null default 0` · `entries_hash text` · **partial unique** `create unique index one_open_draw on draws ((true)) where status <> 'published'` |
-| `draw_entries` | `scores smallint[] not null check (cardinality(scores) = 5)` · `unique (draw_id, user_id)` |
-| `draw_results` | `match_count smallint check (match_count in (3,4,5))` · `prize_paise bigint` · `unique (draw_id, user_id)` |
-| `winner_verifications` | `result_id uuid unique references draw_results` · `resubmissions smallint default 0` · `check (payout_status = 'pending' or review_status = 'approved')` |
-| `stripe_events` | `id text primary key` (Stripe's `evt_…`) |
-| `audit_log` | `diff jsonb` |
+| Table                   | Notable constraints                                                                                                                                                                                                                                                                                                   |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `profiles`              | `id uuid pk references auth.users on delete cascade` · `role app_role not null default 'member'` · `charity_bps smallint not null check (charity_bps between 1000 and 7000)` · `stripe_customer_id text unique`                                                                                                       |
+| `charities`             | `slug text unique` · `outcome_line text` (the "₹50 a month = …" sentence) · `featured_rank int` · `is_active bool default true` · `cover_path text`                                                                                                                                                                   |
+| `charity_media`         | `(charity_id, sort_order)` index                                                                                                                                                                                                                                                                                      |
+| `charity_events`        | `starts_at timestamptz`                                                                                                                                                                                                                                                                                               |
+| `subscriptions`         | `stripe_subscription_id text unique` · `source text not null default 'stripe'` · **partial unique** `create unique index one_live_subscription on subscriptions (user_id) where status in ('active','past_due')`                                                                                                      |
+| `payments`              | `stripe_invoice_id text unique` · `check (charity_paise + pool_paise + platform_paise = amount_paise)` · charity_id + charity_bps snapshotted                                                                                                                                                                         |
+| `donations`             | `stripe_checkout_session_id text unique` · `paid bool default false`                                                                                                                                                                                                                                                  |
+| `charity_contributions` | `check (num_nonnulls(payment_id, donation_id) = 1)` — exactly one source                                                                                                                                                                                                                                              |
+| `scores`                | `score smallint check (score between 1 and 45)` · `played_on date` · **`unique (user_id, played_on)`** · index `(user_id, played_on desc)`                                                                                                                                                                            |
+| `draws`                 | `draw_month date unique check (extract(day from draw_month) = 1)` · `numbers smallint[] check (numbers is null or cardinality(numbers) = 5)` · money columns `bigint not null default 0` · `entries_hash text` · **partial unique** `create unique index one_open_draw on draws ((true)) where status <> 'published'` |
+| `draw_entries`          | `scores smallint[] not null check (cardinality(scores) = 5)` · `unique (draw_id, user_id)`                                                                                                                                                                                                                            |
+| `draw_results`          | `match_count smallint check (match_count in (3,4,5))` · `prize_paise bigint` · `unique (draw_id, user_id)`                                                                                                                                                                                                            |
+| `winner_verifications`  | `result_id uuid unique references draw_results` · `resubmissions smallint default 0` · `check (payout_status = 'pending' or review_status = 'approved')`                                                                                                                                                              |
+| `stripe_events`         | `id text primary key` (Stripe's `evt_…`)                                                                                                                                                                                                                                                                              |
+| `audit_log`             | `diff jsonb`                                                                                                                                                                                                                                                                                                          |
 
 Foreign keys: `on delete cascade` from `auth.users` → `profiles` → everything user-owned; `on delete restrict` from `charities` (soft-delete instead).
 
 ### 3.3 `20260921000300_functions.sql`
 
-| Function | Purpose |
-|---|---|
-| `is_admin() returns boolean` — `security definer`, `stable` | `exists (select 1 from profiles where id = auth.uid() and role = 'admin')` without recursing into `profiles`' own RLS |
-| `has_active_access(uid uuid) returns boolean` | `exists (subscriptions where user_id = uid and status = 'active' and current_period_end > now())` — the SQL twin of `engine/subscription/hasActiveAccess` |
-| `set_updated_at()` trigger fn | boilerplate |
-| `handle_new_user()` trigger fn | on `auth.users` insert → insert `profiles` from `raw_user_meta_data` (`full_name`, `charity_id`, `charity_bps` default 1000) |
-| `enforce_score_window()` trigger fn | after insert/update on `scores`: `delete from scores where user_id = new.user_id and id not in (select id … order by played_on desc, created_at desc limit 5)` — the SQL twin of `engine/scores/selectRetainedScores` |
-| `record_charity_contribution()` trigger fn | after insert on `payments` → one ledger row (`source = 'subscription'`); after update of `paid` on `donations` when it flips true → one ledger row (`source = 'donation'`) |
-| `next_rollover_in() returns bigint` | `rollover_out_paise` of the latest published draw, else 0 |
+| Function                                                    | Purpose                                                                                                                                                                                                               |
+| ----------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `is_admin() returns boolean` — `security definer`, `stable` | `exists (select 1 from profiles where id = auth.uid() and role = 'admin')` without recursing into `profiles`' own RLS                                                                                                 |
+| `has_active_access(uid uuid) returns boolean`               | `exists (subscriptions where user_id = uid and status = 'active' and current_period_end > now())` — the SQL twin of `engine/subscription/hasActiveAccess`                                                             |
+| `set_updated_at()` trigger fn                               | boilerplate                                                                                                                                                                                                           |
+| `handle_new_user()` trigger fn                              | on `auth.users` insert → insert `profiles` from `raw_user_meta_data` (`full_name`, `charity_id`, `charity_bps` default 1000)                                                                                          |
+| `enforce_score_window()` trigger fn                         | after insert/update on `scores`: `delete from scores where user_id = new.user_id and id not in (select id … order by played_on desc, created_at desc limit 5)` — the SQL twin of `engine/scores/selectRetainedScores` |
+| `record_charity_contribution()` trigger fn                  | after insert on `payments` → one ledger row (`source = 'subscription'`); after update of `paid` on `donations` when it flips true → one ledger row (`source = 'donation'`)                                            |
+| `next_rollover_in() returns bigint`                         | `rollover_out_paise` of the latest published draw, else 0                                                                                                                                                             |
 
 ### 3.4 `20260921000400_triggers.sql`
 
@@ -174,11 +174,13 @@ save_simulation(
   p_results jsonb    -- [{user_id, match_count, prize_paise}]
 ) returns draws
 ```
+
 `security definer`, admin-only (`if not is_admin() then raise`). Locks the draw row `for update`; refuses if `status = 'published'`; deletes prior entries/results; inserts new; sets all snapshot columns + `status = 'simulated'`, `simulated_at = now()`. One transaction.
 
 ```sql
 publish_draw(p_draw_id uuid) returns draws
 ```
+
 Admin-only. `update draws set status='published', published_at=now(), published_by=auth.uid() where id = p_draw_id and status = 'simulated' returning *`. If zero rows: already published → return the row unchanged (idempotent); still draft → raise `Simulate first`. Then `insert into winner_verifications (result_id, user_id) select id, user_id from draw_results where draw_id = p_draw_id on conflict do nothing`.
 
 The engine computes every number; the RPCs only persist atomically. Nothing is recalculated in SQL.
@@ -201,13 +203,13 @@ The 7 charities (slug, name, tagline, description, category, city, outcome line,
 
 ## 5. Integration tests — `tests/integration/`
 
-| File | Proves |
-|---|---|
-| `setup.ts` | loads `.env.test` (local URLs/keys), exposes `adminClient` (service role), `anonClient`, `createUser(role)` (admin API), `clientAs(user)` (signs in, returns an RLS-bound client), truncation between suites |
-| `rls.test.ts` | anon: reads charities, **cannot** read scores/subscriptions/profiles · member: reads own scores only, another member's return empty, `update profiles set role='admin'` fails, draft draw invisible · admin: reads everything |
-| `scores.test.ts` | 6th insert → exactly 5 rows, the oldest `played_on` gone regardless of insert order · duplicate `(user_id, played_on)` → unique violation · `46` → check violation · insert without active subscription → RLS denies |
-| `ledger.test.ts` | one payment insert → exactly one `charity_contributions` row with the right amount/charity · a payment whose parts don't sum → check violation · donation `paid` flip → ledger row, flipping twice does not duplicate |
-| `draws.test.ts` | `save_simulation` twice replaces entries/results · `publish_draw` flips status and creates one verification per result · second publish returns the same row, no new verifications · publish on draft raises · second open draw violates `one_open_draw` · member cannot call either RPC |
+| File             | Proves                                                                                                                                                                                                                                                                                   |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `setup.ts`       | loads `.env.test` (local URLs/keys), exposes `adminClient` (service role), `anonClient`, `createUser(role)` (admin API), `clientAs(user)` (signs in, returns an RLS-bound client), truncation between suites                                                                             |
+| `rls.test.ts`    | anon: reads charities, **cannot** read scores/subscriptions/profiles · member: reads own scores only, another member's return empty, `update profiles set role='admin'` fails, draft draw invisible · admin: reads everything                                                            |
+| `scores.test.ts` | 6th insert → exactly 5 rows, the oldest `played_on` gone regardless of insert order · duplicate `(user_id, played_on)` → unique violation · `46` → check violation · insert without active subscription → RLS denies                                                                     |
+| `ledger.test.ts` | one payment insert → exactly one `charity_contributions` row with the right amount/charity · a payment whose parts don't sum → check violation · donation `paid` flip → ledger row, flipping twice does not duplicate                                                                    |
+| `draws.test.ts`  | `save_simulation` twice replaces entries/results · `publish_draw` flips status and creates one verification per result · second publish returns the same row, no new verifications · publish on draft raises · second open draw violates `one_open_draw` · member cannot call either RPC |
 
 Run: `supabase start` → `supabase db reset` → `pnpm test:int`.
 

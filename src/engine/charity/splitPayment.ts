@@ -22,7 +22,10 @@ export function validateCharityBps(bps: number): Bps {
     );
   }
   if (bps % CHARITY_STEP_BPS !== 0) {
-    throw new ValidationError(`Charity share must be a multiple of ${CHARITY_STEP_BPS / 100}%`, "charityBps");
+    throw new ValidationError(
+      `Charity share must be a multiple of ${CHARITY_STEP_BPS / 100}%`,
+      "charityBps",
+    );
   }
   return bps;
 }

@@ -83,7 +83,9 @@ export class RuleViolationError extends AppError {
 
 export class ExternalServiceError extends AppError {
   constructor(service: string, cause?: unknown) {
-    super("EXTERNAL_SERVICE", 502, `${service} is temporarily unavailable. Please try again.`, { cause });
+    super("EXTERNAL_SERVICE", 502, `${service} is temporarily unavailable. Please try again.`, {
+      cause,
+    });
   }
 }
 

@@ -23,7 +23,10 @@ export function winningTierFor(matchCount: number): WinningTier | null {
   return tier ?? null;
 }
 
-export function matchEntries(drawn: readonly number[], entries: readonly EligibleEntry[]): MatchedEntry[] {
+export function matchEntries(
+  drawn: readonly number[],
+  entries: readonly EligibleEntry[],
+): MatchedEntry[] {
   return entries.map((entry) => {
     const matchCount = countMatches(entry.scores, drawn);
     return { ...entry, matchCount, tier: winningTierFor(matchCount) };

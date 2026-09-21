@@ -15,11 +15,20 @@ const engineImportGuard = {
       {
         patterns: [
           { group: ["next", "next/*"], message: "Engine code must not depend on Next.js." },
-          { group: ["react", "react/*", "react-dom", "react-dom/*"], message: "Engine code must not depend on React." },
+          {
+            group: ["react", "react/*", "react-dom", "react-dom/*"],
+            message: "Engine code must not depend on React.",
+          },
           { group: ["@supabase/*"], message: "Engine code must not talk to the database." },
           { group: ["stripe", "stripe/*"], message: "Engine code must not talk to Stripe." },
-          { group: ["node:*"], message: "Engine code must not use Node built-ins; pass values in." },
-          { group: ["@/lib/*", "@/services/*", "@/repositories/*", "@/app/*", "@/components/*"], message: "Engine code sits below every other layer." },
+          {
+            group: ["node:*"],
+            message: "Engine code must not use Node built-ins; pass values in.",
+          },
+          {
+            group: ["@/lib/*", "@/services/*", "@/repositories/*", "@/app/*", "@/components/*"],
+            message: "Engine code sits below every other layer.",
+          },
         ],
       },
     ],
@@ -28,12 +37,24 @@ const engineImportGuard = {
 
 /** The service-role client bypasses RLS; only the webhook and scripts may hold it. */
 const adminClientGuard = {
-  files: ["src/app/**/*.{ts,tsx}", "src/components/**/*.{ts,tsx}", "src/services/**/*.ts", "src/repositories/**/*.ts"],
+  files: [
+    "src/app/**/*.{ts,tsx}",
+    "src/components/**/*.{ts,tsx}",
+    "src/services/**/*.ts",
+    "src/repositories/**/*.ts",
+  ],
   ignores: ["src/app/api/stripe/**", "src/app/api/cron/**"],
   rules: {
     "no-restricted-imports": [
       "error",
-      { paths: [{ name: "@/lib/supabase/admin", message: "Service-role client is for the Stripe webhook, cron and scripts only." }] },
+      {
+        paths: [
+          {
+            name: "@/lib/supabase/admin",
+            message: "Service-role client is for the Stripe webhook, cron and scripts only.",
+          },
+        ],
+      },
     ],
   },
 };

@@ -24,8 +24,17 @@ describe("public signup", () => {
     userId = data.user?.id;
     expect(data.session).not.toBeNull(); // confirmations are off: a session is issued immediately
 
-    const { data: profile } = await admin.from("profiles").select("full_name, charity_id, charity_bps, role").eq("id", userId!).single();
-    expect(profile).toEqual({ full_name: "Sign Up", charity_id: CHARITY.udaan, charity_bps: 2500, role: "member" });
+    const { data: profile } = await admin
+      .from("profiles")
+      .select("full_name, charity_id, charity_bps, role")
+      .eq("id", userId!)
+      .single();
+    expect(profile).toEqual({
+      full_name: "Sign Up",
+      charity_id: CHARITY.udaan,
+      charity_bps: 2500,
+      role: "member",
+    });
   });
 
   it("refuses the same email twice", async () => {

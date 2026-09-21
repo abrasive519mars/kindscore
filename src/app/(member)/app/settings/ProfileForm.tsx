@@ -11,8 +11,22 @@ export function ProfileForm({ fullName, email }: { fullName: string; email: stri
 
   return (
     <form action={action} className="flex flex-col gap-4" noValidate>
-      <InputField id="fullName" name="fullName" label="Name" defaultValue={fullName} autoComplete="name" required error={error?.field === "fullName" ? error.message : undefined} />
-      <InputField id="email" label="Email" value={email} readOnly hint="Email can't be changed here yet." />
+      <InputField
+        id="fullName"
+        name="fullName"
+        label="Name"
+        defaultValue={fullName}
+        autoComplete="name"
+        required
+        error={error?.field === "fullName" ? error.message : undefined}
+      />
+      <InputField
+        id="email"
+        label="Email"
+        value={email}
+        readOnly
+        hint="Email can't be changed here yet."
+      />
       {error && !error.field && (
         <p role="alert" className="text-sm text-danger">
           {error.message}

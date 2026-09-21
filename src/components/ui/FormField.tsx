@@ -65,7 +65,15 @@ interface SelectFieldProps extends SelectHTMLAttributes<HTMLSelectElement> {
   readonly children: ReactNode;
 }
 
-export function SelectField({ id, label, error, hint, className, children, ...rest }: SelectFieldProps) {
+export function SelectField({
+  id,
+  label,
+  error,
+  hint,
+  className,
+  children,
+  ...rest
+}: SelectFieldProps) {
   return (
     <FieldShell id={id} label={label} error={error} hint={hint}>
       <select

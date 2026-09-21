@@ -12,7 +12,10 @@ afterAll(async () => {
 });
 
 async function ledgerFor(userId: string) {
-  const { data } = await admin.from("charity_contributions").select("source, amount_paise, charity_id").eq("user_id", userId);
+  const { data } = await admin
+    .from("charity_contributions")
+    .select("source, amount_paise, charity_id")
+    .eq("user_id", userId);
   return data!;
 }
 
@@ -67,7 +70,12 @@ describe("donations → ledger (trigger record_donation_contribution)", () => {
   it("reaches the ledger only when paid flips true, and only once", async () => {
     const { data: donation } = await admin
       .from("donations")
-      .insert({ user_id: member.id, charity_id: CHARITY.sahajShiksha, amount_paise: 25_000, stripe_checkout_session_id: `cs_${member.id}` })
+      .insert({
+        user_id: member.id,
+        charity_id: CHARITY.sahajShiksha,
+        amount_paise: 25_000,
+        stripe_checkout_session_id: `cs_${member.id}`,
+      })
       .select("id")
       .single();
 
@@ -77,13 +85,19 @@ describe("donations → ledger (trigger record_donation_contribution)", () => {
     await admin.from("donations").update({ paid: true }).eq("id", donation!.id); // webhook replay
 
     const donations = (await ledgerFor(member.id)).filter((r) => r.source === "donation");
-    expect(donations).toEqual([{ source: "donation", amount_paise: 25_000, charity_id: CHARITY.sahajShiksha }]);
+    expect(donations).toEqual([
+      { source: "donation", amount_paise: 25_000, charity_id: CHARITY.sahajShiksha },
+    ]);
   });
 });
 
 describe("charity_totals view", () => {
   it("sums the ledger per charity", async () => {
-    const { data } = await admin.from("charity_totals").select("*").eq("charity_id", CHARITY.sahajShiksha).single();
+    const { data } = await admin
+      .from("charity_totals")
+      .select("*")
+      .eq("charity_id", CHARITY.sahajShiksha)
+      .single();
     expect(data!.total_paise).toBeGreaterThanOrEqual(4_990 + 25_000);
     expect(data!.contributor_count).toBeGreaterThanOrEqual(1);
   });

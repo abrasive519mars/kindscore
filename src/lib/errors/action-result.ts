@@ -11,7 +11,8 @@ export interface ActionError {
   readonly field?: string;
 }
 
-export type ActionResult<T = void> = { readonly ok: true; readonly data: T } | { readonly ok: false; readonly error: ActionError };
+export type ActionResult<T = void> =
+  { readonly ok: true; readonly data: T } | { readonly ok: false; readonly error: ActionError };
 
 export function ok<T>(data: T): ActionResult<T> {
   return { ok: true, data };
@@ -31,7 +32,11 @@ export function toActionError(error: unknown): ActionError {
   }
   if (error instanceof ZodError) {
     const issue = error.issues[0];
-    return { code: "VALIDATION", message: issue.message, field: issue.path.map(String).join(".") || undefined };
+    return {
+      code: "VALIDATION",
+      message: issue.message,
+      field: issue.path.map(String).join(".") || undefined,
+    };
   }
   console.error("[action] unexpected error", error);
   return { code: "UNKNOWN", message: GENERIC_MESSAGE };
@@ -53,5 +58,9 @@ export async function runAction<T>(body: () => Promise<T>): Promise<ActionResult
 function isNextControlFlow(error: unknown): boolean {
   if (!(error instanceof Error)) return false;
   const digest = (error as Error & { digest?: string }).digest ?? "";
-  return digest.startsWith("NEXT_REDIRECT") || digest.startsWith("NEXT_NOT_FOUND") || digest === "NEXT_HTTP_ERROR_FALLBACK;403";
+  return (
+    digest.startsWith("NEXT_REDIRECT") ||
+    digest.startsWith("NEXT_NOT_FOUND") ||
+    digest === "NEXT_HTTP_ERROR_FALLBACK;403"
+  );
 }

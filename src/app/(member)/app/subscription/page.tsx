@@ -19,14 +19,28 @@ export default async function SubscriptionPage() {
     <div className="flex flex-col gap-8">
       <header className="flex flex-col gap-1">
         <h1 className="text-4xl">Subscription</h1>
-        <p className="text-ink-2">One fee, one entry, everyone equal. No bundles, no multipliers.</p>
+        <p className="text-ink-2">
+          One fee, one entry, everyone equal. No bundles, no multipliers.
+        </p>
       </header>
 
       <Card>
         <Figure
           label="Current status"
-          value={<span className="text-2xl">{hasAccess ? "Active" : status === "none" ? "Not subscribed" : status.replace("_", " ")}</span>}
-          hint={currentPeriodEnd ? `Paid through ${new Date(currentPeriodEnd).toLocaleDateString("en-IN")} · ${interval}ly` : undefined}
+          value={
+            <span className="text-2xl">
+              {hasAccess
+                ? "Active"
+                : status === "none"
+                  ? "Not subscribed"
+                  : status.replace("_", " ")}
+            </span>
+          }
+          hint={
+            currentPeriodEnd
+              ? `Paid through ${new Date(currentPeriodEnd).toLocaleDateString("en-IN")} · ${interval}ly`
+              : undefined
+          }
         />
       </Card>
 
@@ -49,8 +63,8 @@ export default async function SubscriptionPage() {
       </section>
 
       <p className="text-sm text-ink-2">
-        Of every payment, at least {SPLIT.CHARITY_MIN_BPS / 100}% goes to your charity and {SPLIT.POOL_SHARE_BPS / 100}% to the prize pool. The rest
-        runs Kindscore.
+        Of every payment, at least {SPLIT.CHARITY_MIN_BPS / 100}% goes to your charity and{" "}
+        {SPLIT.POOL_SHARE_BPS / 100}% to the prize pool. The rest runs Kindscore.
       </p>
     </div>
   );

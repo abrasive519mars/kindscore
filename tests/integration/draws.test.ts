@@ -1,5 +1,14 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { admin, clientAs, createUser, deleteUser, grantActiveSubscription, PG, type Db, type TestUser } from "./setup";
+import {
+  admin,
+  clientAs,
+  createUser,
+  deleteUser,
+  grantActiveSubscription,
+  PG,
+  type Db,
+  type TestUser,
+} from "./setup";
 
 let adminUser: TestUser;
 let winner: TestUser;
@@ -37,7 +46,11 @@ beforeAll(async () => {
   [adminUser, winner, loser] = await Promise.all([createUser("admin"), createUser(), createUser()]);
   await Promise.all([grantActiveSubscription(winner.id), grantActiveSubscription(loser.id)]);
   [asAdmin, asWinner] = await Promise.all([clientAs(adminUser), clientAs(winner)]);
-  const { data } = await admin.from("draws").insert({ draw_month: "2026-11-01" }).select("id").single();
+  const { data } = await admin
+    .from("draws")
+    .insert({ draw_month: "2026-11-01" })
+    .select("id")
+    .single();
   drawId = data!.id;
 });
 
@@ -54,9 +67,15 @@ describe("save_simulation", () => {
     expect(data!.numbers).toEqual(NUMBERS);
     expect(data!.jackpot_pool_paise).toBe(11_976);
 
-    const { data: entries } = await admin.from("draw_entries").select("user_id, match_count").eq("draw_id", drawId);
+    const { data: entries } = await admin
+      .from("draw_entries")
+      .select("user_id, match_count")
+      .eq("draw_id", drawId);
     expect(entries).toHaveLength(2);
-    const { data: results } = await admin.from("draw_results").select("user_id, prize_paise").eq("draw_id", drawId);
+    const { data: results } = await admin
+      .from("draw_results")
+      .select("user_id, prize_paise")
+      .eq("draw_id", drawId);
     expect(results).toEqual([{ user_id: winner.id, prize_paise: 7_485 }]);
   });
 
@@ -68,7 +87,11 @@ describe("save_simulation", () => {
     expect(error).toBeNull();
     const { data: results } = await admin.from("draw_results").select("id").eq("draw_id", drawId);
     expect(results).toEqual([]);
-    const { data: draw } = await admin.from("draws").select("numbers, entries_hash").eq("id", drawId).single();
+    const { data: draw } = await admin
+      .from("draws")
+      .select("numbers, entries_hash")
+      .eq("id", drawId)
+      .single();
     expect(draw).toEqual({ numbers: [1, 2, 3, 4, 5], entries_hash: "hash-2" });
     // restore the winning simulation for the publish tests
     await asAdmin.rpc("save_simulation", simulationArgs());
@@ -99,7 +122,10 @@ describe("publish_draw", () => {
     expect(data!.status).toBe("published");
     expect(data!.published_by).toBe(adminUser.id);
 
-    const { data: verifications } = await admin.from("winner_verifications").select("user_id, review_status").eq("user_id", winner.id);
+    const { data: verifications } = await admin
+      .from("winner_verifications")
+      .select("user_id, review_status")
+      .eq("user_id", winner.id);
     expect(verifications).toEqual([{ user_id: winner.id, review_status: "awaiting_proof" }]);
   });
 
@@ -107,14 +133,23 @@ describe("publish_draw", () => {
     const { data, error } = await asAdmin.rpc("publish_draw", { p_draw_id: drawId });
     expect(error).toBeNull();
     expect(data!.status).toBe("published");
-    const { data: verifications } = await admin.from("winner_verifications").select("id").eq("user_id", winner.id);
+    const { data: verifications } = await admin
+      .from("winner_verifications")
+      .select("id")
+      .eq("user_id", winner.id);
     expect(verifications).toHaveLength(1);
   });
 
   it("lets the winner see their result and entry only after publishing", async () => {
-    const { data: results } = await asWinner.from("draw_results").select("prize_paise").eq("draw_id", drawId);
+    const { data: results } = await asWinner
+      .from("draw_results")
+      .select("prize_paise")
+      .eq("draw_id", drawId);
     expect(results).toEqual([{ prize_paise: 7_485 }]);
-    const { data: entries } = await asWinner.from("draw_entries").select("user_id").eq("draw_id", drawId);
+    const { data: entries } = await asWinner
+      .from("draw_entries")
+      .select("user_id")
+      .eq("draw_id", drawId);
     expect(entries!.map((e) => e.user_id)).toEqual([winner.id]);
   });
 
@@ -124,7 +159,11 @@ describe("publish_draw", () => {
   });
 
   it("refuses to publish a bare draft", async () => {
-    const { data: draft } = await admin.from("draws").insert({ draw_month: "2027-01-01" }).select("id").single();
+    const { data: draft } = await admin
+      .from("draws")
+      .insert({ draw_month: "2027-01-01" })
+      .select("id")
+      .single();
     const { error } = await asAdmin.rpc("publish_draw", { p_draw_id: draft!.id });
     expect(error?.code).toBe(PG.raiseException);
     await admin.from("draws").delete().eq("id", draft!.id);
@@ -135,12 +174,19 @@ describe("winner verification RPCs mirror the state machine", () => {
   let verificationId: string;
 
   beforeAll(async () => {
-    const { data } = await admin.from("winner_verifications").select("id").eq("user_id", winner.id).single();
+    const { data } = await admin
+      .from("winner_verifications")
+      .select("id")
+      .eq("user_id", winner.id)
+      .single();
     verificationId = data!.id;
   });
 
   it("admin cannot approve before proof is submitted", async () => {
-    const { error } = await asAdmin.rpc("review_winner", { p_verification_id: verificationId, p_approve: true });
+    const { error } = await asAdmin.rpc("review_winner", {
+      p_verification_id: verificationId,
+      p_approve: true,
+    });
     expect(error?.code).toBe(PG.raiseException);
   });
 
@@ -155,21 +201,36 @@ describe("winner verification RPCs mirror the state machine", () => {
 
   it("another member cannot submit proof on the winner's claim", async () => {
     const asLoser = await clientAs(loser);
-    const { error } = await asLoser.rpc("submit_winner_proof", { p_verification_id: verificationId, p_proof_path: "x" });
+    const { error } = await asLoser.rpc("submit_winner_proof", {
+      p_verification_id: verificationId,
+      p_proof_path: "x",
+    });
     expect(error?.code).toBe(PG.noDataFound);
   });
 
   it("reject → one resubmission allowed → approve → paid", async () => {
-    const rejected = await asAdmin.rpc("review_winner", { p_verification_id: verificationId, p_approve: false, p_note: "Blurry" });
+    const rejected = await asAdmin.rpc("review_winner", {
+      p_verification_id: verificationId,
+      p_approve: false,
+      p_note: "Blurry",
+    });
     expect(rejected.data!.review_status).toBe("rejected");
 
-    const resubmitted = await asWinner.rpc("submit_winner_proof", { p_verification_id: verificationId, p_proof_path: "again.webp" });
+    const resubmitted = await asWinner.rpc("submit_winner_proof", {
+      p_verification_id: verificationId,
+      p_proof_path: "again.webp",
+    });
     expect(resubmitted.data!.resubmissions).toBe(1);
 
-    const paidTooEarly = await asAdmin.rpc("mark_winner_paid", { p_verification_id: verificationId });
+    const paidTooEarly = await asAdmin.rpc("mark_winner_paid", {
+      p_verification_id: verificationId,
+    });
     expect(paidTooEarly.error?.code).toBe(PG.raiseException);
 
-    const approved = await asAdmin.rpc("review_winner", { p_verification_id: verificationId, p_approve: true });
+    const approved = await asAdmin.rpc("review_winner", {
+      p_verification_id: verificationId,
+      p_approve: true,
+    });
     expect(approved.data!.review_status).toBe("approved");
 
     const paid = await asAdmin.rpc("mark_winner_paid", { p_verification_id: verificationId });
@@ -180,16 +241,26 @@ describe("winner verification RPCs mirror the state machine", () => {
   });
 
   it("member cannot review or mark paid", async () => {
-    const review = await asWinner.rpc("review_winner", { p_verification_id: verificationId, p_approve: true });
+    const review = await asWinner.rpc("review_winner", {
+      p_verification_id: verificationId,
+      p_approve: true,
+    });
     expect(review.error?.code).toBe(PG.insufficientPrivilege);
     const paid = await asWinner.rpc("mark_winner_paid", { p_verification_id: verificationId });
     expect(paid.error?.code).toBe(PG.insufficientPrivilege);
   });
 
   it("reporting views reflect the paid prize", async () => {
-    const { data } = await asAdmin.from("draw_statistics").select("three_match_winners, prizes_paise").eq("draw_id", drawId).single();
+    const { data } = await asAdmin
+      .from("draw_statistics")
+      .select("three_match_winners, prizes_paise")
+      .eq("draw_id", drawId)
+      .single();
     expect(data).toEqual({ three_match_winners: 1, prizes_paise: 7_485 });
-    const { data: summary } = await asAdmin.from("reports_summary").select("prizes_paid_paise").single();
+    const { data: summary } = await asAdmin
+      .from("reports_summary")
+      .select("prizes_paid_paise")
+      .single();
     expect(summary!.prizes_paid_paise).toBeGreaterThanOrEqual(7_485);
   });
 });

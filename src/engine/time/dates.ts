@@ -46,7 +46,9 @@ export function isFutureDate(date: IsoDate, today: IsoDate): boolean {
 /** "2026-09-12" → "12 Sep" for user-facing messages. */
 export function formatShortDate(date: IsoDate): string {
   const [year, month, day] = date.split("-").map(Number);
-  return new Intl.DateTimeFormat("en-IN", { day: "numeric", month: "short", timeZone: "UTC" }).format(
-    new Date(Date.UTC(year, month - 1, day)),
-  );
+  return new Intl.DateTimeFormat("en-IN", {
+    day: "numeric",
+    month: "short",
+    timeZone: "UTC",
+  }).format(new Date(Date.UTC(year, month - 1, day)));
 }

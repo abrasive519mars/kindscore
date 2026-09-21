@@ -3,7 +3,9 @@ import { cn } from "@/lib/cn";
 
 /** Hairline-bordered surface. No shadow by default (DESIGN.md §2.3). */
 export function Card({ className, ...rest }: HTMLAttributes<HTMLDivElement>) {
-  return <div {...rest} className={cn("rounded-lg border border-line bg-surface p-6", className)} />;
+  return (
+    <div {...rest} className={cn("rounded-lg border border-line bg-surface p-6", className)} />
+  );
 }
 
 /** Section divider: a hairline with the one saffron dash (DESIGN.md §2.3). */
@@ -27,8 +29,12 @@ interface FigureProps {
 export function Figure({ label, value, hint, accent = false, className }: FigureProps) {
   return (
     <div className={cn("flex flex-col gap-1", className)}>
-      <span className="text-[12.5px] font-medium uppercase tracking-[0.06em] text-ink-2">{label}</span>
-      <span className={cn("num font-display text-4xl leading-none", accent && "text-saffron")}>{value}</span>
+      <span className="text-[12.5px] font-medium uppercase tracking-[0.06em] text-ink-2">
+        {label}
+      </span>
+      <span className={cn("num font-display text-4xl leading-none", accent && "text-saffron")}>
+        {value}
+      </span>
       {hint && <span className="text-sm text-ink-2">{hint}</span>}
     </div>
   );
@@ -47,7 +53,13 @@ const TONE: Record<Tone, string> = {
 
 /** One-word status label (DESIGN.md §5: "one word, title case"). */
 export function Badge({ tone = "neutral", children }: { tone?: Tone; children: ReactNode }) {
-  return <span className={cn("inline-flex h-6 items-center rounded-sm px-2 text-xs font-medium", TONE[tone])}>{children}</span>;
+  return (
+    <span
+      className={cn("inline-flex h-6 items-center rounded-sm px-2 text-xs font-medium", TONE[tone])}
+    >
+      {children}
+    </span>
+  );
 }
 
 /** Full-width notice under the nav for subscription states (DESIGN.md §5 StatusBanner). */

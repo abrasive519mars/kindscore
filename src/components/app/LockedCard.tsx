@@ -17,7 +17,10 @@ export function LockedCard({ title, body, children }: LockedCardProps) {
   return (
     // Both layers occupy the same grid cell, so the card is as tall as the taller of the two.
     <Card className="grid overflow-hidden p-0">
-      <div className="pointer-events-none col-start-1 row-start-1 select-none p-6 opacity-40 blur-[1px]" aria-hidden>
+      <div
+        className="pointer-events-none col-start-1 row-start-1 select-none p-6 opacity-40 blur-[1px]"
+        aria-hidden
+      >
         {children}
       </div>
       <div className="col-start-1 row-start-1 flex flex-col items-start justify-center gap-3 bg-surface/70 p-6">

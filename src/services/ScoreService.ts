@@ -1,5 +1,10 @@
 import { ConflictError, NotFoundError } from "@/engine/errors";
-import { findEntryOnDate, previewAddScore, selectRetainedScores, type ScoreEntry } from "@/engine/scores/latestFive";
+import {
+  findEntryOnDate,
+  previewAddScore,
+  selectRetainedScores,
+  type ScoreEntry,
+} from "@/engine/scores/latestFive";
 import { formatShortDate } from "@/engine/time/dates";
 import type { ScoreRepository, ScoreWrite } from "@/repositories/interfaces/ScoreRepository";
 
@@ -24,7 +29,12 @@ export class ScoreService {
 
   async add(userId: string, input: ScoreWrite): Promise<AddScoreResult> {
     const current = await this.scores.listForUser(userId);
-    const candidate: ScoreEntry = { id: "pending", score: input.score, playedOn: input.playedOn, createdAt: new Date().toISOString() };
+    const candidate: ScoreEntry = {
+      id: "pending",
+      score: input.score,
+      playedOn: input.playedOn,
+      createdAt: new Date().toISOString(),
+    };
     const preview = previewAddScore(current, candidate); // throws ConflictError / RuleViolationError
     const entry = await this.scores.insert(userId, input);
     return { entry, evicted: preview.evicted[0] ?? null };
@@ -37,14 +47,17 @@ export class ScoreService {
 
     const others = current.filter((entry) => entry.id !== id);
     if (findEntryOnDate(others, input.playedOn)) {
-      throw new ConflictError(`You already logged a round on ${formatShortDate(input.playedOn)} — edit it instead`);
+      throw new ConflictError(
+        `You already logged a round on ${formatShortDate(input.playedOn)} — edit it instead`,
+      );
     }
     return this.scores.update(userId, id, input);
   }
 
   async remove(userId: string, id: string): Promise<void> {
     const current = await this.scores.listForUser(userId);
-    if (!current.some((entry) => entry.id === id)) throw new NotFoundError("That round is no longer here");
+    if (!current.some((entry) => entry.id === id))
+      throw new NotFoundError("That round is no longer here");
     await this.scores.delete(userId, id);
   }
 }

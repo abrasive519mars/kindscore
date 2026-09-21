@@ -25,19 +25,24 @@ interface ScoreFormProps {
 export function ScoreForm({ today, usedDates, entries, onAdded, onEditRequest }: ScoreFormProps) {
   // The parent is told inside the action, not in an effect: an effect keyed on `onAdded` would
   // re-fire on every parent render and hand the same entry up again.
-  const [state, action, pending] = useActionState(async (prev: ActionResult<AddScoreResult> | null, formData: FormData) => {
-    const result = await addScore(prev, formData);
-    if (result.ok) onAdded(result.data.entry);
-    return result;
-  }, null);
+  const [state, action, pending] = useActionState(
+    async (prev: ActionResult<AddScoreResult> | null, formData: FormData) => {
+      const result = await addScore(prev, formData);
+      if (result.ok) onAdded(result.data.entry);
+      return result;
+    },
+    null,
+  );
   const [score, setScore] = useState<number>(30);
   const [playedOn, setPlayedOn] = useState<IsoDate>(today);
   const error = state && !state.ok ? state.error : null;
   const saved = state?.ok ? state.data : null;
 
-  const clash = error?.code === "CONFLICT" ? entries.find((e) => e.playedOn === playedOn) : undefined;
+  const clash =
+    error?.code === "CONFLICT" ? entries.find((e) => e.playedOn === playedOn) : undefined;
   const dateTaken = usedDates.includes(playedOn);
-  const step = (delta: number) => setScore((s) => Math.min(SCORE.MAX, Math.max(SCORE.MIN, s + delta)));
+  const step = (delta: number) =>
+    setScore((s) => Math.min(SCORE.MAX, Math.max(SCORE.MIN, s + delta)));
 
   return (
     <form action={action} className="flex flex-col gap-4" noValidate>
@@ -56,10 +61,22 @@ export function ScoreForm({ today, usedDates, entries, onAdded, onEditRequest }:
           className="num w-24 text-center text-2xl"
         />
         <div className="mb-[1px] flex gap-1">
-          <Button type="button" variant="ghost" size="sm" onClick={() => step(-1)} aria-label="One less">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => step(-1)}
+            aria-label="One less"
+          >
             −
           </Button>
-          <Button type="button" variant="ghost" size="sm" onClick={() => step(1)} aria-label="One more">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => step(1)}
+            aria-label="One more"
+          >
             +
           </Button>
         </div>
@@ -73,7 +90,11 @@ export function ScoreForm({ today, usedDates, entries, onAdded, onEditRequest }:
         value={playedOn}
         onChange={(event) => setPlayedOn(event.target.value)}
         error={error?.field === "playedOn" ? error.message : undefined}
-        hint={dateTaken && !error ? `You already have a round on ${formatShortDate(playedOn)}` : undefined}
+        hint={
+          dateTaken && !error
+            ? `You already have a round on ${formatShortDate(playedOn)}`
+            : undefined
+        }
       />
 
       {error && !error.field && (
@@ -82,7 +103,11 @@ export function ScoreForm({ today, usedDates, entries, onAdded, onEditRequest }:
           {clash && (
             <>
               {" "}
-              <button type="button" onClick={() => onEditRequest(clash.id)} className="underline underline-offset-4">
+              <button
+                type="button"
+                onClick={() => onEditRequest(clash.id)}
+                className="underline underline-offset-4"
+              >
                 Edit that round
               </button>
             </>
@@ -91,7 +116,9 @@ export function ScoreForm({ today, usedDates, entries, onAdded, onEditRequest }:
       )}
       {saved && (
         <p role="status" className="text-sm text-success">
-          Saved.{saved.evicted && ` Replaced your ${formatShortDate(saved.evicted.playedOn)} round (${saved.evicted.score}).`}
+          Saved.
+          {saved.evicted &&
+            ` Replaced your ${formatShortDate(saved.evicted.playedOn)} round (${saved.evicted.score}).`}
         </p>
       )}
 

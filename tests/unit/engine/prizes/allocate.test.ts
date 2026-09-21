@@ -14,9 +14,9 @@ function totalPaidOut(allocation: PrizeAllocation): number {
 
 /** Every paisa in is paid, carried or retained. */
 function assertConserved(allocation: PrizeAllocation, poolPaise: number, rolloverInPaise: number) {
-  expect(totalPaidOut(allocation) + allocation.rolloverOutPaise + allocation.unclaimedRetainedPaise).toBe(
-    poolPaise + rolloverInPaise,
-  );
+  expect(
+    totalPaidOut(allocation) + allocation.rolloverOutPaise + allocation.unclaimedRetainedPaise,
+  ).toBe(poolPaise + rolloverInPaise);
 }
 
 describe("pool", () => {
@@ -60,9 +60,15 @@ describe("allocatePrizes", () => {
       ...["u3", "u4", "u5", "u6", "u7", "u8", "u9"].map((id) => winner(id, 3)),
       winner("nobody", 0),
     ];
-    const allocation = allocatePrizes({ poolPaise: 4_500_000, rolloverInPaise: 1_800_000, matched });
+    const allocation = allocatePrizes({
+      poolPaise: 4_500_000,
+      rolloverInPaise: 1_800_000,
+      matched,
+    });
 
-    expect(allocation.prizes.filter((p) => p.tier === 4).map((p) => p.prizePaise)).toEqual([787_500, 787_500]);
+    expect(allocation.prizes.filter((p) => p.tier === 4).map((p) => p.prizePaise)).toEqual([
+      787_500, 787_500,
+    ]);
     const threes = allocation.prizes.filter((p) => p.tier === 3).map((p) => p.prizePaise);
     expect(threes).toEqual([160_715, 160_715, 160_714, 160_714, 160_714, 160_714, 160_714]);
     expect(allocation.rolloverOutPaise).toBe(3_600_000);
@@ -72,9 +78,17 @@ describe("allocatePrizes", () => {
   });
 
   it("assigns the remainder paise in userId order for auditability", () => {
-    const allocation = allocatePrizes({ poolPaise: 10, rolloverInPaise: 0, matched: [winner("zed", 3), winner("amy", 3)] });
+    const allocation = allocatePrizes({
+      poolPaise: 10,
+      rolloverInPaise: 0,
+      matched: [winner("zed", 3), winner("amy", 3)],
+    });
     // three-tier pool = floor(10 × 0.25) = 2 → 1 each; no remainder. Use a pool that leaves one.
-    const odd = allocatePrizes({ poolPaise: 12, rolloverInPaise: 0, matched: [winner("zed", 3), winner("amy", 3)] });
+    const odd = allocatePrizes({
+      poolPaise: 12,
+      rolloverInPaise: 0,
+      matched: [winner("zed", 3), winner("amy", 3)],
+    });
     expect(allocation.prizes.map((p) => p.userId)).toEqual(["amy", "zed"]);
     expect(odd.prizes.map((p) => [p.userId, p.prizePaise])).toEqual([
       ["amy", 2],
@@ -107,16 +121,28 @@ describe("allocatePrizes", () => {
     const jan = allocatePrizes({ poolPaise: pool, rolloverInPaise: 0, matched: [winner("x", 3)] });
     expect(jan.rolloverOutPaise).toBe(6_000_000);
 
-    const feb = allocatePrizes({ poolPaise: pool, rolloverInPaise: jan.rolloverOutPaise, matched: [] });
+    const feb = allocatePrizes({
+      poolPaise: pool,
+      rolloverInPaise: jan.rolloverOutPaise,
+      matched: [],
+    });
     expect(feb.tierPools[5]).toBe(12_000_000);
     expect(feb.rolloverOutPaise).toBe(12_000_000);
 
-    const mar = allocatePrizes({ poolPaise: pool, rolloverInPaise: feb.rolloverOutPaise, matched: [winner("w", 5)] });
+    const mar = allocatePrizes({
+      poolPaise: pool,
+      rolloverInPaise: feb.rolloverOutPaise,
+      matched: [winner("w", 5)],
+    });
     expect(mar.tierPools[5]).toBe(18_000_000);
     expect(mar.prizes[0]).toEqual({ userId: "w", tier: 5, prizePaise: 18_000_000 });
     expect(mar.rolloverOutPaise).toBe(0);
 
-    const apr = allocatePrizes({ poolPaise: pool, rolloverInPaise: mar.rolloverOutPaise, matched: [] });
+    const apr = allocatePrizes({
+      poolPaise: pool,
+      rolloverInPaise: mar.rolloverOutPaise,
+      matched: [],
+    });
     expect(apr.tierPools[5]).toBe(6_000_000);
   });
 
@@ -130,7 +156,11 @@ describe("allocatePrizes", () => {
     for (let pool = 1; pool < 3_000; pool += 97) {
       for (const rollover of [0, 1, 999, 12_345]) {
         for (const matched of mixes) {
-          assertConserved(allocatePrizes({ poolPaise: pool, rolloverInPaise: rollover, matched }), pool, rollover);
+          assertConserved(
+            allocatePrizes({ poolPaise: pool, rolloverInPaise: rollover, matched }),
+            pool,
+            rollover,
+          );
         }
       }
     }

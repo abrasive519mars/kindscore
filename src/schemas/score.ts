@@ -12,7 +12,10 @@ export const scoreInputSchema = z.object({
   playedOn: z
     .string()
     .refine(isIsoDate, "Choose the date you played")
-    .refine((date) => !isFutureDate(date, todayInTimezone(new Date(), LOCALE.TIMEZONE)), "That date hasn't happened yet"),
+    .refine(
+      (date) => !isFutureDate(date, todayInTimezone(new Date(), LOCALE.TIMEZONE)),
+      "That date hasn't happened yet",
+    ),
 });
 
 export const scoreIdSchema = z.object({ id: z.uuid() });

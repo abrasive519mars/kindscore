@@ -39,7 +39,11 @@ try {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en-IN" className={`${inter.variable} ${newsreader.variable} h-full`} suppressHydrationWarning>
+    <html
+      lang="en-IN"
+      className={`${inter.variable} ${newsreader.variable} h-full`}
+      suppressHydrationWarning
+    >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>

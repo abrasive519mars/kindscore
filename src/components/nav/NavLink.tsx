@@ -14,14 +14,24 @@ interface NavLinkProps {
 }
 
 /** A link that knows when it is the current page (aria-current + active styles). */
-export function NavLink({ href, children, exact = false, className, activeClassName = "text-ink" }: NavLinkProps) {
+export function NavLink({
+  href,
+  children,
+  exact = false,
+  className,
+  activeClassName = "text-ink",
+}: NavLinkProps) {
   const pathname = usePathname();
   const active = exact ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
   return (
     <Link
       href={href}
       aria-current={active ? "page" : undefined}
-      className={cn("transition-colors duration-fast", active ? activeClassName : "text-ink-2 hover:text-ink", className)}
+      className={cn(
+        "transition-colors duration-fast",
+        active ? activeClassName : "text-ink-2 hover:text-ink",
+        className,
+      )}
     >
       {children}
     </Link>

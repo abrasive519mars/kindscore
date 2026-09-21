@@ -21,13 +21,25 @@ interface ScoreListItemProps {
 
 function formatLongDate(date: IsoDate): string {
   const [y, m, d] = date.split("-").map(Number);
-  return new Intl.DateTimeFormat("en-IN", { weekday: "short", day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }).format(
-    new Date(Date.UTC(y, m - 1, d)),
-  );
+  return new Intl.DateTimeFormat("en-IN", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(Date.UTC(y, m - 1, d)));
 }
 
 /** One round: read row, or an inline edit form. Delete asks once ("Delete?") then acts. */
-export function ScoreListItem({ entry, today, editing, onEdit, onCancel, onUpdated, onDeleted }: ScoreListItemProps) {
+export function ScoreListItem({
+  entry,
+  today,
+  editing,
+  onEdit,
+  onCancel,
+  onUpdated,
+  onDeleted,
+}: ScoreListItemProps) {
   return editing ? (
     <EditRow entry={entry} today={today} onCancel={onCancel} onUpdated={onUpdated} />
   ) : (
@@ -35,12 +47,19 @@ export function ScoreListItem({ entry, today, editing, onEdit, onCancel, onUpdat
   );
 }
 
-function ReadRow({ entry, onEdit, onDeleted }: Pick<ScoreListItemProps, "entry" | "onEdit" | "onDeleted">) {
-  const [state, action, pending] = useActionState(async (prev: ActionResult | null, formData: FormData) => {
-    const result = await deleteScore(prev, formData);
-    if (result.ok) onDeleted(entry.id);
-    return result;
-  }, null);
+function ReadRow({
+  entry,
+  onEdit,
+  onDeleted,
+}: Pick<ScoreListItemProps, "entry" | "onEdit" | "onDeleted">) {
+  const [state, action, pending] = useActionState(
+    async (prev: ActionResult | null, formData: FormData) => {
+      const result = await deleteScore(prev, formData);
+      if (result.ok) onDeleted(entry.id);
+      return result;
+    },
+    null,
+  );
   const [confirming, setConfirming] = useState(false);
 
   // First click only arms the button ("Delete?"); the second click actually submits.
@@ -59,7 +78,13 @@ function ReadRow({ entry, onEdit, onDeleted }: Pick<ScoreListItemProps, "entry" 
       </Button>
       <form action={action} onSubmit={armBeforeSubmit}>
         <input type="hidden" name="id" value={entry.id} />
-        <Button type="submit" variant={confirming ? "danger" : "ghost"} size="sm" pending={pending} onBlur={() => setConfirming(false)}>
+        <Button
+          type="submit"
+          variant={confirming ? "danger" : "ghost"}
+          size="sm"
+          pending={pending}
+          onBlur={() => setConfirming(false)}
+        >
           {confirming ? "Delete?" : "Delete"}
         </Button>
       </form>
@@ -72,19 +97,46 @@ function ReadRow({ entry, onEdit, onDeleted }: Pick<ScoreListItemProps, "entry" 
   );
 }
 
-function EditRow({ entry, today, onCancel, onUpdated }: Pick<ScoreListItemProps, "entry" | "today" | "onCancel" | "onUpdated">) {
-  const [state, action, pending] = useActionState(async (prev: ActionResult<ScoreEntry> | null, formData: FormData) => {
-    const result = await updateScore(prev, formData);
-    if (result.ok) onUpdated(result.data);
-    return result;
-  }, null);
+function EditRow({
+  entry,
+  today,
+  onCancel,
+  onUpdated,
+}: Pick<ScoreListItemProps, "entry" | "today" | "onCancel" | "onUpdated">) {
+  const [state, action, pending] = useActionState(
+    async (prev: ActionResult<ScoreEntry> | null, formData: FormData) => {
+      const result = await updateScore(prev, formData);
+      if (result.ok) onUpdated(result.data);
+      return result;
+    },
+    null,
+  );
   const error = state && !state.ok ? state.error : null;
 
   return (
     <form action={action} className="flex flex-wrap items-end gap-3 py-3" noValidate>
       <input type="hidden" name="id" value={entry.id} />
-      <InputField id={`score-${entry.id}`} name="score" label="Score" type="number" inputMode="numeric" min={SCORE.MIN} max={SCORE.MAX} defaultValue={entry.score} className="num w-24" error={error?.field === "score" ? error.message : undefined} />
-      <InputField id={`date-${entry.id}`} name="playedOn" label="Date played" type="date" max={today} defaultValue={entry.playedOn} error={error?.field === "playedOn" ? error.message : undefined} />
+      <InputField
+        id={`score-${entry.id}`}
+        name="score"
+        label="Score"
+        type="number"
+        inputMode="numeric"
+        min={SCORE.MIN}
+        max={SCORE.MAX}
+        defaultValue={entry.score}
+        className="num w-24"
+        error={error?.field === "score" ? error.message : undefined}
+      />
+      <InputField
+        id={`date-${entry.id}`}
+        name="playedOn"
+        label="Date played"
+        type="date"
+        max={today}
+        defaultValue={entry.playedOn}
+        error={error?.field === "playedOn" ? error.message : undefined}
+      />
       <div className="flex gap-2 pb-[1px]">
         <Button type="submit" size="sm" pending={pending}>
           Save

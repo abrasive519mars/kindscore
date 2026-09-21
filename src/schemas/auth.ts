@@ -13,7 +13,10 @@ export const charityBpsSchema = z
   .int()
   .min(SPLIT.CHARITY_MIN_BPS, `At least ${SPLIT.CHARITY_MIN_BPS / 100}% goes to your charity`)
   .max(SPLIT.CHARITY_MAX_BPS, `Up to ${SPLIT.CHARITY_MAX_BPS / 100}% can go to your charity`)
-  .refine((bps) => bps % SPLIT.CHARITY_STEP_BPS === 0, `Choose in steps of ${SPLIT.CHARITY_STEP_BPS / 100}%`);
+  .refine(
+    (bps) => bps % SPLIT.CHARITY_STEP_BPS === 0,
+    `Choose in steps of ${SPLIT.CHARITY_STEP_BPS / 100}%`,
+  );
 
 export const signupSchema = z.object({
   fullName: z.string().trim().min(2, "Tell us your name").max(80, "That name is a bit long"),

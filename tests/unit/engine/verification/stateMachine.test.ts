@@ -29,7 +29,9 @@ describe("legal paths", () => {
   });
 
   it("can approve a resubmission and pay it", () => {
-    expect(run(["submit_proof", "reject", "submit_proof", "approve", "mark_paid"]).payout).toBe("paid");
+    expect(run(["submit_proof", "reject", "submit_proof", "approve", "mark_paid"]).payout).toBe(
+      "paid",
+    );
   });
 });
 

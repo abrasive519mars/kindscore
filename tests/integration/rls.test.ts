@@ -20,16 +20,28 @@ let asAdmin: Db;
 let draftDrawId: string;
 
 beforeAll(async () => {
-  [member, other, adminUser] = await Promise.all([createUser("member", CHARITY.udaan), createUser("member"), createUser("admin")]);
+  [member, other, adminUser] = await Promise.all([
+    createUser("member", CHARITY.udaan),
+    createUser("member"),
+    createUser("admin"),
+  ]);
   await grantActiveSubscription(member.id);
   await grantActiveSubscription(other.id);
-  [asMember, asOther, asAdmin] = await Promise.all([clientAs(member), clientAs(other), clientAs(adminUser)]);
+  [asMember, asOther, asAdmin] = await Promise.all([
+    clientAs(member),
+    clientAs(other),
+    clientAs(adminUser),
+  ]);
 
   await admin.from("scores").insert([
     { user_id: member.id, score: 30, played_on: "2026-09-01" },
     { user_id: other.id, score: 35, played_on: "2026-09-01" },
   ]);
-  const { data: draw, error } = await admin.from("draws").insert({ draw_month: "2026-10-01" }).select("id").single();
+  const { data: draw, error } = await admin
+    .from("draws")
+    .insert({ draw_month: "2026-10-01" })
+    .select("id")
+    .single();
   if (error) throw error;
   draftDrawId = draw.id;
 });
@@ -82,7 +94,10 @@ describe("member", () => {
   });
 
   it("can change their charity choice", async () => {
-    const { error } = await asMember.from("profiles").update({ charity_bps: 1500 }).eq("id", member.id);
+    const { error } = await asMember
+      .from("profiles")
+      .update({ charity_bps: 1500 })
+      .eq("id", member.id);
     expect(error).toBeNull();
   });
 

@@ -19,7 +19,10 @@ export default async function ScoresPage() {
     return (
       <div className="flex flex-col gap-6">
         <Heading />
-        <LockedCard title="Your five scores go here" body="Subscribe to log your Stableford rounds — they become your numbers in the monthly draw.">
+        <LockedCard
+          title="Your five scores go here"
+          body="Subscribe to log your Stableford rounds — they become your numbers in the monthly draw."
+        >
           <ScoreRow scores={[28, 33, 31, 36, 29]} />
         </LockedCard>
       </div>
@@ -43,7 +46,8 @@ function Heading() {
     <header className="flex flex-col gap-1">
       <h1 className="text-4xl">Your rounds</h1>
       <p className="text-ink-2">
-        Log your Stableford score after each round. We keep your latest {SCORE.WINDOW_SIZE} by date played — a new one replaces the oldest. One round per date.
+        Log your Stableford score after each round. We keep your latest {SCORE.WINDOW_SIZE} by date
+        played — a new one replaces the oldest. One round per date.
       </p>
     </header>
   );

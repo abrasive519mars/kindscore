@@ -5,14 +5,26 @@ import { runAction, toActionError } from "@/lib/errors/action-result";
 
 describe("toActionError", () => {
   it("keeps code, message and field from an AppError", () => {
-    expect(toActionError(new ValidationError("Bad score", "score"))).toEqual({ code: "VALIDATION", message: "Bad score", field: "score" });
-    expect(toActionError(new ConflictError("Taken"))).toEqual({ code: "CONFLICT", message: "Taken", field: undefined });
+    expect(toActionError(new ValidationError("Bad score", "score"))).toEqual({
+      code: "VALIDATION",
+      message: "Bad score",
+      field: "score",
+    });
+    expect(toActionError(new ConflictError("Taken"))).toEqual({
+      code: "CONFLICT",
+      message: "Taken",
+      field: undefined,
+    });
   });
 
   it("maps the first Zod issue to a field error", () => {
     const result = z.object({ email: z.email("Enter a valid email") }).safeParse({ email: "nope" });
     if (result.success) throw new Error("expected failure");
-    expect(toActionError(result.error)).toEqual({ code: "VALIDATION", message: "Enter a valid email", field: "email" });
+    expect(toActionError(result.error)).toEqual({
+      code: "VALIDATION",
+      message: "Enter a valid email",
+      field: "email",
+    });
   });
 
   it("never leaks an unknown error's message", () => {
@@ -34,11 +46,16 @@ describe("runAction", () => {
     const result = await runAction(async () => {
       throw new NotFoundError("Gone");
     });
-    expect(result).toEqual({ ok: false, error: { code: "NOT_FOUND", message: "Gone", field: undefined } });
+    expect(result).toEqual({
+      ok: false,
+      error: { code: "NOT_FOUND", message: "Gone", field: undefined },
+    });
   });
 
   it("lets Next redirects pass through untouched", async () => {
-    const redirectLike = Object.assign(new Error("NEXT_REDIRECT"), { digest: "NEXT_REDIRECT;replace;/app;307;" });
+    const redirectLike = Object.assign(new Error("NEXT_REDIRECT"), {
+      digest: "NEXT_REDIRECT;replace;/app;307;",
+    });
     await expect(
       runAction(async () => {
         throw redirectLike;

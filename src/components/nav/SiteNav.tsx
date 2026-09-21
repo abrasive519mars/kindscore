@@ -20,7 +20,10 @@ export async function SiteNav() {
 
   return (
     <header className="sticky top-0 z-20 border-b border-line bg-bg/90 shadow-nav backdrop-blur">
-      <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4" aria-label="Main">
+      <nav
+        className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4"
+        aria-label="Main"
+      >
         <Wordmark />
         <ul className="hidden items-center gap-7 text-sm md:flex">
           {LINKS.map((link) => (
@@ -31,7 +34,10 @@ export async function SiteNav() {
         </ul>
         <div className="flex items-center gap-3">
           {signedIn ? (
-            <Link href={access.kind === "admin" ? "/admin" : "/app"} className="text-sm text-ink-2 hover:text-ink">
+            <Link
+              href={access.kind === "admin" ? "/admin" : "/app"}
+              className="text-sm text-ink-2 hover:text-ink"
+            >
               Dashboard
             </Link>
           ) : (

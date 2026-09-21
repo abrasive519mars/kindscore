@@ -48,7 +48,11 @@ export function ThemeToggle() {
   const theme = useSyncExternalStore(subscribe, readTheme, () => "system" as Theme);
 
   return (
-    <div role="radiogroup" aria-label="Theme" className="inline-flex rounded-full border border-line p-0.5">
+    <div
+      role="radiogroup"
+      aria-label="Theme"
+      className="inline-flex rounded-full border border-line p-0.5"
+    >
       {OPTIONS.map((option) => (
         <button
           key={option.value}
