@@ -1,0 +1,40 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { z } from "zod";
+import { requireAdmin } from "@/lib/auth/guards";
+import { runAction, type ActionResult } from "@/lib/errors/action-result";
+import { createWinnerService } from "@/lib/winners";
+import { REVIEW_NOTE_MAX } from "@/services/WinnerService";
+
+const reviewSchema = z.object({
+  verificationId: z.uuid(),
+  decision: z.enum(["approve", "reject"]),
+  note: z.string().max(REVIEW_NOTE_MAX, `Keep the note under ${REVIEW_NOTE_MAX} characters.`).default(""),
+});
+const idSchema = z.object({ verificationId: z.uuid() });
+
+function revalidateWinners() {
+  revalidatePath("/admin/winners", "layout");
+  revalidatePath("/admin");
+  revalidatePath("/app", "layout");
+}
+
+/** Admin decisions (PRD §11.04). The RPC re-checks every transition; the service adds the note rule. */
+export async function reviewClaim(_prev: ActionResult | null, formData: FormData): Promise<ActionResult> {
+  return runAction(async () => {
+    await requireAdmin();
+    const { verificationId, decision, note } = reviewSchema.parse(Object.fromEntries(formData));
+    await (await createWinnerService()).review(verificationId, decision === "approve", note);
+    revalidateWinners();
+  });
+}
+
+export async function markClaimPaid(_prev: ActionResult | null, formData: FormData): Promise<ActionResult> {
+  return runAction(async () => {
+    await requireAdmin();
+    const { verificationId } = idSchema.parse(Object.fromEntries(formData));
+    await (await createWinnerService()).markPaid(verificationId);
+    revalidateWinners();
+  });
+}

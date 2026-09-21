@@ -5,6 +5,8 @@ import { formatInr } from "@/engine/money/paise";
 import { formatMonth, nextDrawMonth, todayInTimezone } from "@/engine/time/dates";
 import { getAccess, type SignedInAccess } from "@/lib/auth/access";
 import { createDrawRepository, createDrawService } from "@/lib/draws";
+import { createWinnerService } from "@/lib/winners";
+import { summariseWinnings } from "@/services/WinnerService";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { MemberDrawOutcome } from "@/repositories/interfaces/DrawRepository";
 import { SupabaseScoreRepository } from "@/repositories/supabase/SupabaseScoreRepository";
@@ -24,8 +26,12 @@ export default async function DashboardPage() {
   const access = (await getAccess()) as SignedInAccess;
   const supabase = await createSupabaseServerClient();
   const scoreService = new ScoreService(new SupabaseScoreRepository(supabase));
-  const [drawRepo, drawService] = await Promise.all([createDrawRepository(), createDrawService()]);
-  const [scores, { data: charity }, jackpot, outcomes, lastMonth] = await Promise.all([
+  const [drawRepo, drawService, winnerService] = await Promise.all([
+    createDrawRepository(),
+    createDrawService(),
+    createWinnerService(),
+  ]);
+  const [scores, { data: charity }, jackpot, outcomes, lastMonth, winnings] = await Promise.all([
     scoreService.list(access.userId),
     access.profile.charity_id
       ? supabase
@@ -37,7 +43,9 @@ export default async function DashboardPage() {
     drawService.projectedJackpot(),
     drawRepo.listMemberOutcomes(access.userId),
     drawRepo.lastPublishedMonth(),
+    winnerService.listWinnings(access.userId),
   ]);
+  const won = summariseWinnings(winnings);
   const upcoming = nextDrawMonth(lastMonth, todayInTimezone(new Date(), LOCALE.TIMEZONE));
 
   const kept = scores.map((entry) => entry.score);
@@ -70,7 +78,19 @@ export default async function DashboardPage() {
           />
         </Card>
         <Card>
-          <Figure label="Total won" value={formatInr(0)} hint="Winnings appear here after a draw" />
+          <Figure
+            label="Total won"
+            value={formatInr(won.totalWonPaise)}
+            hint={
+              won.unverifiedCount > 0
+                ? `${won.unverifiedCount} ${won.unverifiedCount === 1 ? "win" : "wins"} awaiting verification`
+                : won.awaitingPayoutPaise > 0
+                  ? `${formatInr(won.paidPaise)} paid · ${formatInr(won.awaitingPayoutPaise)} on its way`
+                  : won.totalWonPaise > 0
+                    ? "All paid"
+                    : "Winnings appear here after a draw"
+            }
+          />
         </Card>
       </section>
 

@@ -18,3 +18,4 @@ export * from "@/engine/prizes/pool";
 export * from "@/engine/prizes/allocate";
 export * from "@/engine/subscription/status";
 export * from "@/engine/verification/stateMachine";
+export * from "@/engine/verification/proofFile";

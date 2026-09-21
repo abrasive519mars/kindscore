@@ -169,6 +169,14 @@ Because real money is involved, a winner must prove their scores were genuine:
 
 Only winners go through this — ordinary subscribers never have to upload anything.
 
+The rules around it **[decision]**:
+
+- **"Total won" means approved.** A prize counts towards a member's total once the admin has approved the proof; before that the dashboard says "awaiting your proof" or "under review". Paid and awaiting-payout amounts are shown separately (§10).
+- **One resubmission after a rejection.** A rejected winner may upload a second screenshot; a second rejection closes the claim and says so.
+- **A rejection needs a reason** (up to 200 characters) and the member reads it verbatim.
+- **Proof images are private** to the winner and the admins — served through ten-minute signed links, stored under a path built from ids, never from the file name. Nothing is ever public.
+- **A lapsed subscriber can still claim a prize they won while active.** The win happened; the subscription gate is for playing, not for being paid.
+
 ---
 
 ## 9. What each person sees
