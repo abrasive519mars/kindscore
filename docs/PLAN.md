@@ -156,11 +156,14 @@ Files (write → test → explain):
 - [x] Tests: 38 new unit (directory, donation, image path, `DonationService`, `CharityService` + `MemberCharityService` with fakes, webhook donation branch) → 333; `tests/integration/charities.test.ts` — anon directory + profile, member choice through RLS + check constraint, unpaid donation → service-role `markPaid` once → ledger + totals, admin create/event/cover upload (anon upload refused), member cannot edit, one featured, hide → gone for anon → 81
 - Verify: ✅ `scripts/walkthrough-phase8.ts` — directory → search "water" → filter → profile → member raises share to 25% → chooses a charity from its page → donates ₹250 on real Stripe Checkout → ledger row → admin creates a charity with cover + event → spotlight → hide → gone from directory → 390px; screenshots in `docs/screenshots/phase-8/`
 
-### Phase 9 — Admin users + reports
+### Phase 9 — Admin users + reports ✅ done 2026-09-22 (plan: `docs/plans/phase-9-admin.md`)
 
-- [ ] `(admin)/admin/users` DataTable + `/users/[id]` (profile, admin-editable ScoreTicket, SubscriptionControls, audit list)
-- [ ] `(admin)/admin/reports` — Stat tiles (users, active subs, pool, charity total), charity totals table, draw statistics per tier per month, CSV export
-- Verify: report totals = SQL sums over ledger
+- [x] Migration `…001200_admin_subscriptions.sql` — `admin_set_subscription(user, grant|end, interval)`: is_admin-checked, `source = 'admin'`, audits itself — local + cloud
+- [x] Engine `reports/monthly.ts` (`summarisePaymentsByMonth`, IST months), `lib/csv.ts`; `AdminUserRepository` + `ReportsRepository` (+ Supabase impls); `AdminUserService` (profile / scores via `ScoreService` / subscription, every edit audited), `ReportsService` (overview + four CSVs)
+- [x] `(admin)/admin/users` (search, subscription-state chips, table with admin-granted / seeded chips) and `/admin/users/[id]` (figures, `ProfileForm`, `SubscriptionControls` grant/extend/end, `AdminScores` add/edit/delete, payments, audit trail)
+- [x] `(admin)/admin/reports` (totals, by month, charity totals with bars, draw statistics) + `/admin/reports/export?report=` CSV route
+- [x] Tests: 17 new unit (monthly aggregation, CSV, `AdminUserService` with fakes, `ReportsService`) → 346; `tests/integration/admin.test.ts` — member cannot list or call the RPC, admin lists with score counts, profile edit audited, six adds keep five + duplicate refused, grant → access at once (member sees `source = admin`), end → gone at once, report totals = SQL sums → 87
+- Verify: ✅ `scripts/walkthrough-phase9.ts` — search → member page → rename + charity → six scores (sixth evicts) → duplicate refused → edit → delete → grant → member dashboard Active → end → member locked on next request → audit rows → reports → CSV download → member gets 403 on admin pages and the export → 390px; screenshots in `docs/screenshots/phase-9/`
 
 ### Phase 10 — Landing + polish
 

@@ -868,6 +868,35 @@ export type Database = {
           subscribers: number;
         }[];
       };
+      admin_set_subscription: {
+        Args: {
+          p_action: string;
+          p_interval?: Database["public"]["Enums"]["plan_interval"];
+          p_user_id: string;
+        };
+        Returns: {
+          cancel_at_period_end: boolean;
+          canceled_at: string | null;
+          created_at: string;
+          current_period_end: string;
+          current_period_start: string;
+          id: string;
+          last_event_at: string | null;
+          plan_interval: Database["public"]["Enums"]["plan_interval"];
+          source: string;
+          status: Database["public"]["Enums"]["subscription_status"];
+          stripe_price_id: string;
+          stripe_subscription_id: string;
+          updated_at: string;
+          user_id: string;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "subscriptions";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
       has_active_access: { Args: { uid: string }; Returns: boolean };
       is_admin: { Args: never; Returns: boolean };
       mark_winner_paid: {

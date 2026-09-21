@@ -191,7 +191,7 @@ The rules around it **[decision]**:
 
 ### Admin dashboard (§11)
 
-- **Users** — view/edit profiles, edit scores, manage subscriptions
+- **Users** — view/edit profiles, edit scores, manage subscriptions. **[decision]** Admin-granted subscriptions are marked `admin` and never touch Stripe (support and demos). **[decision]** Every admin edit of member data — profile, scores, subscription — is audited with who, what, before and after. **[decision]** Admins edit scores under the same rules as members (five kept by date, one per date, 1–45). **[decision]** Ending a subscription takes effect on the member's next request, because the gate reads the database every time — nothing is cached per session.
 - **Draws** — choose mode, simulate, publish
 - **Charities** — add/edit/delete, manage images and events
 - **Winners** — full list, verify proofs, mark paid
