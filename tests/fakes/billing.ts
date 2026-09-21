@@ -3,6 +3,8 @@ import type {
   BillingGateway,
   CheckoutRequest,
   CompletedCheckout,
+  CompletedDonation,
+  DonationCheckoutRequest,
 } from "@/lib/stripe/BillingGateway";
 import type { SubscriptionSnapshot } from "@/lib/stripe/snapshots";
 import type { PaymentRepository, PaymentWrite } from "@/repositories/interfaces/PaymentRepository";
@@ -33,6 +35,11 @@ export class FakeProfileRepository implements ProfileRepository {
     this.customerIdWrites.push({ userId, customerId });
     this.profiles = this.profiles.map((p) =>
       p.id === userId ? { ...p, stripeCustomerId: customerId } : p,
+    );
+  }
+  async updateCharityChoice(userId: string, charityId: string, charityBps: number) {
+    this.profiles = this.profiles.map((p) =>
+      p.id === userId ? { ...p, charityId, charityBps } : p,
     );
   }
 }
@@ -120,6 +127,18 @@ export class FakeBillingGateway implements BillingGateway {
   async setCancelAtPeriodEnd(id: string, cancel: boolean) {
     this.cancelCalls.push({ id, cancel });
     return this.snapshotForCancel(id, cancel);
+  }
+  donationRequests: DonationCheckoutRequest[] = [];
+  completedDonations = new Map<string, CompletedDonation>();
+  async createDonationCheckout(request: DonationCheckoutRequest) {
+    this.donationRequests.push(request);
+    return {
+      id: `cs_${request.donationId}`,
+      url: `https://checkout.stripe.test/donate/${request.donationId}`,
+    };
+  }
+  async retrieveCompletedDonation(sessionId: string) {
+    return this.completedDonations.get(sessionId) ?? null;
   }
 }
 

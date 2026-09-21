@@ -1,6 +1,7 @@
 import Stripe from "stripe";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { processWebhook, type WebhookDeps } from "@/lib/stripe/webhook";
+import { SupabaseDonationRepository } from "@/repositories/supabase/SupabaseDonationRepository";
 import { SupabasePaymentRepository } from "@/repositories/supabase/SupabasePaymentRepository";
 import { SupabaseProfileRepository } from "@/repositories/supabase/SupabaseProfileRepository";
 import { SupabaseStripeEventRepository } from "@/repositories/supabase/SupabaseStripeEventRepository";
@@ -36,6 +37,7 @@ beforeAll(async () => {
     verify: (body, signature) => stripe.webhooks.constructEvent(body, signature, WEBHOOK_SECRET),
     events: new SupabaseStripeEventRepository(admin),
     fetcher: { retrieveSubscription: async (id) => subscription({ id }) },
+    donations: new SupabaseDonationRepository(admin),
     sync: new SubscriptionSyncService({
       subscriptions: new SupabaseSubscriptionRepository(admin),
       payments: new SupabasePaymentRepository(admin),

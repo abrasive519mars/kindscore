@@ -13,4 +13,6 @@ export interface ProfileRepository {
   findByStripeCustomerId(customerId: string): Promise<BillingProfile | null>;
   /** Service role only — `stripe_customer_id` is revoked from members at the column level. */
   setStripeCustomerId(userId: string, customerId: string): Promise<void>;
+  /** The member changing where their money goes; applies from the next payment (GAME.md §1). */
+  updateCharityChoice(userId: string, charityId: string, charityBps: number): Promise<void>;
 }

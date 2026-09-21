@@ -145,13 +145,16 @@ Files (write → test → explain):
 - [x] Tests: 24 new unit (proofFile, `WinnerService` with fake repo + fake storage: nothing uploaded on a bad file / wrong owner / illegal state, one resubmission, note rules, summary) → 295; `tests/integration/winners.test.ts` — real PNG upload on the winner's client, stranger sees nothing and cannot sign the URL, winner cannot approve, reject → reason seen → resubmit → approve → paid, reports agree → 73
 - Verify: ✅ `scripts/walkthrough-phase7.ts` — winner uploads a generated screenshot → admin queue → proof image → reject with reason → member reads it, uploads again → approve → mark paid → dashboard/winnings show Paid → 390px; screenshots in `docs/screenshots/phase-7/`
 
-### Phase 8 — Charities + donations
+### Phase 8 — Charities + donations ✅ done 2026-09-22 (plan: `docs/plans/phase-8-charities.md`)
 
-- [ ] `CharityRepository`, `CharityService`
-- [ ] `(marketing)/charities` (search, filter chips, grid), `/charities/[slug]` (gallery, story, events, Choose / Donate once)
-- [ ] `(member)/app/charity` — current charity, SplitSlider (10–70%), change charity, DonateOnce (Stripe Checkout one-time → `donations.paid` via webhook)
-- [ ] `(admin)/admin/charities` CRUD, ImageUploader, EventsEditor, featured toggle, soft-delete
-- Verify: charity change affects next payment only; totals from ledger
+- [x] Engine `charity/directory.ts` (pure search/filter, chip values, `slugify`) and `charity/donation.ts` (₹10 min, whole rupees, cap); `DONATION` constants
+- [x] Migration `…001100_charity_totals_public.sql` — the view ran as invoker, so visitors saw ₹0 for every charity; now owner-run, aggregates only — local + cloud
+- [x] `CharityRepository` + `DonationRepository` (+ Supabase impls), `CharityMediaStorage` (+ Supabase impl), `charityImagePath.ts` (seed file vs bucket URL), `next.config.ts` remote pattern; `CharityService` (directory, profile, featured, save with slug, exactly-one-featured, soft-delete with subscriber count, cover/gallery upload, events), `MemberCharityService` (choice + giving history), `DonationService` (id-before-Checkout, idempotent `markPaid`, success-page sync); `BillingGateway` gains donation checkout; webhook gains a donation branch
+- [x] `(marketing)/charities` (search, cause/city chips, `CharityCard` grid, `CharitySpotlight`) and `/charities/[slug]` (story, gallery, `EventList`, totals, Choose this charity / `DonateForm`, `?session_id=` sync); signup `?charity=<slug>` preselect
+- [x] `(member)/app/charity` — current charity + share, `CharityChoiceForm` (select + `SplitSlider`, "applies from your next payment"), donate once, giving history
+- [x] `(admin)/admin/charities` (table incl. hidden), `/new`, `/[id]` (`CharityForm`, `MediaPanel` cover + gallery uploads to `charity-media`, `EventsPanel`, `VisibilityPanel` spotlight + hide/list)
+- [x] Tests: 38 new unit (directory, donation, image path, `DonationService`, `CharityService` + `MemberCharityService` with fakes, webhook donation branch) → 333; `tests/integration/charities.test.ts` — anon directory + profile, member choice through RLS + check constraint, unpaid donation → service-role `markPaid` once → ledger + totals, admin create/event/cover upload (anon upload refused), member cannot edit, one featured, hide → gone for anon → 81
+- Verify: ✅ `scripts/walkthrough-phase8.ts` — directory → search "water" → filter → profile → member raises share to 25% → chooses a charity from its page → donates ₹250 on real Stripe Checkout → ledger row → admin creates a charity with cover + event → spotlight → hide → gone from directory → 390px; screenshots in `docs/screenshots/phase-8/`
 
 ### Phase 9 — Admin users + reports
 

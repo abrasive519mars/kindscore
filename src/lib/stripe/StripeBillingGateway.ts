@@ -6,6 +6,8 @@ import type {
   BillingGateway,
   CheckoutRequest,
   CompletedCheckout,
+  CompletedDonation,
+  DonationCheckoutRequest,
 } from "@/lib/stripe/BillingGateway";
 import {
   toInvoiceSnapshot,
@@ -79,6 +81,46 @@ export class StripeBillingGateway implements BillingGateway {
       this.stripe.subscriptions.update(id, { cancel_at_period_end: cancel }),
     );
     return toSubscriptionSnapshot(subscription, nowUnix());
+  }
+
+  async createDonationCheckout(
+    request: DonationCheckoutRequest,
+  ): Promise<{ id: string; url: string }> {
+    const session = await this.call("Checkout", () =>
+      this.stripe.checkout.sessions.create({
+        mode: "payment",
+        line_items: [
+          {
+            quantity: 1,
+            price_data: {
+              currency: BILLING.CURRENCY,
+              unit_amount: request.amountPaise,
+              product_data: { name: `Donation to ${request.charityName}` },
+            },
+          },
+        ],
+        client_reference_id: request.userId,
+        customer_email: request.email,
+        metadata: { kind: "donation", donation_id: request.donationId, user_id: request.userId },
+        billing_address_collection: "required",
+        success_url: appUrl(request.returnPath),
+        cancel_url: appUrl(
+          request.returnPath.replace("session_id={CHECKOUT_SESSION_ID}", "canceled=1"),
+        ),
+      }),
+    );
+    if (!session.url) throw new ExternalServiceError("Checkout");
+    return { id: session.id, url: session.url };
+  }
+
+  async retrieveCompletedDonation(sessionId: string): Promise<CompletedDonation | null> {
+    const session = await this.call("Checkout", () =>
+      this.stripe.checkout.sessions.retrieve(sessionId),
+    );
+    const donationId = session.metadata?.donation_id;
+    if (session.status !== "complete" || session.metadata?.kind !== "donation" || !donationId)
+      return null;
+    return { donationId, amountPaise: session.amount_total ?? 0 };
   }
 
   /** Every Stripe failure surfaces as one ExternalServiceError; callers never see SDK error shapes. */

@@ -54,4 +54,12 @@ export class SupabaseProfileRepository implements ProfileRepository {
       .eq("id", userId);
     if (error) throw new ExternalServiceError("Profiles", error);
   }
+
+  async updateCharityChoice(userId: string, charityId: string, charityBps: number): Promise<void> {
+    const { error } = await this.db
+      .from("profiles")
+      .update({ charity_id: charityId, charity_bps: charityBps })
+      .eq("id", userId);
+    if (error) throw new ExternalServiceError("Profiles", error);
+  }
 }

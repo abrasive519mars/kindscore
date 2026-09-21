@@ -25,12 +25,14 @@ let events: FakeStripeEventRepository;
 let subscriptions: FakeSubscriptionRepository;
 let payments: FakePaymentRepository;
 let retrieved: string[];
+let donationsPaid: string[];
 
 beforeEach(() => {
   events = new FakeStripeEventRepository();
   subscriptions = new FakeSubscriptionRepository();
   payments = new FakePaymentRepository();
   retrieved = [];
+  donationsPaid = [];
   const profiles = new FakeProfileRepository();
   profiles.profiles = [billingProfile({ stripeCustomerId: "cus_test_1" })];
   deps = {
@@ -46,6 +48,7 @@ beforeEach(() => {
       },
     },
     sync: new SubscriptionSyncService({ profiles, subscriptions, payments }),
+    donations: { markPaid: async (id) => (donationsPaid.push(id), "paid" as const) },
   };
 });
 
@@ -83,6 +86,18 @@ describe("processWebhook", () => {
   it("ignores a checkout session with no subscription (a one-off payment)", async () => {
     const response = await post(eventOf("checkout.session.completed", checkoutSessionObject(null)));
     expect(await response.json()).toMatchObject({ handled: false, reason: "not_a_subscription" });
+  });
+
+  it("marks a donation paid when the session says so in metadata", async () => {
+    const session = {
+      ...checkoutSessionObject(null),
+      mode: "payment",
+      metadata: { kind: "donation", donation_id: "don-1" },
+    };
+    const response = await post(eventOf("checkout.session.completed", session));
+    expect(await response.json()).toMatchObject({ handled: true, summary: "donation don-1 paid" });
+    expect(donationsPaid).toEqual(["don-1"]);
+    expect(retrieved).toEqual([]);
   });
 
   it("records the payment and refreshes the subscription on invoice.paid", async () => {

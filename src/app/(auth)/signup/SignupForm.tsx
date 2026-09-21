@@ -20,9 +20,15 @@ interface CharityOption {
  * One page, three beats: who you are → which charity → how much of each payment goes to them.
  * The Split slider shows the real rupee split live, before any money is asked for (Phase 5).
  */
-export function SignupForm({ charities }: { charities: readonly CharityOption[] }) {
+interface SignupFormProps {
+  readonly charities: readonly CharityOption[];
+  /** From a charity profile page (`/signup?charity=<slug>`). */
+  readonly defaultCharityId?: string;
+}
+
+export function SignupForm({ charities, defaultCharityId }: SignupFormProps) {
   const [state, action, pending] = useActionState(signUp, null);
-  const [charityId, setCharityId] = useState(charities[0]?.id ?? "");
+  const [charityId, setCharityId] = useState(defaultCharityId ?? charities[0]?.id ?? "");
   // React 19 resets the form after every action; keep what was typed so a server error isn't punishing.
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");

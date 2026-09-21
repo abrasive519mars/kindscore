@@ -1,7 +1,11 @@
 import type Stripe from "stripe";
 import { ValidationError } from "@/engine/errors";
 import { toResponse } from "@/lib/errors/http";
-import { handleStripeEvent, type SubscriptionFetcher } from "@/lib/stripe/handleEvent";
+import {
+  handleStripeEvent,
+  type DonationMarker,
+  type SubscriptionFetcher,
+} from "@/lib/stripe/handleEvent";
 import type { StripeEventRepository } from "@/repositories/interfaces/StripeEventRepository";
 import type { SubscriptionSyncService } from "@/services/SubscriptionSyncService";
 
@@ -11,6 +15,7 @@ export interface WebhookDeps {
   readonly events: StripeEventRepository;
   readonly fetcher: SubscriptionFetcher;
   readonly sync: SubscriptionSyncService;
+  readonly donations: DonationMarker;
 }
 
 function verifyOrThrow(deps: WebhookDeps, rawBody: string, signature: string | null): Stripe.Event {
@@ -43,7 +48,7 @@ export async function processWebhook(
   const fresh = await deps.events.claim(event.id, event.type);
   if (!fresh) return Response.json({ received: true, duplicate: true });
 
-  const result = await handleStripeEvent(event, deps.fetcher, deps.sync);
+  const result = await handleStripeEvent(event, deps.fetcher, deps.sync, deps.donations);
   await deps.events.markProcessed(event.id);
   return Response.json({ received: true, ...result });
 }

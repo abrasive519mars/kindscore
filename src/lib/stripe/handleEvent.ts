@@ -2,6 +2,11 @@ import type Stripe from "stripe";
 import { toInvoiceSnapshot, toSubscriptionSnapshot } from "@/lib/stripe/snapshots";
 import type { SubscriptionSyncService } from "@/services/SubscriptionSyncService";
 
+/** The only thing the webhook needs from donations: flip one to paid, idempotently. */
+export interface DonationMarker {
+  markPaid(donationId: string): Promise<"paid" | "already_paid" | "not_found">;
+}
+
 /** The narrow piece of the SDK this file needs, so tests can pass a stub instead of a network. */
 export interface SubscriptionFetcher {
   retrieveSubscription(id: string): Promise<Stripe.Subscription>;
@@ -10,6 +15,10 @@ export interface SubscriptionFetcher {
 export type HandledEvent =
   | { readonly handled: true; readonly summary: string }
   | { readonly handled: false; readonly reason: "ignored_type" | "not_a_subscription" };
+
+function isDonationSession(session: Stripe.Checkout.Session): boolean {
+  return session.metadata?.kind === "donation" && typeof session.metadata.donation_id === "string";
+}
 
 function subscriptionIdOf(session: Stripe.Checkout.Session): string | null {
   const ref = session.subscription;
@@ -26,9 +35,15 @@ export async function handleStripeEvent(
   event: Stripe.Event,
   stripe: SubscriptionFetcher,
   sync: SubscriptionSyncService,
+  donations: DonationMarker,
 ): Promise<HandledEvent> {
   switch (event.type) {
     case "checkout.session.completed": {
+      if (isDonationSession(event.data.object)) {
+        const donationId = event.data.object.metadata!.donation_id!;
+        const outcome = await donations.markPaid(donationId);
+        return { handled: true, summary: `donation ${donationId} ${outcome}` };
+      }
       const id = subscriptionIdOf(event.data.object);
       if (!id) return { handled: false, reason: "not_a_subscription" };
       const subscription = await stripe.retrieveSubscription(id);

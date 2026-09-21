@@ -170,3 +170,7 @@ Server actions (colocated `actions.ts`) for every first-party mutation → `Acti
 ### Phase 6 note — what the public may read about a draw
 
 `draw_statistics` runs as its owner (not `security_invoker`) and is granted to `anon` and `authenticated`: it exposes only aggregate winner counts and pool figures of **published** draws, which PRD §06 makes public. `active_subscriber_counts()` (security definer) returns two integers so the projected jackpot can be computed by the engine on any page without reading `subscriptions`. Entries and results stay behind their "own rows after publish" policies.
+
+### Phase 8 note — public aggregates
+
+`charity_totals`, like `draw_statistics`, runs as its owner and is granted to `anon` and `authenticated`: per-charity totals and contributor counts are PRD §08.2 "impact metrics". The ledger rows themselves stay behind "own rows / admin" policies. The Stripe webhook handles `checkout.session.completed` for donations (`metadata.kind = donation`) with one idempotent `markPaid`; the success page runs the same sync, so a dev box without a webhook is still consistent.

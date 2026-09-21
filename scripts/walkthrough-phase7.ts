@@ -84,18 +84,16 @@ async function main() {
   const start = new Date();
   const end = new Date(start);
   end.setMonth(end.getMonth() + 1);
-  await admin
-    .from("subscriptions")
-    .insert({
-      user_id: winner.id,
-      stripe_subscription_id: `seed_sub_${winner.id}`,
-      stripe_price_id: "price_seed",
-      plan_interval: "month",
-      status: "active",
-      current_period_start: start.toISOString(),
-      current_period_end: end.toISOString(),
-      source: "seed",
-    });
+  await admin.from("subscriptions").insert({
+    user_id: winner.id,
+    stripe_subscription_id: `seed_sub_${winner.id}`,
+    stripe_price_id: "price_seed",
+    plan_interval: "month",
+    status: "active",
+    current_period_start: start.toISOString(),
+    current_period_end: end.toISOString(),
+    source: "seed",
+  });
 
   // A published draw where the winner matched three (through the real RPCs, as an admin session).
   const { data: session } = await admin.auth.signInWithPassword({

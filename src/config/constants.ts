@@ -103,6 +103,14 @@ export const PROOF_UPLOAD = {
   BUCKET: "proofs",
 } as const;
 
+// One-off donations (PRD §08.1 "not tied to gameplay"). Whole rupees, in paise.
+export const DONATION = {
+  MIN_PAISE: 10_00,
+  /** Sanity cap per transaction, not a business rule. */
+  MAX_PAISE: 1_00_000_00,
+  PRESET_PAISE: [100_00, 250_00, 500_00, 1_000_00] as const,
+} as const;
+
 export const CHARITY_MEDIA = {
   MAX_BYTES: 2 * 1024 * 1024,
   ALLOWED_MIME_TYPES: ["image/png", "image/jpeg", "image/webp"] as const,
