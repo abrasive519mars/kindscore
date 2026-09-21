@@ -85,13 +85,17 @@ Files (write → test → explain):
 - [x] RLS smoke script: anon / member / admin reads against each table
 - Verify: policies behave; `schema.dbml` exported (for schema.png later)
 
-### Phase 3 — Auth + shell
-- [ ] `lib/supabase/{server,browser,admin,middleware}.ts`; `middleware.ts` (cookie refresh, route guards)
-- [ ] `(auth)/signup` 4-step Stepper: account → charity + SplitSlider → plan → pay; `(auth)/login`; `auth/callback`
-- [ ] `(member)/app/layout.tsx` with `getAccessState()` (React `cache`), locked-card shell for non-subscribers; `(admin)/admin/layout.tsx` with `is_admin`
-- [ ] `lib/action-result.ts`, `lib/http-error.ts`, `lib/auth-guards.ts` (`requireUser`, `requireActiveSubscriber`, `requireAdmin`)
-- [ ] UI primitives (DESIGN.md §6): Button, Card, Rule, Figure, ScoreRow, Split, Stepper, Badge, Chip, FormField, Modal/Sheet, InlineConfirmation, Toast, Skeleton, EmptyState, Nav/BottomNav/AdminSidebar
-- Verify: signup → dashboard shell; non-admin `/admin` → 403 ticket
+### Phase 3 — Auth + shell ✅ done 2026-09-21 (plan: `docs/plans/phase-3-auth-shell.md`)
+- [x] `lib/supabase/{browser,server,proxy,admin}.ts`; `src/proxy.ts` (Next 16: session refresh + coarse redirects, no DB)
+- [x] `lib/auth/{derive,access,guards,redirects}.ts` — pure `deriveAccess`, cached `getAccess`, `requireUser/Admin/ActiveSubscriber`, open-redirect guard
+- [x] `lib/errors/{action-result,http}.ts` — `ActionResult`, `runAction`, `toResponse`; `schemas/auth.ts`
+- [x] `(auth)` login/signup/logout + `auth/callback`; one-page signup with charity + SplitSlider
+- [x] `(member)/app` layout (AppNav, BottomNav, SubscriptionBanner), dashboard shell with every §10 module, subscription page (plan cards, checkout disabled until Phase 5), settings (profile action, theme, logout)
+- [x] `(admin)/admin` layout with 403, overview from `reports_summary`; `(marketing)` layout; root 404/error
+- [x] UI: Button, Card, Rule, Figure, Badge, Banner, Skeleton, EmptyState, FormField, Split/SplitSlider, Wordmark, ThemeToggle, LockedCard, ScoreRow, FadeIn; nav: NavLink, SiteNav, AppNav, BottomNav, AdminSidebar, UserMenu
+- [x] ESLint: admin client restricted from app/components/services/repositories
+- [x] Tests: 31 new unit (action-result, redirects, auth schemas, deriveAccess) → 181; auth integration → 50; `scripts/walkthrough-phase3.ts` (Playwright) drives signup → locked shell → settings → 403 → logout → wrong password → login with ?next → admin overview → 390px, screenshots in `docs/screenshots/phase-3/`
+- Verify: ✅ all of the above green; build clean; found and fixed: React 19 form reset wiping the email after a failed login (email now controlled), LockedCard overlay overflow, admin seeing the subscription banner
 
 ### Phase 4 — Scores
 - [ ] `repositories/interfaces/ScoreRepository.ts` + supabase impl; `services/ScoreService.ts`

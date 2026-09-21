@@ -26,10 +26,23 @@ const engineImportGuard = {
   },
 };
 
+/** The service-role client bypasses RLS; only the webhook and scripts may hold it. */
+const adminClientGuard = {
+  files: ["src/app/**/*.{ts,tsx}", "src/components/**/*.{ts,tsx}", "src/services/**/*.ts", "src/repositories/**/*.ts"],
+  ignores: ["src/app/api/stripe/**", "src/app/api/cron/**"],
+  rules: {
+    "no-restricted-imports": [
+      "error",
+      { paths: [{ name: "@/lib/supabase/admin", message: "Service-role client is for the Stripe webhook, cron and scripts only." }] },
+    ],
+  },
+};
+
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
   engineImportGuard,
+  adminClientGuard,
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:

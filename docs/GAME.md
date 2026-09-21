@@ -20,6 +20,8 @@ Users can also make a **one-off donation** to any charity at any time, unrelated
 
 Only users with an **active** subscription can use the app's features and enter draws. Subscriptions can renew, be cancelled, or lapse (payment failed / expired) — a lapsed user drops back to restricted access (§04). The app checks subscription status on **every** request from a logged-in user, not just at login.
 
+**[decision]** "Restricted access" means a *locked shell*, not a lockout: a member without an active subscription still sees the app, their charity and the jackpot, with score entry and draw participation dimmed behind one "Subscribe to unlock" button. **[decision]** Signup is one page — name, email, password, charity, percentage — and plan/payment come *after* the account exists, so an abandoned checkout still leaves a member and the split is seen before money is asked for.
+
 ---
 
 ## 2. Entering scores — how you get your numbers (§05)
