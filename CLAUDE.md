@@ -30,7 +30,10 @@ pnpm db:types            # regenerate src/types/database.types.ts from LOCAL (ru
 pnpm db:types:cloud      # same, from the linked cloud project
 pnpm db:push             # supabase db push — apply migrations to the linked cloud project (nvduvsskhxkypmckfwil)
 pnpm exec supabase db query --linked --file supabase/seed.sql   # seed the cloud charities (db push skips seeds)
-pnpm seed                # tsx scripts/seed.ts (needs SUPABASE_SERVICE_ROLE_KEY)
+pnpm seed                # demo world into the LOCAL stack (.env.test); --env .env.cloud.local --yes for the cloud project
+pnpm docs:build          # README decisions table (from GAME.md [decision]s), docs/{architecture,schema}.png, docs/submission/Kindscore-Submission.pdf
+pnpm package             # dist/kindscore-submission.zip (git archive + PDF + PNGs; asserts < 50 MB, no .env)
+pnpm tsx scripts/walkthroughs/<phase>.ts   # Playwright walkthroughs against a started build (pnpm build && pnpm start -p 3000)
 pnpm stripe:setup        # idempotent: create/find Stripe product + INR prices by lookup key; --webhook <origin> adds the endpoint
 pnpm stripe:listen       # forward Stripe test webhooks to localhost:3000 (needs the Stripe CLI; optional — the success page syncs without it)
 ```

@@ -8,6 +8,7 @@ import { SupabaseScoreRepository } from "@/repositories/supabase/SupabaseScoreRe
 import { AdminUserService } from "@/services/AdminUserService";
 import { ReportsService } from "@/services/ReportsService";
 import { ScoreService } from "@/services/ScoreService";
+import { fetchAllRows } from "@/repositories/supabase/db";
 import { admin, CHARITY, clientAs, createUser, deleteUser, type Db, type TestUser } from "./setup";
 
 let adminUser: TestUser;
@@ -127,12 +128,19 @@ describe("reports", () => {
       new SupabaseAdminUserRepository(adminDb),
     );
     const { summary, byMonth, charities } = await reports.overview();
-    const { data: ledger } = await admin.from("charity_contributions").select("amount_paise");
-    expect(summary.charityTotalPaise).toBe(ledger!.reduce((s, r) => s + r.amount_paise, 0));
+    // Paged on purpose: a seeded database holds more ledger rows than PostgREST's 1000-row cap.
+    const ledger = await fetchAllRows((from, to) =>
+      admin.from("charity_contributions").select("amount_paise").order("id").range(from, to),
+    );
+    expect(summary.charityTotalPaise).toBe(ledger.reduce((s, r) => s + r.amount_paise, 0));
     expect(charities.reduce((s, c) => s + c.totalPaise, 0)).toBe(summary.charityTotalPaise);
-    const { data: payments } = await admin.from("payments").select("pool_paise");
+    const payments = await fetchAllRows((from, to) =>
+      admin.from("payments").select("pool_paise").order("id").range(from, to),
+    );
+    const { count } = await admin.from("payments").select("id", { count: "exact", head: true });
+    expect(payments).toHaveLength(count!);
     expect(byMonth.reduce((s, m) => s + m.poolPaise, 0)).toBe(
-      payments!.reduce((s, p) => s + p.pool_paise, 0),
+      payments.reduce((s, p) => s + p.pool_paise, 0),
     );
     expect((await reports.csv("members")).split("\r\n")[0]).toMatch(/^name,email/);
   });

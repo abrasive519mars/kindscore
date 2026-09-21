@@ -21,6 +21,7 @@ coverage/
 
 # build artefacts & submission package
 dist/
+docs/evidence/
 *.zip
 docs/submission/*.pdf
 

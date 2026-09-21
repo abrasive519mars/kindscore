@@ -5,7 +5,7 @@ import type {
   ReportSummary,
   ReportsRepository,
 } from "@/repositories/interfaces/ReportsRepository";
-import type { Db } from "@/repositories/supabase/db";
+import { fetchAllRows, type Db } from "@/repositories/supabase/db";
 
 /** Admin client only — the views are security_invoker and the tables are admin-readable. */
 export class SupabaseReportsRepository implements ReportsRepository {
@@ -43,11 +43,15 @@ export class SupabaseReportsRepository implements ReportsRepository {
   }
 
   async payments(): Promise<PaymentLine[]> {
-    const { data, error } = await this.db
-      .from("payments")
-      .select("paid_at, amount_paise, pool_paise, charity_paise, platform_paise")
-      .order("paid_at", { ascending: false });
-    if (error) throw new ExternalServiceError("Reports", error);
+    const data = await fetchAllRows((from, to) =>
+      this.db
+        .from("payments")
+        .select("paid_at, amount_paise, pool_paise, charity_paise, platform_paise")
+        .order("paid_at", { ascending: false })
+        .range(from, to),
+    ).catch((error) => {
+      throw new ExternalServiceError("Reports", error);
+    });
     return data.map((p) => ({
       paidAt: p.paid_at,
       amountPaise: p.amount_paise,

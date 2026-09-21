@@ -17,7 +17,7 @@ import type {
   PaymentRow,
   ProfileEdit,
 } from "@/repositories/interfaces/AdminUserRepository";
-import type { Db } from "@/repositories/supabase/db";
+import { fetchAllRows, type Db } from "@/repositories/supabase/db";
 import type { Database, Json } from "@/types/database.types";
 
 type SubscriptionRow = Database["public"]["Tables"]["subscriptions"]["Row"];
@@ -108,11 +108,15 @@ export class SupabaseAdminUserRepository implements AdminUserRepository {
   constructor(private readonly db: Db) {}
 
   async listMembers(filter: MemberFilter): Promise<MemberRow[]> {
-    const { data, error } = await this.db
-      .from("profiles")
-      .select(MEMBER_SELECT)
-      .order("created_at", { ascending: false });
-    if (error) throw new ExternalServiceError("Members", error);
+    const data = await fetchAllRows((from, to) =>
+      this.db
+        .from("profiles")
+        .select(MEMBER_SELECT)
+        .order("created_at", { ascending: false })
+        .range(from, to),
+    ).catch((error) => {
+      throw new ExternalServiceError("Members", error);
+    });
     const now = new Date();
     return (data as unknown as MemberJoined[])
       .map((row) => toRow(row, now))

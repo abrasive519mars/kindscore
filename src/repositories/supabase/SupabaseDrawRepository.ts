@@ -16,7 +16,7 @@ import type {
   MemberDrawOutcome,
   SimulationWrite,
 } from "@/repositories/interfaces/DrawRepository";
-import { PG_UNIQUE_VIOLATION, type Db } from "@/repositories/supabase/db";
+import { fetchAllRows, PG_UNIQUE_VIOLATION, type Db } from "@/repositories/supabase/db";
 import type { Database } from "@/types/database.types";
 
 type DrawRow = Database["public"]["Tables"]["draws"]["Row"];
@@ -26,6 +26,9 @@ type SummaryRow = Database["public"]["Views"]["draw_statistics"]["Row"];
 const PG_RAISE_EXCEPTION = "P0001";
 const PG_NO_DATA_FOUND = "P0002";
 const PG_INSUFFICIENT_PRIVILEGE = "42501";
+
+/** Members per scores query: 150 × 5 rounds stays well under the API row cap and URL length. */
+const CANDIDATE_CHUNK = 150;
 
 function mapRpcError(error: { code?: string; message: string }): Error {
   if (error.code === PG_RAISE_EXCEPTION) return new RuleViolationError(capitalise(error.message));
@@ -87,30 +90,39 @@ function toSummary(row: SummaryRow): DrawSummary {
 export class SupabaseDrawRepository implements DrawRepository {
   constructor(private readonly db: Db) {}
 
-  /** Active-in-period subscribers joined to their kept scores (newest first, as the ticket reads). */
+  /**
+   * Active-in-period subscribers joined to their kept scores (newest first, as the ticket reads).
+   * Scores are fetched in chunks of members: a single `.in()` with hundreds of ids overflows the
+   * URL, and one unchunked select would hit PostgREST's row cap and silently drop tickets.
+   */
   async listCandidates(): Promise<DrawCandidate[]> {
-    const { data: subs, error } = await this.db
-      .from("subscriptions")
-      .select("user_id, plan_interval")
-      .eq("status", "active")
-      .gt("current_period_end", new Date().toISOString());
-    if (error) throw new ExternalServiceError("Draws", error);
+    const now = new Date().toISOString();
+    const subs = await fetchAllRows((from, to) =>
+      this.db
+        .from("subscriptions")
+        .select("user_id, plan_interval")
+        .eq("status", "active")
+        .gt("current_period_end", now)
+        .order("user_id")
+        .range(from, to),
+    ).catch((error) => {
+      throw new ExternalServiceError("Draws", error);
+    });
     if (subs.length === 0) return [];
 
-    const { data: scores, error: scoresError } = await this.db
-      .from("scores")
-      .select("user_id, score, played_on, created_at")
-      .in(
-        "user_id",
-        subs.map((s) => s.user_id),
-      )
-      .order("played_on", { ascending: false })
-      .order("created_at", { ascending: false });
-    if (scoresError) throw new ExternalServiceError("Draws", scoresError);
-
     const byUser = new Map<string, number[]>();
-    for (const row of scores)
-      byUser.set(row.user_id, [...(byUser.get(row.user_id) ?? []), row.score]);
+    for (let i = 0; i < subs.length; i += CANDIDATE_CHUNK) {
+      const ids = subs.slice(i, i + CANDIDATE_CHUNK).map((s) => s.user_id);
+      const { data: scores, error: scoresError } = await this.db
+        .from("scores")
+        .select("user_id, score, played_on, created_at")
+        .in("user_id", ids)
+        .order("played_on", { ascending: false })
+        .order("created_at", { ascending: false });
+      if (scoresError) throw new ExternalServiceError("Draws", scoresError);
+      for (const row of scores)
+        byUser.set(row.user_id, [...(byUser.get(row.user_id) ?? []), row.score]);
+    }
     return subs.map((s) => ({
       userId: s.user_id,
       interval: s.plan_interval,

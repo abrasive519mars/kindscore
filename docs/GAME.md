@@ -203,6 +203,10 @@ The rules around it **[decision]**:
 - Charity directory with search/filter, charity profile pages, featured charity spotlight
 - How the draw works
 
+## 10. The demo world (seed)
+
+The evaluators meet Kindscore already running: 300-odd members, three published months and September waiting to be drawn. **[decision]** Demo history is generated, not typed — the seed signs in as the admin and runs the real draw and verification services with a steered random source, so every figure on every page (pool, rollover ladder, charity totals, winners) is internally consistent and September is untouched for the evaluator to draw. **[decision]** Seeded subscriptions are marked `seed` and never touch Stripe; the evaluator's own signup on the live site is the proof that Stripe works. **[decision]** Demo accounts live at `@kindscore.app` and never receive mail (Supabase Auth refuses reserved TLDs such as `.test`; confirmation is off).
+
 ---
 
 ## One-page summary
