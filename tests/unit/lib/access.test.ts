@@ -32,6 +32,7 @@ function subscription(status: SubscriptionRow["status"], end: string): Subscript
     current_period_start: "2026-09-05T00:00:00Z",
     current_period_end: end,
     cancel_at_period_end: false,
+    last_event_at: null,
     canceled_at: null,
     source: "stripe",
     created_at: "",

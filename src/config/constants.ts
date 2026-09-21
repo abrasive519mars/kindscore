@@ -67,10 +67,32 @@ export const SPLIT = {
 // ── Plans ─────────────────────────────────────────────────────────────
 export type PlanInterval = "month" | "year";
 
-export const PLANS: Readonly<Record<PlanInterval, { pricePaise: number; label: string }>> = {
-  month: { pricePaise: 499_00, label: "Monthly" },
-  year: { pricePaise: 4_999_00, label: "Yearly" },
+export const PLANS: Readonly<
+  Record<PlanInterval, { pricePaise: number; label: string; lookupKey: string }>
+> = {
+  // lookupKey: how scripts/stripe-setup.ts finds (or creates) the Stripe price — idempotent.
+  month: { pricePaise: 499_00, label: "Monthly", lookupKey: "kindscore_monthly" },
+  year: { pricePaise: 4_999_00, label: "Yearly", lookupKey: "kindscore_yearly" },
 };
+
+// ── Billing (Stripe) ──────────────────────────────────────────────────
+export const BILLING = {
+  CURRENCY: "inr",
+  PRODUCT_NAME: "Kindscore membership",
+  /** Where Stripe sends people back. `{CHECKOUT_SESSION_ID}` is filled in by Stripe. */
+  SUCCESS_PATH: "/app/subscription?session_id={CHECKOUT_SESSION_ID}",
+  CANCEL_PATH: "/app/subscription?canceled=1",
+  PORTAL_RETURN_PATH: "/app/subscription",
+  /** The events the webhook endpoint subscribes to. */
+  WEBHOOK_EVENTS: [
+    "checkout.session.completed",
+    "customer.subscription.created",
+    "customer.subscription.updated",
+    "customer.subscription.deleted",
+    "invoice.paid",
+    "invoice.payment_failed",
+  ],
+} as const;
 
 export const MONTHS_PER_YEAR = 12;
 

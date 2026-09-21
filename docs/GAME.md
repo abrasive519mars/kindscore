@@ -22,6 +22,14 @@ Only users with an **active** subscription can use the app's features and enter 
 
 **[decision]** "Restricted access" means a _locked shell_, not a lockout: a member without an active subscription still sees the app, their charity and the jackpot, with score entry and draw participation dimmed behind one "Subscribe to unlock" button. **[decision]** Signup is one page — name, email, password, charity, percentage — and plan/payment come _after_ the account exists, so an abandoned checkout still leaves a member and the split is seen before money is asked for.
 
+How the lifecycle plays out **[decision]**:
+
+- **Cancelling keeps access until the paid period ends.** The member stays in that month's draw, the row then becomes _cancelled_, and they can change their mind (Resume) any time before the date. Nothing is refunded mid-period — the PRD says only "cancellation", and this is the standard reading.
+- **A failed renewal restricts immediately.** The PRD asks for a _real-time_ check, and a bounced payment is exactly the moment it should bite. The banner links straight to Stripe's card-update page; Stripe's own retries reinstate the member on success with no action from us.
+- **The charity share is frozen per payment.** Changing charity or percentage applies to the _next_ invoice; every past contribution stays with the charity that received it.
+- **No trials, coupons or proration.** One fee, one entry, everyone equal.
+- **Payments are Stripe test mode on a US-registered sandbox account.** Stripe India is invite-only for new accounts; test mode needs no activation and supports INR, so the ₹499 / ₹4,999 prices, the Indian billing address and the Indian test cards all work unchanged.
+
 ---
 
 ## 2. Entering scores — how you get your numbers (§05)

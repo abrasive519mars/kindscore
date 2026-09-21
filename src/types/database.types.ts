@@ -690,6 +690,7 @@ export type Database = {
           current_period_end: string;
           current_period_start: string;
           id: string;
+          last_event_at: string | null;
           plan_interval: Database["public"]["Enums"]["plan_interval"];
           source: string;
           status: Database["public"]["Enums"]["subscription_status"];
@@ -705,6 +706,7 @@ export type Database = {
           current_period_end: string;
           current_period_start: string;
           id?: string;
+          last_event_at?: string | null;
           plan_interval: Database["public"]["Enums"]["plan_interval"];
           source?: string;
           status: Database["public"]["Enums"]["subscription_status"];
@@ -720,6 +722,7 @@ export type Database = {
           current_period_end?: string;
           current_period_start?: string;
           id?: string;
+          last_event_at?: string | null;
           plan_interval?: Database["public"]["Enums"]["plan_interval"];
           source?: string;
           status?: Database["public"]["Enums"]["subscription_status"];

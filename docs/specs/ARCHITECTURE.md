@@ -84,11 +84,11 @@ $$;
 | `customer.subscription.updated` | re-sync status / period / `cancel_at_period_end` / price from the object                             |
 | `customer.subscription.deleted` | `status = cancel_at_period_end ? 'cancelled' : 'lapsed'`                                             |
 
-Always upsert from the **retrieved Stripe object**, never from event ordering. Insert `stripe_events.id` first; unique violation → return 200 immediately.
+Upsert from the **full object in the event payload** (`customer.subscription.*` carry it); retrieve from Stripe only where the payload has just an id (`checkout.session.completed`, `invoice.*`). Ordering is guarded by `subscriptions.last_event_at` (an event older than the stored one is ignored), not by delivery order. Insert `stripe_events.id` first; unique violation → return 200 immediately. _(Phase 5 refinement — keeps the webhook integration test fully offline.)_
 
 **Status mapping** (`engine/subscription/mapStripeStatus.ts`): `active|trialing → active`; `past_due → past_due`; `canceled → cancelled`; `unpaid|incomplete_expired|incomplete → lapsed`. Access = `active && period_end > now`. `cancel_at_period_end = true` stays `active` with UI "ends on {date}".
 
-**Cheap real-time check (§04):** never call Stripe on read. Middleware refreshes auth cookie only. `(member)` layout calls `getAccessState()` wrapped in React `cache()` → one indexed query per request. Every mutating server action calls `requireActiveSubscriber()` — layouts don't protect actions. Success page (`?session_id=`) calls `syncSubscriptionFromStripe` once as a fallback when the webhook hasn't landed.
+**Cheap real-time check (§04):** never call Stripe on read. Middleware refreshes auth cookie only. `(member)` layout calls `getAccessState()` wrapped in React `cache()` → one indexed query per request. Every mutating server action calls `requireActiveSubscriber()` — layouts don't protect actions. Success page (`?session_id=`) runs `CheckoutService.syncAfterCheckout` once — the same `SubscriptionSyncService` as the webhook, for the subscription **and the first invoice** — so a dev box with no webhook still ends up fully consistent, and the webhook's later delivery is an idempotent no-op.
 
 **Split** (`engine/charity/splitPayment.ts`): `charity = floor(amount × charity_bps / 10000)`, `pool = floor(amount × POOL_SHARE_BPS / 10000)`, `platform = amount − charity − pool`.
 

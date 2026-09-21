@@ -113,14 +113,16 @@ Files (write → test → explain):
 - [x] Tests: 19 new unit (score schema, `ScoreService` with a fake repository) → 200; `scripts/walkthrough-phase4.ts` (Playwright) drives locked → unlocked → 5 rounds → 6th evicts → duplicate → edit → backdated → 46 → future → delete → DB agrees → 390px; screenshots in `docs/screenshots/phase-4/`
 - Verify: ✅ all of the above green on local Supabase; build clean. Found and fixed: a `useEffect` keyed on the parent callback re-added the same entry on every render (callbacks now run inside the action), `ScoreRow` overflowing at 390px
 
-### Phase 5 — Stripe + subscription
+### Phase 5 — Stripe + subscription ✅ done 2026-09-21 (plan: `docs/plans/phase-5-stripe.md`)
 
-- [ ] Stripe test mode: products/prices INR; `lib/stripe.ts`; `startCheckout(interval)` action (`billing_address_collection: required`)
-- [ ] `api/stripe/webhook/route.ts` (nodejs runtime, raw body, `stripe_events` dedupe) → `services/WebhookHandler.ts` → `SubscriptionRepository`, `PaymentRepository`
-- [ ] Success page fallback `syncSubscriptionFromStripe(session_id)`; Customer Portal link; cancel flow
-- [ ] `(member)/app/subscription` page; StatusBanner states; lapsed redirect
-- [ ] `api/cron/keepalive` + `vercel.json` cron
-- Verify: 4242 card → active; `stripe trigger invoice.payment_failed` → past_due; replayed event → single row
+- [x] Stripe test mode: `scripts/stripe-setup.ts` creates product + INR prices by lookup key (idempotent) and, with `--webhook`, the endpoint; `lib/stripe/{client,snapshots,BillingGateway,StripeBillingGateway,billing}.ts`
+- [x] Migration `…000900_subscription_sync.sql` (`last_event_at` ordering guard) — local + cloud
+- [x] Repositories: `Subscription`, `Payment`, `StripeEvent`, `Profile` (interfaces + Supabase); `services/SubscriptionSyncService.ts` (no Stripe import) + `services/CheckoutService.ts` (depends on `BillingGateway`)
+- [x] `api/stripe/webhook/route.ts` → `lib/stripe/webhook.ts` (verify → claim event id → handle → mark processed; 400 bad signature, 200 duplicate, 500 retry) → `lib/stripe/handleEvent.ts`
+- [x] Post-checkout sync (`?session_id=` → subscription **and first invoice** → redirect `?activated=1`); cancel / resume / Customer Portal actions; `(member)/app/subscription` states none · active · cancel-at-period-end · past_due · cancelled/lapsed · abandoned checkout
+- [x] `api/cron/keepalive` + `vercel.json`
+- [x] Tests: 44 new unit (snapshots, sync service, checkout service, webhook pipeline with fakes) → 244; `tests/integration/webhook.test.ts` signs fixture events with Stripe's helper against local Postgres (activate, pay + ledger, replay → one row, bad signature → 400, stale event ignored, payment failed → `past_due` + gate closed, deleted → cancelled, unknown customer → 200) → 58
+- Verify: ✅ `scripts/walkthrough-phase5.ts` drives real Stripe Checkout (4242, Indian address) → back with `session_id` → Active, renews +1 month, `payments` row 49,900 → 7,485 / 14,970 / 27,445 at 15%, ledger row → cancel → "won't renew" → resume → portal → 390px; screenshots in `docs/screenshots/phase-5/`
 
 ### Phase 6 — Draw (admin + member)
 

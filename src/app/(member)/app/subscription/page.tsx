@@ -1,20 +1,42 @@
 import type { Metadata } from "next";
-import { PLANS, SPLIT } from "@/config/constants";
-import { formatInr } from "@/engine/money/paise";
-import { getAccess, type SignedInAccess } from "@/lib/auth/access";
-import { Button } from "@/components/ui/Button";
-import { Badge, Card, Figure } from "@/components/ui/primitives";
-import { SplitBar } from "@/components/ui/Split";
+import { redirect } from "next/navigation";
+import { SPLIT } from "@/config/constants";
+import { getAccess, type SignedInAccess, type SubscriptionState } from "@/lib/auth/access";
+import { createCheckoutService } from "@/lib/stripe/billing";
+import { Banner, Card, Figure } from "@/components/ui/primitives";
+import { ManageSubscription } from "@/app/(member)/app/subscription/ManageSubscription";
+import { PlanChooser } from "@/app/(member)/app/subscription/PlanChooser";
 
 export const metadata: Metadata = { title: "Subscription" };
 
-const YEARLY_EFFECTIVE_MONTHLY = Math.floor(PLANS.year.pricePaise / 12);
+type Search = { session_id?: string; canceled?: string; activated?: string };
 
-/** Plan cards per DESIGN.md §3 pricing. Checkout itself arrives in Phase 5; today the buttons say so. */
-export default async function SubscriptionPage() {
+function formatDay(iso: string): string {
+  return new Intl.DateTimeFormat("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: "Asia/Kolkata",
+  }).format(new Date(iso));
+}
+
+/**
+ * Landing back from Stripe with a session id: sync the mirror now rather than wait for the
+ * webhook, then redirect so the whole page (layout banner included) renders from fresh data.
+ */
+async function syncFromCheckout(userId: string, sessionId: string): Promise<never> {
+  const outcome = await createCheckoutService().syncAfterCheckout(userId, sessionId);
+  redirect(
+    outcome?.applied ? "/app/subscription?activated=1" : "/app/subscription?activated=pending",
+  );
+}
+
+export default async function SubscriptionPage({ searchParams }: PageProps<"/app/subscription">) {
   const access = (await getAccess()) as SignedInAccess;
-  const { status, hasAccess, currentPeriodEnd, interval } = access.subscription;
+  const search = (await searchParams) as Search;
+  if (search.session_id) await syncFromCheckout(access.userId, search.session_id);
 
+  const { subscription } = access;
   return (
     <div className="flex flex-col gap-8">
       <header className="flex flex-col gap-1">
@@ -24,76 +46,99 @@ export default async function SubscriptionPage() {
         </p>
       </header>
 
-      <Card>
-        <Figure
-          label="Current status"
-          value={
-            <span className="text-2xl">
-              {hasAccess
-                ? "Active"
-                : status === "none"
-                  ? "Not subscribed"
-                  : status.replace("_", " ")}
-            </span>
-          }
-          hint={
-            currentPeriodEnd
-              ? `Paid through ${new Date(currentPeriodEnd).toLocaleDateString("en-IN")} · ${interval}ly`
-              : undefined
-          }
-        />
-      </Card>
+      <ReturnNotice search={search} />
+      <StatusCard subscription={subscription} isAdmin={access.kind === "admin"} />
 
-      <section className="grid gap-6 md:grid-cols-2" aria-label="Plans">
-        <PlanCard
-          title="Monthly"
-          price={`${formatInr(PLANS.month.pricePaise)}/month`}
-          sub="incl. GST · cancel anytime"
-          amountPaise={PLANS.month.pricePaise}
+      {!subscription.hasAccess && (
+        <PlanChooser
           charityBps={access.profile.charity_bps}
+          verb={subscription.status === "none" ? "Subscribe" : "Renew"}
         />
-        <PlanCard
-          title="Yearly"
-          price={`${formatInr(PLANS.year.pricePaise)}/year`}
-          sub={`${formatInr(YEARLY_EFFECTIVE_MONTHLY)}/month · 2 months free · incl. GST`}
-          amountPaise={PLANS.year.pricePaise}
-          charityBps={access.profile.charity_bps}
-          badge="Best value"
-        />
-      </section>
+      )}
 
       <p className="text-sm text-ink-2">
         Of every payment, at least {SPLIT.CHARITY_MIN_BPS / 100}% goes to your charity and{" "}
-        {SPLIT.POOL_SHARE_BPS / 100}% to the prize pool. The rest runs Kindscore.
+        {SPLIT.POOL_SHARE_BPS / 100}% to the prize pool. The rest runs Kindscore. Payments are
+        handled by Stripe; we never see your card.
       </p>
     </div>
   );
 }
 
-interface PlanCardProps {
-  readonly title: string;
-  readonly price: string;
-  readonly sub: string;
-  readonly amountPaise: number;
-  readonly charityBps: number;
-  readonly badge?: string;
+function ReturnNotice({ search }: { search: Search }) {
+  if (search.activated === "1") {
+    return (
+      <Banner tone="success">
+        Payment received — you&apos;re in the next draw. Log your five rounds.
+      </Banner>
+    );
+  }
+  if (search.activated === "pending") {
+    return (
+      <Banner tone="warn">
+        Payment received — activating your membership. Refresh in a moment.
+      </Banner>
+    );
+  }
+  if (search.canceled === "1") {
+    return <Banner tone="neutral">No charge was made. Pick a plan when you&apos;re ready.</Banner>;
+  }
+  return null;
 }
 
-function PlanCard({ title, price, sub, amountPaise, charityBps, badge }: PlanCardProps) {
+function StatusCard({
+  subscription,
+  isAdmin,
+}: {
+  subscription: SubscriptionState;
+  isAdmin: boolean;
+}) {
+  const { status, hasAccess, currentPeriodEnd, cancelAtPeriodEnd, interval } = subscription;
+  const periodEnd = currentPeriodEnd ? formatDay(currentPeriodEnd) : null;
+  const label = isAdmin && status === "none" ? "Admin" : statusLabel(status, hasAccess);
+  const hint = hintFor(status, hasAccess, cancelAtPeriodEnd, periodEnd, interval);
+
   return (
     <Card className="flex flex-col gap-5">
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-sm font-medium uppercase tracking-[0.06em] text-ink-2">{title}</p>
-          <p className="num font-display text-3xl">{price}</p>
-          <p className="text-sm text-ink-2">{sub}</p>
-        </div>
-        {badge && <Badge tone="saffron">{badge}</Badge>}
-      </div>
-      <SplitBar amountPaise={amountPaise} charityBps={charityBps} compact />
-      <Button disabled title="Payments arrive in the next phase">
-        Choose {title.toLowerCase()} · coming soon
-      </Button>
+      <Figure
+        label="Current status"
+        value={<span className="text-2xl">{label}</span>}
+        hint={hint}
+      />
+      {hasAccess && periodEnd && (
+        <ManageSubscription cancelAtPeriodEnd={cancelAtPeriodEnd} periodEndLabel={periodEnd} />
+      )}
+      {status === "past_due" && (
+        <ManageSubscription
+          cancelAtPeriodEnd={cancelAtPeriodEnd}
+          periodEndLabel={periodEnd ?? ""}
+        />
+      )}
     </Card>
   );
+}
+
+function statusLabel(status: SubscriptionState["status"], hasAccess: boolean): string {
+  if (hasAccess) return "Active";
+  if (status === "none") return "Not subscribed";
+  if (status === "past_due") return "Payment failed";
+  return status === "cancelled" ? "Ended" : "Lapsed";
+}
+
+function hintFor(
+  status: SubscriptionState["status"],
+  hasAccess: boolean,
+  cancelAtPeriodEnd: boolean,
+  periodEnd: string | null,
+  interval: SubscriptionState["interval"],
+): string | undefined {
+  const plan = interval === "year" ? "yearly" : "monthly";
+  if (hasAccess && periodEnd) {
+    return cancelAtPeriodEnd ? `Ends ${periodEnd} · won't renew` : `Renews ${periodEnd} · ${plan}`;
+  }
+  if (status === "past_due")
+    return "Your last payment didn't go through. Update your card to get back in the draw.";
+  if (status === "cancelled" || status === "lapsed")
+    return "Your scores are safe. Renew to enter the next draw.";
+  return undefined;
 }
