@@ -16,7 +16,11 @@ const FILTERS: ReadonlyArray<{ key: Filter; label: string; match: (c: ClaimRow) 
   { key: "all", label: "All", match: () => true },
   { key: "review", label: "To review", match: (c) => c.review === "submitted" },
   { key: "awaiting", label: "Awaiting proof", match: (c) => c.review === "awaiting_proof" },
-  { key: "unpaid", label: "Approved · unpaid", match: (c) => c.review === "approved" && c.payout === "pending" },
+  {
+    key: "unpaid",
+    label: "Approved · unpaid",
+    match: (c) => c.review === "approved" && c.payout === "pending",
+  },
   { key: "paid", label: "Paid", match: (c) => c.payout === "paid" },
   { key: "rejected", label: "Rejected", match: (c) => c.review === "rejected" },
 ];
@@ -32,7 +36,9 @@ export default async function AdminWinnersPage({ searchParams }: PageProps<"/adm
     <div className="flex flex-col gap-8">
       <header className="flex flex-col gap-1">
         <h1 className="text-4xl">Winners</h1>
-        <p className="text-ink-2">Verify the screenshot, approve or reject, then mark paid once the money has gone.</p>
+        <p className="text-ink-2">
+          Verify the screenshot, approve or reject, then mark paid once the money has gone.
+        </p>
       </header>
 
       <nav className="flex flex-wrap gap-2" aria-label="Filter">
@@ -44,7 +50,9 @@ export default async function AdminWinnersPage({ searchParams }: PageProps<"/adm
               href={f.key === "all" ? "/admin/winners" : `/admin/winners?filter=${f.key}`}
               className={cn(
                 "rounded-full border px-3 py-1 text-sm transition-colors",
-                f.key === filter.key ? "border-ink bg-ink text-bg" : "border-line hover:bg-surface-2",
+                f.key === filter.key
+                  ? "border-ink bg-ink text-bg"
+                  : "border-line hover:bg-surface-2",
               )}
             >
               {f.label} <span className="num opacity-70">{count}</span>
@@ -54,7 +62,10 @@ export default async function AdminWinnersPage({ searchParams }: PageProps<"/adm
       </nav>
 
       {rows.length === 0 ? (
-        <EmptyState title="Nothing to verify" body="Claims appear here the moment a draw is published." />
+        <EmptyState
+          title="Nothing to verify"
+          body="Claims appear here the moment a draw is published."
+        />
       ) : (
         <Card className="overflow-x-auto p-0">
           <table className="w-full text-sm">
@@ -73,7 +84,10 @@ export default async function AdminWinnersPage({ searchParams }: PageProps<"/adm
                 return (
                   <tr key={c.verificationId}>
                     <td className="px-4 py-3">
-                      <Link href={`/admin/winners/${c.verificationId}`} className="font-medium hover:text-saffron">
+                      <Link
+                        href={`/admin/winners/${c.verificationId}`}
+                        className="font-medium hover:text-saffron"
+                      >
                         {c.fullName}
                       </Link>
                       <span className="block text-xs text-ink-2">{c.email}</span>

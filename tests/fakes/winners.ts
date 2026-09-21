@@ -1,7 +1,11 @@
 import { NotFoundError } from "@/engine/errors";
 import { transition, type VerificationState } from "@/engine/verification/stateMachine";
 import type { ProofStorage } from "@/lib/storage/ProofStorage";
-import type { ClaimRow, WinnerRepository, WinningRecord } from "@/repositories/interfaces/WinnerRepository";
+import type {
+  ClaimRow,
+  WinnerRepository,
+  WinningRecord,
+} from "@/repositories/interfaces/WinnerRepository";
 
 /** In-memory claims that apply the same state machine the RPCs do. */
 export class FakeWinnerRepository implements WinnerRepository {
@@ -23,19 +27,36 @@ export class FakeWinnerRepository implements WinnerRepository {
     return this.apply(id, "submit_proof", { proofPath });
   }
   async review(id: string, approve: boolean, note: string | null) {
-    return this.apply(id, approve ? "approve" : "reject", { reviewNote: note, reviewedAt: "2026-09-22T09:00:00Z" });
+    return this.apply(id, approve ? "approve" : "reject", {
+      reviewNote: note,
+      reviewedAt: "2026-09-22T09:00:00Z",
+    });
   }
   async markPaid(id: string) {
     return this.apply(id, "mark_paid", { paidAt: "2026-09-23T09:00:00Z" });
   }
 
-  private apply(id: string, event: Parameters<typeof transition>[1], patch: Partial<ClaimRow>): ClaimRow {
+  private apply(
+    id: string,
+    event: Parameters<typeof transition>[1],
+    patch: Partial<ClaimRow>,
+  ): ClaimRow {
     const index = this.rows.findIndex((r) => r.verificationId === id);
     if (index === -1) throw new NotFoundError("That claim doesn't exist.");
     const row = this.rows[index];
-    const state: VerificationState = { review: row.review, payout: row.payout, resubmissions: row.resubmissions };
+    const state: VerificationState = {
+      review: row.review,
+      payout: row.payout,
+      resubmissions: row.resubmissions,
+    };
     const next = transition(state, event);
-    const updated = { ...row, ...patch, review: next.review, payout: next.payout, resubmissions: next.resubmissions };
+    const updated = {
+      ...row,
+      ...patch,
+      review: next.review,
+      payout: next.payout,
+      resubmissions: next.resubmissions,
+    };
     this.rows[index] = updated;
     return updated;
   }

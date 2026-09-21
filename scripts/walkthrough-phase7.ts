@@ -35,10 +35,15 @@ async function createUser(role: "member" | "admin", i = 0) {
     email,
     password: PASSWORD,
     email_confirm: true,
-    user_metadata: { full_name: role === "admin" ? "Admin Seven" : `Winner ${i}`, charity_id: CHARITY_UDAAN, charity_bps: 1000 },
+    user_metadata: {
+      full_name: role === "admin" ? "Admin Seven" : `Winner ${i}`,
+      charity_id: CHARITY_UDAAN,
+      charity_bps: 1000,
+    },
   });
   if (error || !data.user) throw error ?? new Error("no user");
-  if (role === "admin") await admin.from("profiles").update({ role: "admin" }).eq("id", data.user.id);
+  if (role === "admin")
+    await admin.from("profiles").update({ role: "admin" }).eq("id", data.user.id);
   return { id: data.user.id, email };
 }
 
@@ -63,7 +68,11 @@ async function logout(page: Page) {
 }
 
 async function upload(page: Page, label: string, buttonName: RegExp) {
-  await page.setInputFiles('input[name="proof"]', { name: "screenshot.png", mimeType: "image/png", buffer: await fakeScreenshot(label) });
+  await page.setInputFiles('input[name="proof"]', {
+    name: "screenshot.png",
+    mimeType: "image/png",
+    buffer: await fakeScreenshot(label),
+  });
   await page.getByRole("button", { name: buttonName }).click();
   await page.getByText("Under review").first().waitFor();
 }
@@ -75,23 +84,57 @@ async function main() {
   const start = new Date();
   const end = new Date(start);
   end.setMonth(end.getMonth() + 1);
-  await admin.from("subscriptions").insert({ user_id: winner.id, stripe_subscription_id: `seed_sub_${winner.id}`, stripe_price_id: "price_seed", plan_interval: "month", status: "active", current_period_start: start.toISOString(), current_period_end: end.toISOString(), source: "seed" });
+  await admin
+    .from("subscriptions")
+    .insert({
+      user_id: winner.id,
+      stripe_subscription_id: `seed_sub_${winner.id}`,
+      stripe_price_id: "price_seed",
+      plan_interval: "month",
+      status: "active",
+      current_period_start: start.toISOString(),
+      current_period_end: end.toISOString(),
+      source: "seed",
+    });
 
   // A published draw where the winner matched three (through the real RPCs, as an admin session).
-  const { data: session } = await admin.auth.signInWithPassword({ email: adminUser.email, password: PASSWORD });
-  const adminDb = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_ANON_KEY!, { global: { headers: { Authorization: `Bearer ${session.session!.access_token}` } } });
-  const { data: draw } = await admin.from("draws").insert({ draw_month: "2027-06-01" }).select("id").single();
+  const { data: session } = await admin.auth.signInWithPassword({
+    email: adminUser.email,
+    password: PASSWORD,
+  });
+  const adminDb = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_ANON_KEY!, {
+    global: { headers: { Authorization: `Bearer ${session.session!.access_token}` } },
+  });
+  const { data: draw } = await admin
+    .from("draws")
+    .insert({ draw_month: "2027-06-01" })
+    .select("id")
+    .single();
   const drawId = draw!.id;
   const { error: simError } = await adminDb.rpc("save_simulation", {
-    p_draw_id: drawId, p_mode: "random", p_numbers: [28, 33, 31, 12, 40], p_active_subscriber_count: 1, p_pool_paise: 14_970, p_rollover_in_paise: 0,
-    p_jackpot_pool_paise: 5_988, p_four_pool_paise: 5_239, p_three_pool_paise: 3_742, p_rollover_out_paise: 5_988, p_unclaimed_retained_paise: 5_239, p_entries_hash: "walk7",
+    p_draw_id: drawId,
+    p_mode: "random",
+    p_numbers: [28, 33, 31, 12, 40],
+    p_active_subscriber_count: 1,
+    p_pool_paise: 14_970,
+    p_rollover_in_paise: 0,
+    p_jackpot_pool_paise: 5_988,
+    p_four_pool_paise: 5_239,
+    p_three_pool_paise: 3_742,
+    p_rollover_out_paise: 5_988,
+    p_unclaimed_retained_paise: 5_239,
+    p_entries_hash: "walk7",
     p_entries: [{ user_id: winner.id, scores: [28, 33, 31, 36, 29], match_count: 3 }],
     p_results: [{ user_id: winner.id, match_count: 3, prize_paise: 3_742 }],
   });
   if (simError) throw simError;
   const { error: pubError } = await adminDb.rpc("publish_draw", { p_draw_id: drawId });
   if (pubError) throw pubError;
-  const { data: verification } = await admin.from("winner_verifications").select("id").eq("user_id", winner.id).single();
+  const { data: verification } = await admin
+    .from("winner_verifications")
+    .select("id")
+    .eq("user_id", winner.id)
+    .single();
   const claimId = verification!.id;
   log("seeded", "published draw, one 3-match winner (₹37.42)");
 
@@ -101,7 +144,10 @@ async function main() {
 
   // 1. Winner: winnings page → claim → upload
   await login(page, winner.email);
-  log("dashboard total won", (await page.getByText("Total won").locator("..").textContent())?.replace(/\s+/g, " ").trim());
+  log(
+    "dashboard total won",
+    (await page.getByText("Total won").locator("..").textContent())?.replace(/\s+/g, " ").trim(),
+  );
   await page.goto(`${BASE}/app/winnings`);
   await shot(page, "01-member-winnings-awaiting");
   await page.getByRole("button", { name: "Upload proof" }).click();
@@ -133,7 +179,10 @@ async function main() {
   // 3. Winner sees the reason and uploads once more
   await login(page, winner.email);
   await page.goto(`${BASE}/app/winnings/${claimId}`);
-  log("member sees reason", (await page.getByText(/Rejected: /).textContent())?.trim().slice(0, 80));
+  log(
+    "member sees reason",
+    (await page.getByText(/Rejected: /).textContent())?.trim().slice(0, 80),
+  );
   await shot(page, "07-member-rejected");
   await upload(page, "Round of 21 Aug 2026 · Stableford 33 · dated", /Upload again/);
   log("resubmitted", "Under review");
@@ -154,18 +203,31 @@ async function main() {
 
   // 5. Winner: dashboard and winnings show Paid
   await login(page, winner.email);
-  log("dashboard total won", (await page.getByText("Total won").locator("..").textContent())?.replace(/\s+/g, " ").trim());
+  log(
+    "dashboard total won",
+    (await page.getByText("Total won").locator("..").textContent())?.replace(/\s+/g, " ").trim(),
+  );
   await page.goto(`${BASE}/app/winnings`);
-  log("winnings status", (await page.getByText("Paid", { exact: true }).first().textContent())?.trim());
+  log(
+    "winnings status",
+    (await page.getByText("Paid", { exact: true }).first().textContent())?.trim(),
+  );
   await shot(page, "10-member-paid");
 
   // 6. Phone
-  const phone = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+  const phone = await browser.newContext({
+    viewport: { width: 390, height: 844 },
+    deviceScaleFactor: 2,
+    isMobile: true,
+    hasTouch: true,
+  });
   await phone.addCookies(await desktop.cookies());
   const mobile = await phone.newPage();
   await mobile.goto(`${BASE}/app/winnings/${claimId}`);
   await mobile.screenshot({ path: `${OUT}/11-member-claim-mobile.png`, fullPage: true });
-  const overflow = await mobile.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
+  const overflow = await mobile.evaluate(
+    () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
+  );
   log("390px horizontal overflow", String(overflow));
 
   // cleanup

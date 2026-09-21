@@ -28,24 +28,32 @@ describe("submitProof", () => {
   });
 
   it("refuses the wrong type and uploads nothing", async () => {
-    await expect(service.submitProof("user-1", "ver-1", pngFile(10, "image/gif"))).rejects.toBeInstanceOf(ValidationError);
+    await expect(
+      service.submitProof("user-1", "ver-1", pngFile(10, "image/gif")),
+    ).rejects.toBeInstanceOf(ValidationError);
     expect(storage.uploads).toEqual([]);
     expect(repo.rows[0].review).toBe("awaiting_proof");
   });
 
   it("refuses an oversized file and uploads nothing", async () => {
-    await expect(service.submitProof("user-1", "ver-1", pngFile(PROOF_UPLOAD.MAX_BYTES + 1))).rejects.toThrow(/Max 5 MB/);
+    await expect(
+      service.submitProof("user-1", "ver-1", pngFile(PROOF_UPLOAD.MAX_BYTES + 1)),
+    ).rejects.toThrow(/Max 5 MB/);
     expect(storage.uploads).toEqual([]);
   });
 
   it("refuses another member's claim as not found — no hint that it exists", async () => {
-    await expect(service.submitProof("user-2", "ver-1", pngFile())).rejects.toBeInstanceOf(NotFoundError);
+    await expect(service.submitProof("user-2", "ver-1", pngFile())).rejects.toBeInstanceOf(
+      NotFoundError,
+    );
     expect(storage.uploads).toEqual([]);
   });
 
   it("refuses an illegal state before uploading", async () => {
     repo.rows = [claim({ review: "approved" })];
-    await expect(service.submitProof("user-1", "ver-1", pngFile())).rejects.toBeInstanceOf(RuleViolationError);
+    await expect(service.submitProof("user-1", "ver-1", pngFile())).rejects.toBeInstanceOf(
+      RuleViolationError,
+    );
     expect(storage.uploads).toEqual([]);
   });
 
@@ -55,7 +63,9 @@ describe("submitProof", () => {
     const again = await service.submitProof("user-1", "ver-1", pngFile());
     expect(again).toMatchObject({ review: "submitted", resubmissions: 1 });
     await service.review("ver-1", false, "Still blurry");
-    await expect(service.submitProof("user-1", "ver-1", pngFile())).rejects.toBeInstanceOf(RuleViolationError);
+    await expect(service.submitProof("user-1", "ver-1", pngFile())).rejects.toBeInstanceOf(
+      RuleViolationError,
+    );
     expect(storage.uploads).toHaveLength(2);
   });
 });
@@ -67,13 +77,19 @@ describe("review and payout", () => {
 
   it("approves, then marks paid", async () => {
     expect((await service.review("ver-1", true, "")).review).toBe("approved");
-    expect(await service.markPaid("ver-1")).toMatchObject({ payout: "paid", paidAt: expect.any(String) });
+    expect(await service.markPaid("ver-1")).toMatchObject({
+      payout: "paid",
+      paidAt: expect.any(String),
+    });
   });
 
   it("rejecting needs a reason the member will see", async () => {
     await expect(service.review("ver-1", false, "   ")).rejects.toBeInstanceOf(ValidationError);
     const rejected = await service.review("ver-1", false, "  Screenshot shows a different date  ");
-    expect(rejected).toMatchObject({ review: "rejected", reviewNote: "Screenshot shows a different date" });
+    expect(rejected).toMatchObject({
+      review: "rejected",
+      reviewNote: "Screenshot shows a different date",
+    });
   });
 
   it("keeps notes under the limit", async () => {
@@ -94,10 +110,20 @@ describe("summariseWinnings", () => {
       claim({ verificationId: "d", review: "awaiting_proof", prizePaise: 1_000 }),
       claim({ verificationId: "e", review: "rejected", prizePaise: 1_000 }),
     ]);
-    expect(summary).toEqual({ totalWonPaise: 350, paidPaise: 100, awaitingPayoutPaise: 250, unverifiedCount: 2 });
+    expect(summary).toEqual({
+      totalWonPaise: 350,
+      paidPaise: 100,
+      awaitingPayoutPaise: 250,
+      unverifiedCount: 2,
+    });
   });
 
   it("is all zeros for a member who never won", () => {
-    expect(summariseWinnings([])).toEqual({ totalWonPaise: 0, paidPaise: 0, awaitingPayoutPaise: 0, unverifiedCount: 0 });
+    expect(summariseWinnings([])).toEqual({
+      totalWonPaise: 0,
+      paidPaise: 0,
+      awaitingPayoutPaise: 0,
+      unverifiedCount: 0,
+    });
   });
 });

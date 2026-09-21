@@ -17,17 +17,29 @@ export function Stepper({ steps, className }: { steps: readonly Step[]; classNam
   return (
     <ol className={cn("flex flex-wrap gap-x-6 gap-y-3", className)} aria-label="Progress">
       {steps.map((step, index) => (
-        <li key={step.label} className="flex items-start gap-2 text-sm" aria-current={step.state === "current" ? "step" : undefined}>
+        <li
+          key={step.label}
+          className="flex items-start gap-2 text-sm"
+          aria-current={step.state === "current" ? "step" : undefined}
+        >
           <span className="flex h-5 items-center">
             <Dot state={step.state} />
           </span>
           <span className="flex flex-col">
-            <span className={cn("font-medium", step.state === "future" && "text-ink-3", step.state === "failed" && "text-danger")}>
+            <span
+              className={cn(
+                "font-medium",
+                step.state === "future" && "text-ink-3",
+                step.state === "failed" && "text-danger",
+              )}
+            >
               {step.label}
             </span>
             {step.caption && <span className="text-xs text-ink-2">{step.caption}</span>}
           </span>
-          {index < steps.length - 1 && <span aria-hidden className="ml-4 hidden h-px w-6 self-center bg-line sm:block" />}
+          {index < steps.length - 1 && (
+            <span aria-hidden className="ml-4 hidden h-px w-6 self-center bg-line sm:block" />
+          )}
         </li>
       ))}
     </ol>

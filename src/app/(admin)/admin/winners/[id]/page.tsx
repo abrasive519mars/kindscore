@@ -47,28 +47,46 @@ export default async function AdminClaimPage({ params }: PageProps<"/admin/winne
       <Card className="flex flex-col gap-6">
         <div className="grid gap-6 sm:grid-cols-2">
           <div className="flex flex-col gap-2">
-            <p className="text-sm font-medium uppercase tracking-[0.06em] text-ink-2">Member&apos;s five scores at draw time</p>
+            <p className="text-sm font-medium uppercase tracking-[0.06em] text-ink-2">
+              Member&apos;s five scores at draw time
+            </p>
             <ScoreRow scores={claim.scores} matched={matched} size="md" />
           </div>
           <div className="flex flex-col gap-2">
-            <p className="text-sm font-medium uppercase tracking-[0.06em] text-ink-2">Drawn numbers</p>
+            <p className="text-sm font-medium uppercase tracking-[0.06em] text-ink-2">
+              Drawn numbers
+            </p>
             <DrawNumbers numbers={claim.numbers} matched={matched} />
           </div>
         </div>
         <Rule />
         <Stepper steps={claimSteps(claim)} />
-        {claim.reviewNote && <Banner tone={claim.review === "rejected" ? "danger" : "neutral"}>Note to member: “{claim.reviewNote}”</Banner>}
+        {claim.reviewNote && (
+          <Banner tone={claim.review === "rejected" ? "danger" : "neutral"}>
+            Note to member: “{claim.reviewNote}”
+          </Banner>
+        )}
       </Card>
 
       <Card className="flex flex-col gap-4">
         <h2 className="text-2xl">Proof</h2>
         {proofUrl ? (
           // eslint-disable-next-line @next/next/no-img-element -- signed, short-lived URL; not an optimisable asset
-          <img src={proofUrl} alt={`Proof uploaded by ${claim.fullName}`} className="max-h-[32rem] w-auto rounded-md border border-line" />
+          <img
+            src={proofUrl}
+            alt={`Proof uploaded by ${claim.fullName}`}
+            className="max-h-[32rem] w-auto rounded-md border border-line"
+          />
         ) : (
-          <p className="text-sm text-ink-2">No screenshot yet — the member hasn&apos;t uploaded one.</p>
+          <p className="text-sm text-ink-2">
+            No screenshot yet — the member hasn&apos;t uploaded one.
+          </p>
         )}
-        <ReviewPanel verificationId={claim.verificationId} review={claim.review} payout={claim.payout} />
+        <ReviewPanel
+          verificationId={claim.verificationId}
+          review={claim.review}
+          payout={claim.payout}
+        />
       </Card>
     </div>
   );

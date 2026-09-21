@@ -43,7 +43,13 @@ export function ReviewPanel({ verificationId, review, payout }: ReviewPanelProps
         <div className="flex flex-wrap gap-3">
           {rejecting ? (
             <>
-              <Button type="submit" name="decision" value="reject" variant="danger" pending={reviewing}>
+              <Button
+                type="submit"
+                name="decision"
+                value="reject"
+                variant="danger"
+                pending={reviewing}
+              >
                 Confirm rejection
               </Button>
               <Button type="button" variant="ghost" onClick={() => setRejecting(false)}>
@@ -52,7 +58,13 @@ export function ReviewPanel({ verificationId, review, payout }: ReviewPanelProps
             </>
           ) : (
             <>
-              <Button type="submit" name="decision" value="approve" variant="saffron" pending={reviewing}>
+              <Button
+                type="submit"
+                name="decision"
+                value="approve"
+                variant="saffron"
+                pending={reviewing}
+              >
                 Approve
               </Button>
               <Button type="button" variant="danger" onClick={() => setRejecting(true)}>
@@ -74,7 +86,9 @@ export function ReviewPanel({ verificationId, review, payout }: ReviewPanelProps
           <Button type="submit" variant="saffron" pending={paying}>
             Mark as paid
           </Button>
-          <span className="text-sm text-ink-2">Once the transfer has been sent. This can&apos;t be undone.</span>
+          <span className="text-sm text-ink-2">
+            Once the transfer has been sent. This can&apos;t be undone.
+          </span>
         </div>
         <ActionError error={error} />
       </form>
@@ -83,7 +97,11 @@ export function ReviewPanel({ verificationId, review, payout }: ReviewPanelProps
 
   return (
     <p className="border-t border-line pt-4 text-sm text-ink-2">
-      {payout === "paid" ? "Paid. Nothing more to do." : review === "rejected" ? "Rejected. The member may upload once more if they haven't already." : "Waiting for the member's screenshot."}
+      {payout === "paid"
+        ? "Paid. Nothing more to do."
+        : review === "rejected"
+          ? "Rejected. The member may upload once more if they haven't already."
+          : "Waiting for the member's screenshot."}
     </p>
   );
 }

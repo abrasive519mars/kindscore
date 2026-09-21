@@ -135,12 +135,15 @@ Files (write → test → explain):
 - [x] Tests: 27 new unit (engine additions, `DrawService` with fake repo: Σ invariants, zero-eligible rollover, stale guard, idempotent publish, projected jackpot) → 271; `tests/integration/drawService.test.ts` runs the real service as admin/member/anon against local Postgres (entries snapshot, member edit → stale → refused → re-simulate → publish → own outcome + public counts, anon sees statistics only) → 66
 - Verify: ✅ `scripts/walkthrough-phase6.ts` — 60 seeded members, open draw → random → weighted (histogram) → member edit → stale banner + disabled Publish → re-simulate → two-step publish → history → a 4-match winner watches the reveal (₹376.74 shared with 7) → return visit result-first → public `/draws` → 390px; screenshots in `docs/screenshots/phase-6/`
 
-### Phase 7 — Winner verification
+### Phase 7 — Winner verification ✅ done 2026-09-21 (plan: `docs/plans/phase-7-verification.md`)
 
-- [ ] `WinnerRepository`, `services/WinnerService.ts` (state machine from engine)
-- [ ] `(member)/app/winnings`, `/app/winnings/[id]/proof` — FileDrop (5 MB, png/jpg/webp, client WebP re-encode), status timeline
-- [ ] `(admin)/admin/winners` — filter, ProofViewer (signed URL), Approve / Reject (reason) / Mark paid
-- Verify: cross-user proof read blocked by RLS; illegal transitions → 422
+- [x] Engine `verification/proofFile.ts` (type/size rule, `{userId}/{verificationId}.{ext}` path); no migration — the Phase 2 RPCs, RLS and private bucket already enforce everything
+- [x] `WinnerRepository` + `SupabaseWinnerRepository` (one joined select; three RPC wrappers with error mapping); `ProofStorage` + `SupabaseProofStorage` (upsert upload, 10-minute signed URL); `services/WinnerService.ts` (validate → state-machine pre-check → upload → RPC; reject needs a note; `summariseWinnings`)
+- [x] `(member)/app/winnings` (Total won · Paid · Awaiting payout, `Stepper` per claim) and `/app/winnings/[id]` (numbers vs scores, `ProofForm` with client pre-check + preview, current proof, rejection reason, one "Upload again")
+- [x] `(admin)/admin/winners` (filter chips over the queue) and `/admin/winners/[id]` (proof image via signed URL, `ReviewPanel`: Approve / Reject with reason / Mark as paid — only the legal moves are offered)
+- [x] Dashboard "Total won" from real claims with a payment-status hint; `next.config.ts` `serverActions.bodySizeLimit: 6mb`
+- [x] Tests: 24 new unit (proofFile, `WinnerService` with fake repo + fake storage: nothing uploaded on a bad file / wrong owner / illegal state, one resubmission, note rules, summary) → 295; `tests/integration/winners.test.ts` — real PNG upload on the winner's client, stranger sees nothing and cannot sign the URL, winner cannot approve, reject → reason seen → resubmit → approve → paid, reports agree → 73
+- Verify: ✅ `scripts/walkthrough-phase7.ts` — winner uploads a generated screenshot → admin queue → proof image → reject with reason → member reads it, uploads again → approve → mark paid → dashboard/winnings show Paid → 390px; screenshots in `docs/screenshots/phase-7/`
 
 ### Phase 8 — Charities + donations
 

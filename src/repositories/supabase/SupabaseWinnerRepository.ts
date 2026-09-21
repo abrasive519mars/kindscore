@@ -1,5 +1,14 @@
-import { ExternalServiceError, ForbiddenError, NotFoundError, RuleViolationError } from "@/engine/errors";
-import type { ClaimRow, WinnerRepository, WinningRecord } from "@/repositories/interfaces/WinnerRepository";
+import {
+  ExternalServiceError,
+  ForbiddenError,
+  NotFoundError,
+  RuleViolationError,
+} from "@/engine/errors";
+import type {
+  ClaimRow,
+  WinnerRepository,
+  WinningRecord,
+} from "@/repositories/interfaces/WinnerRepository";
 import type { Db } from "@/repositories/supabase/db";
 import type { Database } from "@/types/database.types";
 
@@ -124,7 +133,11 @@ export class SupabaseWinnerRepository implements WinnerRepository {
     return this.requireClaim(verificationId);
   }
 
-  async review(verificationId: string, approve: boolean, note: string | null): Promise<WinningRecord> {
+  async review(
+    verificationId: string,
+    approve: boolean,
+    note: string | null,
+  ): Promise<WinningRecord> {
     const { error } = await this.db.rpc("review_winner", {
       p_verification_id: verificationId,
       p_approve: approve,

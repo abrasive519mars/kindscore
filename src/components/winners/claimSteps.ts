@@ -3,7 +3,11 @@ import type { Step } from "@/components/ui/Stepper";
 
 function stamp(iso: string | null): string | undefined {
   if (!iso) return undefined;
-  return new Intl.DateTimeFormat("en-IN", { day: "numeric", month: "short", timeZone: "Asia/Kolkata" }).format(new Date(iso));
+  return new Intl.DateTimeFormat("en-IN", {
+    day: "numeric",
+    month: "short",
+    timeZone: "Asia/Kolkata",
+  }).format(new Date(iso));
 }
 
 /**
@@ -16,11 +20,22 @@ export function claimSteps(record: WinningRecord): Step[] {
   const approved = review === "approved";
   const rejected = review === "rejected";
   return [
-    { label: "Awaiting proof", state: submitted ? "done" : "current", caption: stamp(record.createdAt) },
-    { label: "Submitted", state: submitted ? (review === "submitted" ? "current" : "done") : "future" },
+    {
+      label: "Awaiting proof",
+      state: submitted ? "done" : "current",
+      caption: stamp(record.createdAt),
+    },
+    {
+      label: "Submitted",
+      state: submitted ? (review === "submitted" ? "current" : "done") : "future",
+    },
     rejected
       ? { label: "Rejected", state: "failed", caption: stamp(record.reviewedAt) }
-      : { label: "Approved", state: approved ? (payout === "paid" ? "done" : "current") : "future", caption: approved ? stamp(record.reviewedAt) : undefined },
+      : {
+          label: "Approved",
+          state: approved ? (payout === "paid" ? "done" : "current") : "future",
+          caption: approved ? stamp(record.reviewedAt) : undefined,
+        },
     { label: "Paid", state: payout === "paid" ? "done" : "future", caption: stamp(record.paidAt) },
   ];
 }
@@ -33,11 +48,15 @@ export function claimStatus(record: WinningRecord): { label: string; tone: Claim
   if (record.review === "approved") return { label: "Approved · awaiting payout", tone: "pool" };
   if (record.review === "submitted") return { label: "Under review", tone: "warn" };
   if (record.review === "rejected") {
-    return record.resubmissions >= 1 ? { label: "Rejected · final", tone: "danger" } : { label: "Rejected · upload again", tone: "danger" };
+    return record.resubmissions >= 1
+      ? { label: "Rejected · final", tone: "danger" }
+      : { label: "Rejected · upload again", tone: "danger" };
   }
   return { label: "Awaiting your proof", tone: "warn" };
 }
 
 export function canSubmitProof(record: WinningRecord): boolean {
-  return record.review === "awaiting_proof" || (record.review === "rejected" && record.resubmissions < 1);
+  return (
+    record.review === "awaiting_proof" || (record.review === "rejected" && record.resubmissions < 1)
+  );
 }

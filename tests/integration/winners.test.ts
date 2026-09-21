@@ -3,7 +3,15 @@ import { NotFoundError, RuleViolationError } from "@/engine/errors";
 import { SupabaseProofStorage } from "@/lib/storage/SupabaseProofStorage";
 import { SupabaseWinnerRepository } from "@/repositories/supabase/SupabaseWinnerRepository";
 import { summariseWinnings, WinnerService } from "@/services/WinnerService";
-import { admin, clientAs, createUser, deleteUser, grantActiveSubscription, type Db, type TestUser } from "./setup";
+import {
+  admin,
+  clientAs,
+  createUser,
+  deleteUser,
+  grantActiveSubscription,
+  type Db,
+  type TestUser,
+} from "./setup";
 
 /**
  * The verification flow through the real service, real Storage and real RPCs: the winner uploads
@@ -12,7 +20,9 @@ import { admin, clientAs, createUser, deleteUser, grantActiveSubscription, type 
 
 // A valid 1×1 transparent PNG (67 bytes) so the bucket's MIME sniffing is satisfied.
 const PNG_1x1 = Uint8Array.from(
-  atob("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="),
+  atob(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
+  ),
   (c) => c.charCodeAt(0),
 );
 const png = () => new File([PNG_1x1], "screenshot.png", { type: "image/png" });
@@ -33,9 +43,17 @@ function serviceOn(db: Db) {
 }
 
 beforeAll(async () => {
-  [adminUser, winner, stranger] = await Promise.all([createUser("admin"), createUser(), createUser()]);
+  [adminUser, winner, stranger] = await Promise.all([
+    createUser("admin"),
+    createUser(),
+    createUser(),
+  ]);
   await Promise.all([grantActiveSubscription(winner.id), grantActiveSubscription(stranger.id)]);
-  const [winnerDb, sDb, aDb] = await Promise.all([clientAs(winner), clientAs(stranger), clientAs(adminUser)]);
+  const [winnerDb, sDb, aDb] = await Promise.all([
+    clientAs(winner),
+    clientAs(stranger),
+    clientAs(adminUser),
+  ]);
   adminDb = aDb;
   strangerDb = sDb;
   asWinner = serviceOn(winnerDb);
@@ -43,7 +61,11 @@ beforeAll(async () => {
   asAdmin = serviceOn(aDb);
 
   // A published draw with one 3-match winner, straight through the Phase 2 RPCs.
-  const { data: draw } = await admin.from("draws").insert({ draw_month: "2027-03-01" }).select("id").single();
+  const { data: draw } = await admin
+    .from("draws")
+    .insert({ draw_month: "2027-03-01" })
+    .select("id")
+    .single();
   drawId = draw!.id;
   const { error } = await adminDb.rpc("save_simulation", {
     p_draw_id: drawId,
@@ -63,7 +85,11 @@ beforeAll(async () => {
   });
   if (error) throw error;
   await adminDb.rpc("publish_draw", { p_draw_id: drawId });
-  const { data: verification } = await admin.from("winner_verifications").select("id").eq("user_id", winner.id).single();
+  const { data: verification } = await admin
+    .from("winner_verifications")
+    .select("id")
+    .eq("user_id", winner.id)
+    .single();
   verificationId = verification!.id;
 });
 
@@ -77,14 +103,25 @@ describe("winner verification end to end", () => {
   it("the winner sees their claim awaiting proof; a stranger sees nothing", async () => {
     const mine = await asWinner.listWinnings(winner.id);
     expect(mine).toHaveLength(1);
-    expect(mine[0]).toMatchObject({ verificationId, matchCount: 3, prizePaise: 7_485, review: "awaiting_proof", numbers: [28, 33, 31, 12, 40] });
+    expect(mine[0]).toMatchObject({
+      verificationId,
+      matchCount: 3,
+      prizePaise: 7_485,
+      review: "awaiting_proof",
+      numbers: [28, 33, 31, 12, 40],
+    });
     expect(await asStranger.listWinnings(stranger.id)).toEqual([]);
-    await expect(asStranger.getWinning(stranger.id, verificationId)).rejects.toBeInstanceOf(NotFoundError);
+    await expect(asStranger.getWinning(stranger.id, verificationId)).rejects.toBeInstanceOf(
+      NotFoundError,
+    );
   });
 
   it("uploads a real PNG into the winner's own folder and moves the claim to submitted", async () => {
     const updated = await asWinner.submitProof(winner.id, verificationId, png());
-    expect(updated).toMatchObject({ review: "submitted", proofPath: `${winner.id}/${verificationId}.png` });
+    expect(updated).toMatchObject({
+      review: "submitted",
+      proofPath: `${winner.id}/${verificationId}.png`,
+    });
     const { data } = await admin.storage.from("proofs").list(winner.id);
     expect(data?.map((o) => o.name)).toEqual([`${verificationId}.png`]);
   });
@@ -103,7 +140,11 @@ describe("winner verification end to end", () => {
   });
 
   it("admin rejects with a reason → the winner sees it and may upload once more", async () => {
-    const rejected = await asAdmin.review(verificationId, false, "The date on the screenshot is wrong.");
+    const rejected = await asAdmin.review(
+      verificationId,
+      false,
+      "The date on the screenshot is wrong.",
+    );
     expect(rejected.review).toBe("rejected");
     const seen = await asWinner.getWinning(winner.id, verificationId);
     expect(seen.reviewNote).toBe("The date on the screenshot is wrong.");
@@ -115,9 +156,19 @@ describe("winner verification end to end", () => {
     await asAdmin.review(verificationId, true, "");
     await expect(asAdmin.markPaid(verificationId)).resolves.toMatchObject({ payout: "paid" });
     const summary = summariseWinnings(await asWinner.listWinnings(winner.id));
-    expect(summary).toEqual({ totalWonPaise: 7_485, paidPaise: 7_485, awaitingPayoutPaise: 0, unverifiedCount: 0 });
-    await expect(asWinner.submitProof(winner.id, verificationId, png())).rejects.toBeInstanceOf(RuleViolationError);
-    const { data: report } = await adminDb.from("reports_summary").select("prizes_paid_paise").single();
+    expect(summary).toEqual({
+      totalWonPaise: 7_485,
+      paidPaise: 7_485,
+      awaitingPayoutPaise: 0,
+      unverifiedCount: 0,
+    });
+    await expect(asWinner.submitProof(winner.id, verificationId, png())).rejects.toBeInstanceOf(
+      RuleViolationError,
+    );
+    const { data: report } = await adminDb
+      .from("reports_summary")
+      .select("prizes_paid_paise")
+      .single();
     expect(report!.prizes_paid_paise).toBeGreaterThanOrEqual(7_485);
   });
 

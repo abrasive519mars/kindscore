@@ -3,7 +3,11 @@ import type { Paise } from "@/engine/money/paise";
 import { proofPath, validateProofFile } from "@/engine/verification/proofFile";
 import { transition } from "@/engine/verification/stateMachine";
 import type { ProofStorage } from "@/lib/storage/ProofStorage";
-import type { ClaimRow, WinnerRepository, WinningRecord } from "@/repositories/interfaces/WinnerRepository";
+import type {
+  ClaimRow,
+  WinnerRepository,
+  WinningRecord,
+} from "@/repositories/interfaces/WinnerRepository";
 
 export const REVIEW_NOTE_MAX = 200;
 
@@ -20,12 +24,15 @@ export interface WinningsSummary {
 export function summariseWinnings(records: readonly WinningRecord[]): WinningsSummary {
   const approved = records.filter((r) => r.review === "approved");
   const paid = approved.filter((r) => r.payout === "paid");
-  const sum = (rows: readonly WinningRecord[]) => rows.reduce((total, r) => total + r.prizePaise, 0);
+  const sum = (rows: readonly WinningRecord[]) =>
+    rows.reduce((total, r) => total + r.prizePaise, 0);
   return {
     totalWonPaise: sum(approved),
     paidPaise: sum(paid),
     awaitingPayoutPaise: sum(approved) - sum(paid),
-    unverifiedCount: records.filter((r) => r.review === "awaiting_proof" || r.review === "submitted").length,
+    unverifiedCount: records.filter(
+      (r) => r.review === "awaiting_proof" || r.review === "submitted",
+    ).length,
   };
 }
 
@@ -53,7 +60,10 @@ export class WinnerService {
     const record = await this.getWinning(userId, verificationId);
     const type = validateProofFile({ type: file.type, size: file.size });
     // Same rule as the RPC, surfaced before the upload so a wrong click costs nothing.
-    transition({ review: record.review, payout: record.payout, resubmissions: record.resubmissions }, "submit_proof");
+    transition(
+      { review: record.review, payout: record.payout, resubmissions: record.resubmissions },
+      "submit_proof",
+    );
     const path = proofPath(userId, verificationId, type);
     await this.proofs.upload(path, file);
     return this.winners.submitProof(verificationId, path);

@@ -52,7 +52,11 @@ export function ProofForm({ verificationId, again }: ProofFormProps) {
       </label>
       {preview && (
         // eslint-disable-next-line @next/next/no-img-element -- local object URL preview
-        <img src={preview} alt="Preview of your screenshot" className="max-h-72 w-auto rounded-md border border-line" />
+        <img
+          src={preview}
+          alt="Preview of your screenshot"
+          className="max-h-72 w-auto rounded-md border border-line"
+        />
       )}
       {(clientError || serverError) && (
         <p role="alert" className="text-sm text-danger">
@@ -60,10 +64,17 @@ export function ProofForm({ verificationId, again }: ProofFormProps) {
         </p>
       )}
       <div className="flex items-center gap-3">
-        <Button type="submit" variant="saffron" pending={pending} disabled={Boolean(clientError) || !preview}>
+        <Button
+          type="submit"
+          variant="saffron"
+          pending={pending}
+          disabled={Boolean(clientError) || !preview}
+        >
           {again ? "Upload again" : "Upload proof"}
         </Button>
-        {again && <span className="text-sm text-ink-2">This is your last attempt for this claim.</span>}
+        {again && (
+          <span className="text-sm text-ink-2">This is your last attempt for this claim.</span>
+        )}
       </div>
     </form>
   );

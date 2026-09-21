@@ -23,24 +23,38 @@ export default async function WinningsPage() {
     <div className="flex flex-col gap-8">
       <header className="flex flex-col gap-1">
         <h1 className="text-4xl">Winnings</h1>
-        <p className="text-ink-2">Three matches is all it takes. Winners prove their scores with one screenshot.</p>
+        <p className="text-ink-2">
+          Three matches is all it takes. Winners prove their scores with one screenshot.
+        </p>
       </header>
 
       <section className="grid gap-6 md:grid-cols-3" aria-label="Totals">
         <Card>
-          <Figure label="Total won" value={formatInr(summary.totalWonPaise)} hint="Approved prizes" accent />
+          <Figure
+            label="Total won"
+            value={formatInr(summary.totalWonPaise)}
+            hint="Approved prizes"
+            accent
+          />
         </Card>
         <Card>
           <Figure label="Paid" value={formatInr(summary.paidPaise)} />
         </Card>
         <Card>
-          <Figure label="Awaiting payout" value={formatInr(summary.awaitingPayoutPaise)} hint={summary.unverifiedCount ? `${summary.unverifiedCount} more to verify` : undefined} />
+          <Figure
+            label="Awaiting payout"
+            value={formatInr(summary.awaitingPayoutPaise)}
+            hint={summary.unverifiedCount ? `${summary.unverifiedCount} more to verify` : undefined}
+          />
         </Card>
       </section>
 
       <section className="flex flex-col gap-4" aria-label="Your wins">
         {records.length === 0 ? (
-          <EmptyState title="No winnings yet" body="Match three of the five drawn numbers with your five scores and your prize appears here." />
+          <EmptyState
+            title="No winnings yet"
+            body="Match three of the five drawn numbers with your five scores and your prize appears here."
+          />
         ) : (
           records.map((record) => <WinCard key={record.verificationId} record={record} />)
         )}
@@ -72,7 +86,9 @@ function WinCard({ record }: { record: WinningRecord }) {
             </Button>
           </Link>
         )}
-        {record.reviewNote && record.review === "rejected" && <span className="text-sm text-danger">“{record.reviewNote}”</span>}
+        {record.reviewNote && record.review === "rejected" && (
+          <span className="text-sm text-danger">“{record.reviewNote}”</span>
+        )}
       </div>
     </Card>
   );
