@@ -4,7 +4,13 @@ import { cn } from "@/lib/cn";
 /** Hairline-bordered surface. No shadow by default (DESIGN.md §2.3). */
 export function Card({ className, ...rest }: HTMLAttributes<HTMLDivElement>) {
   return (
-    <div {...rest} className={cn("rounded-lg border border-line bg-surface p-6", className)} />
+    <div
+      {...rest}
+      className={cn(
+        "rounded-lg border border-line bg-surface p-6 transition-colors duration-fast hover:border-ink/30",
+        className,
+      )}
+    />
   );
 }
 
@@ -23,16 +29,31 @@ interface FigureProps {
   readonly hint?: ReactNode;
   readonly accent?: boolean;
   readonly className?: string;
+  /** `md` for a row of five rupee figures; `lg` (default) for one or two. */
+  readonly size?: "md" | "lg";
 }
 
 /** A labelled number — the dashboard's basic unit (DESIGN.md §5 "five figures with trend"). */
-export function Figure({ label, value, hint, accent = false, className }: FigureProps) {
+export function Figure({
+  label,
+  value,
+  hint,
+  accent = false,
+  size = "lg",
+  className,
+}: FigureProps) {
   return (
     <div className={cn("flex flex-col gap-1", className)}>
       <span className="text-[12.5px] font-medium uppercase tracking-[0.06em] text-ink-2">
         {label}
       </span>
-      <span className={cn("num font-display text-4xl leading-none", accent && "text-saffron")}>
+      <span
+        className={cn(
+          "num font-display leading-none [overflow-wrap:anywhere]",
+          size === "lg" ? "text-4xl" : "text-3xl",
+          accent && "text-saffron",
+        )}
+      >
         {value}
       </span>
       {hint && <span className="text-sm text-ink-2">{hint}</span>}

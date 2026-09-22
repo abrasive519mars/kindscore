@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { AuthenticationError, ConflictError, ExternalServiceError } from "@/engine/errors";
-import { safeNextPath } from "@/lib/auth/redirects";
+import { DEFAULT_AFTER_LOGIN, safeNextPath } from "@/lib/auth/redirects";
 import { runAction, type ActionResult } from "@/lib/errors/action-result";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loginSchema, signupSchema } from "@/schemas/auth";
@@ -41,12 +41,22 @@ export async function logIn(_prev: ActionResult | null, formData: FormData): Pro
   const result = await runAction(async () => {
     const input = loginSchema.parse(Object.fromEntries(formData));
     const supabase = await createSupabaseServerClient();
-    const { error } = await supabase.auth.signInWithPassword(input);
+    const { data, error } = await supabase.auth.signInWithPassword(input);
     // Deliberately the same message for wrong password and unknown email.
     if (error) throw new AuthenticationError("Email or password is incorrect");
+    return isAdmin(supabase, data.user.id);
   });
   if (!result.ok) return result;
-  redirect(next);
+  // An admin who asked for nothing in particular lands in the admin, not on a member dashboard.
+  redirect(next === DEFAULT_AFTER_LOGIN && result.data ? "/admin" : next);
+}
+
+async function isAdmin(
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
+  userId: string,
+): Promise<boolean> {
+  const { data } = await supabase.from("profiles").select("role").eq("id", userId).maybeSingle();
+  return data?.role === "admin";
 }
 
 export async function logOut(): Promise<void> {

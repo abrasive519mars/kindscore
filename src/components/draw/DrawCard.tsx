@@ -2,6 +2,7 @@ import Link from "next/link";
 import { formatInr } from "@/engine/money/paise";
 import { formatMonth } from "@/engine/time/dates";
 import type { DrawSummary } from "@/repositories/interfaces/DrawRepository";
+import { describeMode } from "@/components/draw/describeMode";
 import { DrawNumbers } from "@/components/draw/DrawNumbers";
 import { Badge, Card } from "@/components/ui/primitives";
 
@@ -30,7 +31,7 @@ export function DrawCard({ draw, href, matched, footer }: DrawCardProps) {
           )}
         </h3>
         <span className="flex items-center gap-2 text-sm text-ink-2">
-          {draw.mode === "algorithmic" ? "Weighted by scores" : "Random"}
+          {describeMode(draw.mode, draw.weightStrengthBps)}
           {draw.rolloverOutPaise > 0 && (
             <Badge tone="saffron">{formatInr(draw.rolloverOutPaise)} rolled over</Badge>
           )}

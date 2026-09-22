@@ -1,14 +1,9 @@
-import { LOCALE } from "@/config/constants";
+import { DRAW, LOCALE } from "@/config/constants";
 import { NotFoundError, RuleViolationError } from "@/engine/errors";
 import { selectEligibleEntries, type EligibleEntry } from "@/engine/draw/eligibility";
 import { entriesFingerprint } from "@/engine/draw/fingerprint";
-import { buildFrequencyMap, smoothFrequency } from "@/engine/draw/frequency";
-import {
-  buildWeights,
-  generateNumbers,
-  type DrawMode,
-  type Weights,
-} from "@/engine/draw/generateNumbers";
+import { buildFrequencyMap } from "@/engine/draw/frequency";
+import { generateNumbers, type DrawMode } from "@/engine/draw/generateNumbers";
 import { matchEntries, type WinningTier } from "@/engine/draw/match";
 import type { Paise } from "@/engine/money/paise";
 import { allocatePrizes, splitTierPools, type Prize } from "@/engine/prizes/allocate";
@@ -32,13 +27,6 @@ export interface Freshness {
   readonly stale: boolean;
 }
 
-export interface DrawWeights {
-  /** How many eligible members hold each number; index = the number (1–45), index 0 unused. */
-  readonly holders: readonly number[];
-  /** The draw weight per number for the chosen mode, same indexing (flat 1s in random mode). */
-  readonly weights: Weights;
-}
-
 export const STALE_MESSAGE = "Scores changed since simulation — re-simulate before publishing";
 
 /**
@@ -57,7 +45,13 @@ export class DrawService {
     return this.draws.create(nextDrawMonth(last, todayInTimezone(now, LOCALE.TIMEZONE)));
   }
 
-  async simulate(drawId: string, mode: DrawMode, rng: Rng = secureRng): Promise<SimulationReport> {
+  /** `weightStrengthBps` is the admin's dial for algorithmic mode (§11); random mode ignores it. */
+  async simulate(
+    drawId: string,
+    mode: DrawMode,
+    rng: Rng = secureRng,
+    weightStrengthBps: number = DRAW.WEIGHT_STRENGTH_DEFAULT_BPS,
+  ): Promise<SimulationReport> {
     const draw = await this.requireDraw(drawId);
     if (draw.status === "published")
       throw new RuleViolationError("This draw is already published.");
@@ -65,7 +59,7 @@ export class DrawService {
     const candidates = await this.draws.listCandidates();
     const entries = selectEligibleEntries(candidates);
     const rolloverInPaise = await this.draws.nextRolloverIn();
-    const numbers = generateNumbers(mode, buildFrequencyMap(entries), rng);
+    const numbers = generateNumbers(mode, buildFrequencyMap(entries), rng, weightStrengthBps);
     const matched = matchEntries(numbers, entries);
     const allocation = allocatePrizes({
       poolPaise: computePoolPaise(candidates),
@@ -76,6 +70,7 @@ export class DrawService {
     const saved = await this.draws.saveSimulation({
       drawId,
       mode,
+      weightStrengthBps,
       numbers,
       activeSubscriberCount: candidates.length,
       poolPaise: computePoolPaise(candidates),
@@ -119,12 +114,10 @@ export class DrawService {
     return this.draws.publish(drawId);
   }
 
-  /** For the admin's histogram: who holds what, and how the chosen mode would weight it. */
-  describeWeights(candidates: readonly DrawCandidate[], mode: DrawMode): DrawWeights {
-    const entries = selectEligibleEntries(candidates);
-    const frequency = buildFrequencyMap(entries);
-    const holders = smoothFrequency(frequency).map((_, n) => frequency.get(n) ?? 0);
-    return { holders, weights: buildWeights(mode, frequency) };
+  /** For the histograms: how many eligible members hold each number (index = the number, 0 unused). */
+  describeHolders(candidates: readonly DrawCandidate[]): readonly number[] {
+    const frequency = buildFrequencyMap(selectEligibleEntries(candidates));
+    return Array.from({ length: DRAW.NUMBER_MAX + 1 }, (_, n) => frequency.get(n) ?? 0);
   }
 
   /** What the jackpot would be if the draw ran now — an estimate, labelled as such in the UI. */

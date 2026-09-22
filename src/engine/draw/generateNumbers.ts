@@ -7,15 +7,36 @@ export type DrawMode = "random" | "algorithmic";
 /** Index = the number itself (1..45); index 0 is unused so weights[n] reads naturally. */
 export type Weights = readonly number[];
 
+const BPS_WHOLE = 10_000;
+
 /**
- * Random: every number weighs 1. Algorithmic: baseline + smoothed frequency (GAME.md §3).
+ * Random: every number weighs 1. Algorithmic: baseline + strength × smoothed frequency
+ * (GAME.md §3) — strength 0 collapses to uniform, 100% follows the scores in full.
  * Both modes feed the same sampler; the mode only changes the weights.
  */
-export function buildWeights(mode: DrawMode, frequency: FrequencyMap): Weights {
+export function buildWeights(
+  mode: DrawMode,
+  frequency: FrequencyMap,
+  strengthBps: number = DRAW.WEIGHT_STRENGTH_DEFAULT_BPS,
+): Weights {
   if (mode === "random") return uniformWeights();
+  const strength = strengthBps / BPS_WHOLE;
   return smoothFrequency(frequency).map((count, n) =>
-    n < DRAW.NUMBER_MIN ? 0 : DRAW.ALGORITHMIC_BASELINE_WEIGHT + count,
+    n < DRAW.NUMBER_MIN ? 0 : DRAW.ALGORITHMIC_BASELINE_WEIGHT + strength * count,
   );
+}
+
+/** The same weights from a holders tally (index = the number) — the shape histograms receive. */
+export function weightsFromHolders(
+  mode: DrawMode,
+  holders: readonly number[],
+  strengthBps?: number,
+): Weights {
+  const frequency = new Map<number, number>();
+  holders.forEach((count, n) => {
+    if (n >= DRAW.NUMBER_MIN && count > 0) frequency.set(n, count);
+  });
+  return buildWeights(mode, frequency, strengthBps);
 }
 
 function uniformWeights(): Weights {
@@ -55,7 +76,12 @@ export function sampleWithoutReplacement(weights: Weights, count: number, rng: R
   return picks;
 }
 
-export function generateNumbers(mode: DrawMode, frequency: FrequencyMap, rng: Rng): number[] {
-  const weights = buildWeights(mode, frequency);
+export function generateNumbers(
+  mode: DrawMode,
+  frequency: FrequencyMap,
+  rng: Rng,
+  strengthBps?: number,
+): number[] {
+  const weights = buildWeights(mode, frequency, strengthBps);
   return sampleWithoutReplacement(weights, DRAW.NUMBERS_DRAWN, rng).sort((a, b) => a - b);
 }

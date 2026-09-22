@@ -43,16 +43,20 @@ export function Hero({ featured }: { featured: CharityListing | null }) {
           </p>
         )}
       </div>
-      <FadeIn delay={0.1} className="flex flex-col gap-6">
-        <h1 className="text-5xl leading-[1.05] md:text-6xl">
-          Your last five rounds <em className="text-saffron">could fund a classroom.</em>
-        </h1>
-        <p className="max-w-xl text-lg text-ink-2">
-          Every Kindscore subscription sends at least {formatInr(MIN_CHARITY)} a month to a charity
-          you choose — and enters your five most recent Stableford scores into a monthly draw. Match
-          three, four or all five and you share the prize pool.
-        </p>
-        <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-col gap-6">
+        <FadeIn delay={0.1}>
+          <h1 className="text-5xl leading-[1.05] md:text-6xl">
+            Your last five rounds <em className="text-saffron">could fund a classroom.</em>
+          </h1>
+        </FadeIn>
+        <FadeIn delay={0.18}>
+          <p className="max-w-xl text-lg text-ink-2">
+            Every Kindscore subscription sends at least {formatInr(MIN_CHARITY)} a month to a
+            charity you choose — and enters your five most recent Stableford scores into a monthly
+            draw. Match three, four or all five and you share the prize pool.
+          </p>
+        </FadeIn>
+        <FadeIn delay={0.26} className="flex flex-wrap items-center gap-3">
           <Link href="/signup">
             <Button variant="saffron" size="lg">
               Subscribe &amp; fund a cause
@@ -64,12 +68,14 @@ export function Hero({ featured }: { featured: CharityListing | null }) {
           >
             See how the draw works →
           </Link>
-        </div>
-        <p className="text-sm text-ink-2">
-          {formatInr(PLANS.month.pricePaise)}/month or {formatInr(PLANS.year.pricePaise)}/year ·
-          cancel anytime · at least {formatInr(MIN_CHARITY)} to your charity · payments by Stripe
-        </p>
-      </FadeIn>
+        </FadeIn>
+        <FadeIn delay={0.34}>
+          <p className="text-sm text-ink-2">
+            {formatInr(PLANS.month.pricePaise)}/month or {formatInr(PLANS.year.pricePaise)}/year ·
+            cancel anytime · at least {formatInr(MIN_CHARITY)} to your charity · payments by Stripe
+          </p>
+        </FadeIn>
+      </div>
     </section>
   );
 }

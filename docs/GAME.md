@@ -18,7 +18,7 @@ A user subscribes for **₹499/month** or **₹4,999/year** (yearly ≈ two mont
 
 Users can also make a **one-off donation** to any charity at any time, unrelated to the game (§08.1). **[decision]** Donations need an account (signup is free) so every rupee in the ledger belongs to a member and "you have given ₹X" is honest; the minimum is ₹10, whole rupees, capped at ₹1,00,000 per transaction as a sanity limit. **[decision]** Exactly one charity is the homepage spotlight; featuring another un-features the last. **[decision]** Charities are never hard-deleted — "Hide" removes one from the directory and signup while existing supporters keep contributing until they change, and the admin sees how many that is before hiding.
 
-Only users with an **active** subscription can use the app's features and enter draws. Subscriptions can renew, be cancelled, or lapse (payment failed / expired) — a lapsed user drops back to restricted access (§04). The app checks subscription status on **every** request from a logged-in user, not just at login. **[decision]** Subscribing is two steps — account and charity first, plan and Stripe payment second. Someone who stops between the two is a registered non-subscriber with restricted access: they can browse, change their charity, pick a plan later and claim a prize won while active, but cannot log scores or enter a draw.
+Only users with an **active** subscription can use the app's features and enter draws. Subscriptions can renew, be cancelled, or lapse (payment failed / expired) — a lapsed user drops back to restricted access (§04). The app checks subscription status on **every** request from a logged-in user, not just at login. **[decision]** Lapsed and ended subscriptions stay visible: the app reads a member's latest subscription whatever its status, so "your subscription has lapsed" is shown rather than "never subscribed". **[decision]** Subscribing is two steps — account and charity first, plan and Stripe payment second. Someone who stops between the two is a registered non-subscriber with restricted access: they can browse, change their charity, pick a plan later and claim a prize won while active, but cannot log scores or enter a draw.
 
 **[decision]** "Restricted access" means a _locked shell_, not a lockout: a member without an active subscription still sees the app, their charity and the jackpot, with score entry and draw participation dimmed behind one "Subscribe to unlock" button. **[decision]** Signup is one page — name, email, password, charity, percentage — and plan/payment come _after_ the account exists, so an abandoned checkout still leaves a member and the split is seen before money is asked for.
 
@@ -76,6 +76,8 @@ Then five numbers are drawn one at a time in proportion to their weights, each d
 Say this month's draw picks: **33, 12, 29, 36, 41**
 
 ---
+
+**[decision]** The admin sets a **weighting strength** (0–100%) for algorithmic mode when simulating (§11 "configure draw logic"): the weight of each number is the baseline plus strength × its smoothed frequency, so 0% is flat like random and 100% follows what members score in full. The strength is saved with the simulation and shown on the published result.
 
 ## 4. Matching — who won (§06, §07)
 
@@ -196,6 +198,7 @@ The rules around it **[decision]**:
 - **Charities** — add/edit/delete, manage images and events
 - **Winners** — full list, verify proofs, mark paid
 - **Reports** — total users, total prize pool, charity totals, draw statistics
+- **[decision]** An admin who logs in lands in the admin panel, and the member area shows an **Admin** tab — the two roles are one account with two front doors.
 
 ### Public visitor (§03)
 

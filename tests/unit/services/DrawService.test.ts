@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { NotFoundError, RuleViolationError } from "@/engine/errors";
 import { buildFrequencyMap } from "@/engine/draw/frequency";
-import { generateNumbers } from "@/engine/draw/generateNumbers";
+import { generateNumbers, weightsFromHolders } from "@/engine/draw/generateNumbers";
 import { sequenceRng } from "@/engine/draw/rng";
 import { DrawService, STALE_MESSAGE } from "@/services/DrawService";
 import { candidate, FakeDrawRepository } from "../../fakes/draws";
@@ -48,6 +48,13 @@ describe("openNextDraw", () => {
 });
 
 describe("simulate", () => {
+  it("records the weighting strength the admin chose alongside the mode", async () => {
+    const draw = await service.openNextDraw();
+    const report = await service.simulate(draw.id, "algorithmic", zeros(), 5_000);
+    expect(report.draw.weightStrengthBps).toBe(5_000);
+    expect(repo.simulations[0]).toMatchObject({ mode: "algorithmic", weightStrengthBps: 5_000 });
+  });
+
   it("draws with the engine, snapshots eligible entries and allocates prizes exactly", async () => {
     const draw = await service.openNextDraw();
     const report = await service.simulate(draw.id, "random", zeros());
@@ -161,19 +168,24 @@ describe("freshness and publish", () => {
   });
 });
 
-describe("describeWeights", () => {
-  it("counts holders per number and flattens weights in random mode", () => {
-    const { holders, weights } = service.describeWeights(repo.candidates, "random");
-    expect(holders).toHaveLength(46); // index = the number; 0 unused
+describe("describeHolders", () => {
+  it("counts eligible holders per number, index = the number", () => {
+    const holders = service.describeHolders(repo.candidates);
+    expect(holders).toHaveLength(46); // 0 unused
     expect(holders[1]).toBe(3); // 1 is held by a, b and c
     expect(holders[10]).toBe(0); // 10 is held only by the ineligible member
-    expect(weights.slice(1).every((w) => w === 1)).toBe(true);
   });
 
-  it("algorithmic weights follow the holders with a baseline", () => {
-    const { weights } = service.describeWeights(repo.candidates, "algorithmic");
-    expect(weights[1]).toBeGreaterThan(weights[45]);
-    expect(weights[45]).toBeGreaterThan(0);
+  it("feeds the same weights the draw uses: flat in random, holders-shaped in algorithmic", () => {
+    const holders = service.describeHolders(repo.candidates);
+    expect(
+      weightsFromHolders("random", holders)
+        .slice(1)
+        .every((w) => w === 1),
+    ).toBe(true);
+    const weighted = weightsFromHolders("algorithmic", holders);
+    expect(weighted[1]).toBeGreaterThan(weighted[45]);
+    expect(weighted[45]).toBeGreaterThan(0);
   });
 });
 
@@ -190,6 +202,7 @@ function simulationOf(drawId: string) {
   return {
     drawId,
     mode: "random" as const,
+    weightStrengthBps: 10_000,
     numbers: [1, 2, 3, 4, 5],
     activeSubscriberCount: 0,
     poolPaise: 0,

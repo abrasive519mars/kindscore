@@ -19,6 +19,8 @@ export interface DrawRecord {
   readonly id: string;
   readonly drawMonth: IsoDate;
   readonly mode: DrawMode;
+  /** How strongly algorithmic mode followed the scores (bps); ignored in random mode. */
+  readonly weightStrengthBps: number;
   readonly status: DrawStatus;
   readonly numbers: readonly number[] | null;
   readonly activeSubscriberCount: number;
@@ -36,6 +38,7 @@ export interface DrawRecord {
 export interface SimulationWrite {
   readonly drawId: string;
   readonly mode: DrawMode;
+  readonly weightStrengthBps: number;
   readonly numbers: readonly number[];
   readonly activeSubscriberCount: number;
   readonly poolPaise: Paise;
@@ -63,6 +66,7 @@ export interface DrawSummary {
   readonly drawId: string;
   readonly drawMonth: IsoDate;
   readonly mode: DrawMode;
+  readonly weightStrengthBps: number;
   readonly numbers: readonly number[];
   readonly activeSubscriberCount: number;
   readonly poolPaise: Paise;
@@ -80,6 +84,8 @@ export interface MemberDrawOutcome {
   readonly draw: DrawSummary;
   readonly entry: { readonly scores: readonly number[]; readonly matchCount: number } | null;
   readonly prizePaise: Paise | null;
+  /** The winner verification opened for this member when they won — the way to the claim. */
+  readonly claim: { readonly verificationId: string; readonly paid: boolean } | null;
 }
 
 export interface DrawRepository {

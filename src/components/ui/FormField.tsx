@@ -33,8 +33,8 @@ function FieldShell({ id, label, error, hint, children }: FieldShellProps) {
   );
 }
 
-const CONTROL =
-  "h-11 w-full rounded-md border border-line bg-surface px-3 text-[16px] text-ink placeholder:text-ink-3 focus:border-saffron focus:outline-none";
+export const CONTROL =
+  "h-11 w-full rounded-md border border-line bg-surface px-3 text-[16px] text-ink placeholder:text-ink-3 focus:border-ink focus:outline-none";
 
 interface InputFieldProps extends InputHTMLAttributes<HTMLInputElement> {
   readonly id: string;

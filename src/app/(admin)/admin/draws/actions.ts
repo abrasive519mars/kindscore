@@ -3,11 +3,17 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { DRAW } from "@/config/constants";
+import { secureRng } from "@/engine/draw/rng";
 import { requireAdmin } from "@/lib/auth/guards";
 import { createDrawService } from "@/lib/draws";
 import { runAction, type ActionResult } from "@/lib/errors/action-result";
 
-const simulateSchema = z.object({ drawId: z.uuid(), mode: z.enum(["random", "algorithmic"]) });
+const simulateSchema = z.object({
+  drawId: z.uuid(),
+  mode: z.enum(["random", "algorithmic"]),
+  strength: z.coerce.number().int().min(0).max(DRAW.WEIGHT_STRENGTH_MAX_BPS),
+});
 const drawIdSchema = z.object({ drawId: z.uuid() });
 
 /** Everything the draw page can change goes through here: admin check → service → revalidate. */
@@ -36,8 +42,8 @@ export async function simulateDraw(
 ): Promise<ActionResult> {
   return runAction(async () => {
     await requireAdmin();
-    const { drawId, mode } = simulateSchema.parse(Object.fromEntries(formData));
-    await (await createDrawService()).simulate(drawId, mode);
+    const { drawId, mode, strength } = simulateSchema.parse(Object.fromEntries(formData));
+    await (await createDrawService()).simulate(drawId, mode, secureRng, strength);
     revalidateDraws();
   });
 }

@@ -4,6 +4,7 @@ import { LazyMotion, domAnimation, m, useInView, useReducedMotion } from "motion
 import { useRef } from "react";
 import { PLANS, SPLIT } from "@/config/constants";
 import { formatInr } from "@/engine/money/paise";
+import { FadeIn } from "@/components/motion/FadeIn";
 import { SplitBar } from "@/components/ui/Split";
 import { cn } from "@/lib/cn";
 
@@ -21,12 +22,14 @@ export function HowItWorks() {
       className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 py-20"
       aria-labelledby="how-heading"
     >
-      <header className="flex flex-col gap-2">
-        <p className="text-sm font-medium uppercase tracking-[0.06em] text-ink-2">How it works</p>
-        <h2 id="how-heading" className="text-4xl md:text-5xl">
-          Three steps. One round a month.
-        </h2>
-      </header>
+      <FadeIn>
+        <header className="flex flex-col gap-2">
+          <p className="text-sm font-medium uppercase tracking-[0.06em] text-ink-2">How it works</p>
+          <h2 id="how-heading" className="text-4xl md:text-5xl">
+            Three steps. One round a month.
+          </h2>
+        </header>
+      </FadeIn>
       <LazyMotion features={domAnimation} strict>
         <ol className="grid gap-8 md:grid-cols-3">
           <Step
@@ -72,7 +75,7 @@ function Step({
   children: React.ReactNode;
 }) {
   return (
-    <li className="flex flex-col gap-4 rounded-lg border border-line bg-surface p-6">
+    <li className="flex flex-col gap-4 rounded-lg border border-line bg-surface p-6 transition-colors duration-fast hover:border-ink/30">
       <span className="num font-display text-3xl text-saffron">{n}</span>
       <h3 className="text-2xl">{title}</h3>
       <p className="text-sm text-ink-2">{body}</p>

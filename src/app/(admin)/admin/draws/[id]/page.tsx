@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { DRAW } from "@/config/constants";
 import { formatInr } from "@/engine/money/paise";
 import { formatMonth } from "@/engine/time/dates";
 import { createDrawRepository, createDrawService } from "@/lib/draws";
@@ -38,10 +39,7 @@ export default async function AdminDrawPage({ params }: PageProps<"/admin/draws/
     draw.status === "draft" ? Promise.resolve([]) : repo.listResults(draw.id),
     service.checkFreshness(draw),
   ]);
-  const weights = {
-    random: service.describeWeights(candidates, "random"),
-    algorithmic: service.describeWeights(candidates, "algorithmic"),
-  };
+  const holders = service.describeHolders(candidates);
   const eligible = candidates.filter((c) => c.scores.length === 5).length;
 
   return (
@@ -61,7 +59,8 @@ export default async function AdminDrawPage({ params }: PageProps<"/admin/draws/
         <SimulatePanel
           drawId={draw.id}
           currentMode={draw.mode}
-          weights={weights}
+          currentStrengthBps={draw.weightStrengthBps}
+          holders={holders}
           hasDraft={draw.status === "simulated"}
         />
       )}
@@ -75,7 +74,8 @@ export default async function AdminDrawPage({ params }: PageProps<"/admin/draws/
             <span className="text-sm text-ink-2">
               {draw.status === "published" && draw.publishedAt
                 ? `Published ${formatStamp(draw.publishedAt)}`
-                : draw.simulatedAt && `Simulated ${formatStamp(draw.simulatedAt)} · ${draw.mode}`}
+                : draw.simulatedAt &&
+                  `Simulated ${formatStamp(draw.simulatedAt)} · ${draw.mode}${strengthNote(draw)}`}
             </span>
           </div>
           {freshness.stale && (
@@ -99,6 +99,13 @@ export default async function AdminDrawPage({ params }: PageProps<"/admin/draws/
       )}
     </div>
   );
+}
+
+/** " · 60% weighted" when the admin turned the dial down; nothing at the default. */
+function strengthNote(draw: DrawRecord): string {
+  if (draw.mode !== "algorithmic" || draw.weightStrengthBps === DRAW.WEIGHT_STRENGTH_MAX_BPS)
+    return "";
+  return ` · ${draw.weightStrengthBps / 100}% weighted`;
 }
 
 function PoolBreakdown({ draw }: { draw: DrawRecord }) {

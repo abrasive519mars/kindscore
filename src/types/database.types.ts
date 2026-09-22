@@ -449,6 +449,7 @@ export type Database = {
           three_pool_paise: number;
           unclaimed_retained_paise: number;
           updated_at: string;
+          weight_strength_bps: number;
         };
         Insert: {
           active_subscriber_count?: number;
@@ -471,6 +472,7 @@ export type Database = {
           three_pool_paise?: number;
           unclaimed_retained_paise?: number;
           updated_at?: string;
+          weight_strength_bps?: number;
         };
         Update: {
           active_subscriber_count?: number;
@@ -493,6 +495,7 @@ export type Database = {
           three_pool_paise?: number;
           unclaimed_retained_paise?: number;
           updated_at?: string;
+          weight_strength_bps?: number;
         };
         Relationships: [
           {
@@ -843,6 +846,7 @@ export type Database = {
           three_match_winners: number | null;
           three_pool_paise: number | null;
           unclaimed_retained_paise: number | null;
+          weight_strength_bps: number | null;
         };
         Relationships: [];
       };
@@ -947,6 +951,7 @@ export type Database = {
           three_pool_paise: number;
           unclaimed_retained_paise: number;
           updated_at: string;
+          weight_strength_bps: number;
         };
         SetofOptions: {
           from: "*";
@@ -995,6 +1000,7 @@ export type Database = {
           p_rollover_out_paise: number;
           p_three_pool_paise: number;
           p_unclaimed_retained_paise: number;
+          p_weight_strength_bps?: number;
         };
         Returns: {
           active_subscriber_count: number;
@@ -1017,6 +1023,7 @@ export type Database = {
           three_pool_paise: number;
           unclaimed_retained_paise: number;
           updated_at: string;
+          weight_strength_bps: number;
         };
         SetofOptions: {
           from: "*";

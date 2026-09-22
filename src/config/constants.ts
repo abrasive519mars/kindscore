@@ -40,6 +40,13 @@ export const DRAW = {
    * sampling gaps (31 with 9 holders between 30 and 32 with 40 each) — [decision].
    */
   SMOOTHING_KERNEL: [0.25, 0.5, 1, 0.5, 0.25] as const,
+  /**
+   * Admin-set per draw (§11 "configure draw logic"): how strongly algorithmic mode follows the
+   * scores. 10000 bps = the smoothed frequency in full; 0 = flat, indistinguishable from random.
+   */
+  WEIGHT_STRENGTH_DEFAULT_BPS: 10_000,
+  WEIGHT_STRENGTH_MAX_BPS: 10_000,
+  WEIGHT_STRENGTH_STEP_BPS: 500,
 } as const;
 
 /** Pool share per tier. Must sum to 10 000 bps; asserted in tests. */

@@ -110,23 +110,40 @@ async function renderMermaid(blocks: string[], names: string[]): Promise<string[
 
 // ── 3. PDF ───────────────────────────────────────────────────────────────────
 
+const SAFFRON = "#D9791A";
+const INK = "#171411";
+const INK_2 = "#5E574F";
+const LINE = "#DED8CF";
+const IVORY = "#F7F3EC";
+
+/** Print stylesheet: ivory, ink and one saffron accent — the site's palette on A4. */
 const PRINT_CSS = `
   @page { size: A4; margin: 18mm 16mm; }
-  body { font-family: Georgia, "Times New Roman", serif; color: #171411; font-size: 11pt; line-height: 1.45; }
+  body { font-family: Georgia, "Times New Roman", serif; color: ${INK}; font-size: 11pt; line-height: 1.45; }
   h1, h2, h3 { font-weight: 500; letter-spacing: -0.01em; }
-  h1 { font-size: 26pt; margin: 0 0 6pt; } h2 { font-size: 17pt; margin: 22pt 0 8pt; border-bottom: 1px solid #DED8CF; padding-bottom: 4pt; } h3 { font-size: 13pt; }
+  h1 { font-size: 26pt; margin: 0 0 10pt; padding-bottom: 6pt; border-bottom: 2px solid ${SAFFRON}; }
+  h2 { font-size: 16pt; margin: 22pt 0 8pt; padding-left: 8pt; border-left: 3px solid ${SAFFRON}; }
+  h3 { font-size: 13pt; }
+  p, li { max-width: 170mm; }
+  ol > li { margin: 0 0 8pt; padding-left: 4pt; }
+  ol > li::marker { color: ${SAFFRON}; font-family: Inter, system-ui, sans-serif; font-weight: 600; }
+  li em { display: block; color: ${INK_2}; font-size: 10pt; margin-top: 1pt; }
   .cover { height: 240mm; display: flex; flex-direction: column; justify-content: space-between; }
-  .cover .wordmark { font-size: 40pt; } .cover .wordmark span { color: #D9791A; }
-  .cover .tag { font-size: 20pt; color: #5E574F; } .cover .meta { font-family: Inter, system-ui, sans-serif; font-size: 10pt; color: #5E574F; }
-  table { border-collapse: collapse; width: 100%; font-family: Inter, system-ui, sans-serif; font-size: 9pt; page-break-inside: auto; }
-  th, td { border: 1px solid #DED8CF; padding: 4pt 6pt; vertical-align: top; text-align: left; }
-  th { background: #F1ECE3; } tr { page-break-inside: avoid; }
-  code { font-family: Consolas, monospace; font-size: 9pt; background: #F1ECE3; padding: 0 2pt; }
+  .cover .block { width: 28mm; height: 6mm; background: ${SAFFRON}; margin-bottom: 14mm; }
+  .cover .wordmark { font-size: 44pt; line-height: 1; } .cover .wordmark span { color: ${SAFFRON}; }
+  .cover .tag { font-size: 20pt; color: ${INK_2}; margin-top: 6pt; }
+  .cover .pitch { font-size: 16pt; max-width: 125mm; }
+  .cover .meta { font-family: Inter, system-ui, sans-serif; font-size: 10pt; color: ${INK_2}; }
+  .cover .accounts { margin-top: 10mm; font-family: Inter, system-ui, sans-serif; font-size: 10pt; border-top: 1px solid ${LINE}; padding-top: 6pt; }
+  table { border-collapse: collapse; width: 100%; font-family: Inter, system-ui, sans-serif; font-size: 9pt; page-break-inside: auto; margin: 6pt 0 12pt; }
+  th, td { border-bottom: 1px solid ${LINE}; padding: 5pt 6pt; vertical-align: top; text-align: left; }
+  th { background: ${IVORY}; font-weight: 600; border-bottom: 2px solid ${SAFFRON}; } tr { page-break-inside: avoid; }
+  code { font-family: Consolas, monospace; font-size: 9pt; background: ${IVORY}; padding: 0 3pt; border-radius: 2pt; }
   pre { display: none; }
-  img { max-width: 100%; border: 1px solid #DED8CF; page-break-inside: avoid; }
-  figure { margin: 0 0 14pt; } figcaption { font-family: Inter, system-ui, sans-serif; font-size: 9pt; color: #5E574F; margin-top: 3pt; }
+  img { max-width: 100%; border: 1px solid ${LINE}; border-radius: 3pt; page-break-inside: avoid; }
+  figure { margin: 0 0 14pt; } figcaption { font-family: Inter, system-ui, sans-serif; font-size: 9pt; color: ${INK_2}; margin-top: 3pt; }
   .page { page-break-before: always; }
-  a { color: #171411; }
+  a { color: ${INK}; }
 `;
 
 async function screenshotsGallery(): Promise<string> {
@@ -178,9 +195,10 @@ async function buildPdf(diagrams: string[]): Promise<void> {
 
   const html = `<!doctype html><html><head><meta charset="utf-8"><style>${PRINT_CSS}</style></head><body>
     <section class="cover">
-      <div><div class="wordmark">Kindscore<span>.</span></div><div class="tag">Give every month. Win some months.</div></div>
-      <div><p style="font-size:16pt;max-width:120mm">A charity lottery for golfers: your last five Stableford scores are your lottery numbers, and at least 10% of every fee goes to a charity you choose.</p>
-      <p class="meta">Digital Heroes · Level 1 PRD · submission · ${today}<br>${readmeCell(readme, "Live site")} · ${readmeCell(readme, "Repository")}</p></div>
+      <div><div class="block"></div><div class="wordmark">Kindscore<span>.</span></div><div class="tag">Give every month. Win some months.</div></div>
+      <div><p class="pitch">A charity lottery for golfers: your last five Stableford scores are your lottery numbers, and at least 10% of every fee goes to a charity you choose.</p>
+      <p class="meta">Digital Heroes · Level 1 PRD · submission · ${today}<br>${readmeCell(readme, "Live site")} · ${readmeCell(readme, "Repository")}</p>
+      <p class="accounts"><strong>Demo accounts</strong> (password <code>Kindscore!2026</code>): <code>admin@kindscore.app</code> · <code>priya@kindscore.app</code> · <code>raj@kindscore.app</code> · <code>anita@kindscore.app</code> — see page 2.</p></div>
     </section>
     <section class="page"><h1>Testing script</h1>${testingHtml}</section>
     <section class="page"><h1>Kindscore</h1>${readmeHtml}</section>

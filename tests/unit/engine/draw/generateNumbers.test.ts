@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { DRAW } from "@/config/constants";
 import {
   buildWeights,
+  weightsFromHolders,
   generateNumbers,
   pickWeightedIndex,
   sampleWithoutReplacement,
@@ -35,6 +36,26 @@ describe("buildWeights", () => {
 
   it("degrades to uniform when nobody has scored yet", () => {
     expect(buildWeights("algorithmic", EMPTY)).toEqual(buildWeights("random", EMPTY));
+  });
+
+  it("scales with the weighting strength: 0 is flat, 100% is the full smoothed weight", () => {
+    const frequency = new Map([[30, 40]]);
+    expect(buildWeights("algorithmic", frequency, 0)).toEqual(buildWeights("random", frequency));
+    expect(buildWeights("algorithmic", frequency, 10_000)).toEqual(
+      buildWeights("algorithmic", frequency),
+    );
+    expect(buildWeights("algorithmic", frequency, 5_000)[30]).toBe(
+      DRAW.ALGORITHMIC_BASELINE_WEIGHT + 20,
+    );
+  });
+
+  it("builds the same weights from a holders tally as from a frequency map", () => {
+    const holders = new Array<number>(DRAW.NUMBER_MAX + 1).fill(0);
+    holders[30] = 40;
+    expect(weightsFromHolders("algorithmic", holders, 5_000)).toEqual(
+      buildWeights("algorithmic", new Map([[30, 40]]), 5_000),
+    );
+    expect(weightsFromHolders("random", holders)).toEqual(buildWeights("random", EMPTY));
   });
 });
 

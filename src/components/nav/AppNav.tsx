@@ -33,6 +33,13 @@ export function AppNav({ fullName, isAdmin }: AppNavProps) {
                 </NavLink>
               </li>
             ))}
+            {isAdmin && (
+              <li>
+                <NavLink href="/admin" className="text-saffron">
+                  Admin
+                </NavLink>
+              </li>
+            )}
           </ul>
         </div>
         <UserMenu fullName={fullName} isAdmin={isAdmin} />

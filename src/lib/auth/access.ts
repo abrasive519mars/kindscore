@@ -16,11 +16,12 @@ export const getAccess = cache(async (): Promise<Access> => {
 
   const [{ data: profile }, { data: subscription }] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", auth.user.id).maybeSingle(),
+    // The latest row whatever its status: a lapsed or ended subscription is a state the member
+    // must see (PRD §04), not an absence. The engine decides access from it.
     supabase
       .from("subscriptions")
       .select("*")
       .eq("user_id", auth.user.id)
-      .in("status", ["active", "past_due"])
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle(),

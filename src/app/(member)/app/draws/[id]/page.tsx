@@ -21,7 +21,7 @@ export default async function MemberDrawPage({ params }: PageProps<"/app/draws/[
   const outcome = (await repo.listMemberOutcomes(access.userId)).find((o) => o.draw.drawId === id);
   if (!outcome) notFound();
 
-  const { draw, entry, prizePaise } = outcome;
+  const { draw, entry, prizePaise, claim } = outcome;
   return (
     <div className="flex flex-col gap-8">
       <header className="flex flex-col gap-1">
@@ -41,6 +41,8 @@ export default async function MemberDrawPage({ params }: PageProps<"/app/draws/[
           scores={entry?.scores ?? null}
           matchCount={entry?.matchCount ?? 0}
           prizePaise={prizePaise}
+          claimHref={claim ? `/app/winnings/${claim.verificationId}` : null}
+          claimPaid={claim?.paid ?? false}
           tierPools={draw.tierPools}
           winners={draw.winners}
           rolloverOutPaise={draw.rolloverOutPaise}

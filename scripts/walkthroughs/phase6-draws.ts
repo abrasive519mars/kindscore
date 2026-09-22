@@ -93,7 +93,7 @@ async function login(page: Page, email: string) {
   await page.fill("#email", email);
   await page.fill("#password", PASSWORD);
   await page.getByRole("button", { name: "Log in" }).click();
-  await page.waitForURL(/\/app/);
+  await page.waitForURL(/\/(app|admin)/);
 }
 
 async function logout(page: Page) {

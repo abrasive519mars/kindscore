@@ -2,8 +2,7 @@
 
 import { AnimatePresence, LazyMotion, domAnimation, m, useReducedMotion } from "motion/react";
 import { useState } from "react";
-import { buildWeights } from "@/engine/draw/generateNumbers";
-import type { DrawMode } from "@/engine/draw/generateNumbers";
+import { weightsFromHolders, type DrawMode } from "@/engine/draw/generateNumbers";
 import {
   describePracticeOutcome,
   PRACTICE_HOLDERS,
@@ -12,19 +11,11 @@ import {
   type PracticeResult,
 } from "@/engine/draw/practice";
 import { Histogram45 } from "@/components/draw/Histogram45";
+import { FadeIn } from "@/components/motion/FadeIn";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/cn";
 
 const EASE = [0.23, 1, 0.32, 1] as const;
-
-/** Weights per number for the histogram overlay — the same maths the admin's page uses. */
-function weightsFor(mode: DrawMode): readonly number[] {
-  const frequency = new Map<number, number>();
-  PRACTICE_HOLDERS.forEach((count, n) => {
-    if (n > 0 && count > 0) frequency.set(n, count);
-  });
-  return buildWeights(mode, frequency);
-}
 
 /**
  * DESIGN.md §3 step 5 — the one "game" section. The real engine runs in the browser against a
@@ -48,18 +39,20 @@ export function PracticeDraw() {
       className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 py-20"
       aria-labelledby="draw-heading"
     >
-      <header className="flex flex-col gap-2">
-        <p className="text-sm font-medium uppercase tracking-[0.06em] text-ink-2">The draw</p>
-        <h2 id="draw-heading" className="text-4xl md:text-5xl">
-          How a draw works.
-        </h2>
-        <p className="max-w-prose text-lg text-ink-2">
-          Once a month, five numbers from 1 to 45. Your five kept scores are your ticket. Try it on
-          Priya&apos;s row — this is the real engine, just not the real draw.
-        </p>
-      </header>
+      <FadeIn>
+        <header className="flex flex-col gap-2">
+          <p className="text-sm font-medium uppercase tracking-[0.06em] text-ink-2">The draw</p>
+          <h2 id="draw-heading" className="text-4xl md:text-5xl">
+            How a draw works.
+          </h2>
+          <p className="max-w-prose text-lg text-ink-2">
+            Once a month, five numbers from 1 to 45. Your five kept scores are your ticket. Try it
+            on Priya&apos;s row — this is the real engine, just not the real draw.
+          </p>
+        </header>
+      </FadeIn>
 
-      <div className="grid gap-8 lg:grid-cols-[1fr_1fr]">
+      <FadeIn delay={0.08} className="grid gap-8 lg:grid-cols-[1fr_1fr]">
         <div className="flex flex-col gap-6 rounded-lg border border-line bg-surface p-6">
           <div className="flex flex-col gap-2">
             <p className="text-sm font-medium uppercase tracking-[0.06em] text-ink-2">
@@ -154,9 +147,13 @@ export function PracticeDraw() {
               </label>
             ))}
           </fieldset>
-          <Histogram45 holders={PRACTICE_HOLDERS} weights={weightsFor(mode)} mode={mode} />
+          <Histogram45
+            holders={PRACTICE_HOLDERS}
+            weights={weightsFromHolders(mode, PRACTICE_HOLDERS)}
+            mode={mode}
+          />
         </div>
-      </div>
+      </FadeIn>
     </section>
   );
 }

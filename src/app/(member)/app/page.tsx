@@ -210,6 +210,17 @@ function DrawsModule({
             >
               See the draw
             </Link>
+            {latest.prizePaise && latest.claim && (
+              <>
+                {" · "}
+                <Link
+                  href={`/app/winnings/${latest.claim.verificationId}`}
+                  className="font-medium text-saffron underline underline-offset-4"
+                >
+                  {latest.claim.paid ? "See your payout" : "Claim your prize"}
+                </Link>
+              </>
+            )}
           </p>
         </div>
       ) : (

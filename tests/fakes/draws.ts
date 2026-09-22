@@ -1,3 +1,4 @@
+import { DRAW } from "@/config/constants";
 import type { SubscriberCounts } from "@/engine/prizes/pool";
 import type { IsoDate } from "@/engine/time/dates";
 import type {
@@ -37,6 +38,7 @@ export class FakeDrawRepository implements DrawRepository {
       id: `draw-${++this.seq}`,
       drawMonth,
       mode: "random",
+      weightStrengthBps: DRAW.WEIGHT_STRENGTH_DEFAULT_BPS,
       status: "draft",
       numbers: null,
       activeSubscriberCount: 0,
@@ -62,6 +64,7 @@ export class FakeDrawRepository implements DrawRepository {
     this.simulations.push(write);
     return this.update(write.drawId, {
       mode: write.mode,
+      weightStrengthBps: write.weightStrengthBps,
       status: "simulated",
       numbers: write.numbers,
       activeSubscriberCount: write.activeSubscriberCount,

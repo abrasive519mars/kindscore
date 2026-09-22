@@ -24,25 +24,33 @@ export default async function AdminOverviewPage() {
         <p className="text-ink-2">Everything the platform is doing, in five numbers.</p>
       </header>
 
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5" aria-label="Key figures">
+      <section
+        className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5"
+        aria-label="Key figures"
+      >
         <Card>
-          <Figure label="Members" value={summary?.total_members ?? 0} />
+          <Figure label="Members" value={summary?.total_members ?? 0} size="md" />
         </Card>
         <Card>
-          <Figure label="Active subscribers" value={summary?.active_subscribers ?? 0} />
+          <Figure label="Active subscribers" value={summary?.active_subscribers ?? 0} size="md" />
         </Card>
         <Card>
-          <Figure label="Pool this month" value={formatInr(summary?.pool_this_month_paise ?? 0)} />
+          <Figure
+            label="Pool this month"
+            value={formatInr(summary?.pool_this_month_paise ?? 0)}
+            size="md"
+          />
         </Card>
         <Card>
           <Figure
             label="Given to charities"
             value={formatInr(summary?.charity_total_paise ?? 0)}
+            size="md"
             accent
           />
         </Card>
         <Card>
-          <Figure label="Proofs to review" value={summary?.proofs_awaiting_review ?? 0} />
+          <Figure label="Proofs to review" value={summary?.proofs_awaiting_review ?? 0} size="md" />
         </Card>
       </section>
 
@@ -63,7 +71,7 @@ export default async function AdminOverviewPage() {
           ) : (
             <EmptyState
               title="No draw open"
-              body="Create the month's draw, simulate it, then publish — from Draws once that page ships."
+              body="Open the month's draw under Draws, simulate it as often as you like, then publish once."
             />
           )}
           <p className="text-sm text-ink-2">

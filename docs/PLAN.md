@@ -186,6 +186,16 @@ Files (write → test → explain):
 - [ ] New Vercel account: import repo, env vars (incl. `NEXT_PUBLIC_DEMO_ACCOUNTS=1`), cron; Stripe webhook → Vercel URL; Supabase Auth site + redirect URLs
 - [ ] Live acceptance `scripts/walkthroughs/walkthrough-live.ts` on the deployed URL, desktop + 390 px; fill `<LIVE_URL>`/`<REPO_URL>`/`<LIVE_VERIFIED>`; rebuild docs; commit `Phase 11: ship`; `pnpm package`
 
+### Phase 12 — Polish from user testing ✅ done 2026-09-22 (plan: `docs/plans/phase-12-polish.md`)
+
+- [x] Bug: lapsed/ended members read as "never subscribed" — access reads the latest subscription row
+- [x] Admins land in `/admin` after login; **Admin** tab in the member nav; overview figures fit their cards
+- [x] Password meter that fills with length; inputs focus in ink
+- [x] Landing motion: staggered hero, counting proof figures, scroll reveals on every section, hover hairlines, route fade
+- [x] Draw controls: admin **weighting strength** dial for algorithmic mode (recorded per draw, `save_simulation` + `draw_statistics`), histogram shows the actual weights — flat in random — and animates
+- [x] Winning draw → **Claim your prize →** on the reveal and the dashboard
+- [x] `docs/TESTING.md` rewritten as a human script; designed PDF
+
 ## Verification (end-to-end)
 
 Run PRD §16.1 as the acceptance suite on the deployed URL with seeded credentials: signup → subscribe monthly with 4242 → enter 5 scores (+ a 6th to see eviction, + a duplicate date to see rejection) → admin simulate Sep (both modes) → publish → member sees Draw Reveal → winner uploads proof → admin approves → marks paid → dashboard shows total won and Paid → lapse a subscription and confirm restricted access → mobile pass. Unit suite: `pnpm test`; integration: `pnpm test:int` against the seeded project.

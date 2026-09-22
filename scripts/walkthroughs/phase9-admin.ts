@@ -44,7 +44,7 @@ async function login(page: Page, email: string) {
   await page.fill("#email", email);
   await page.fill("#password", PASSWORD);
   await page.getByRole("button", { name: "Log in" }).click();
-  await page.waitForURL(/\/app/);
+  await page.waitForURL(/\/(app|admin)/);
 }
 
 async function logout(page: Page) {
@@ -73,7 +73,7 @@ async function main() {
   await page.getByRole("button", { name: "Search" }).click();
   await page.waitForURL(/q=rohan/);
   log("search rohan", String(await page.locator("tbody tr").count()));
-  await page.getByRole("link", { name: "Rohan Walkthrough" }).click();
+  await page.getByRole("link", { name: "Rohan Walkthrough" }).first().click();
   await page.waitForURL(/\/admin\/users\/[0-9a-f-]+$/);
   await shot(page, "02-admin-member");
 

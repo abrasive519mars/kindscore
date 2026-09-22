@@ -6,7 +6,7 @@ import { SPLIT } from "@/config/constants";
  * (the check that counts). One definition, two uses.
  */
 
-const PASSWORD_MIN = 8;
+export const PASSWORD_MIN = 8;
 
 export const charityBpsSchema = z
   .number()

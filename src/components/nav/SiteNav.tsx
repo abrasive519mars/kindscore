@@ -17,7 +17,7 @@ export async function SiteNav() {
   const access = await getAccess();
   const signedIn = access.kind !== "anonymous";
   const accountHref = signedIn ? (access.kind === "admin" ? "/admin" : "/app") : "/login";
-  const accountLabel = signedIn ? "Dashboard" : "Log in";
+  const accountLabel = signedIn ? (access.kind === "admin" ? "Admin" : "Dashboard") : "Log in";
 
   return (
     <header className="relative sticky top-0 z-20 border-b border-line bg-bg/90 shadow-nav backdrop-blur">

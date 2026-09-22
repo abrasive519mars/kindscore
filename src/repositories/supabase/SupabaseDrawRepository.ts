@@ -5,6 +5,7 @@ import {
   NotFoundError,
   RuleViolationError,
 } from "@/engine/errors";
+import { DRAW } from "@/config/constants";
 import type { SubscriberCounts } from "@/engine/prizes/pool";
 import type { IsoDate } from "@/engine/time/dates";
 import type {
@@ -46,6 +47,7 @@ function toRecord(row: DrawRow): DrawRecord {
     id: row.id,
     drawMonth: row.draw_month,
     mode: row.mode,
+    weightStrengthBps: row.weight_strength_bps,
     status: row.status,
     numbers: row.numbers,
     activeSubscriberCount: row.active_subscriber_count,
@@ -66,6 +68,7 @@ function toSummary(row: SummaryRow): DrawSummary {
     drawId: row.draw_id!,
     drawMonth: row.draw_month!,
     mode: row.mode!,
+    weightStrengthBps: row.weight_strength_bps ?? DRAW.WEIGHT_STRENGTH_DEFAULT_BPS,
     numbers: row.numbers ?? [],
     activeSubscriberCount: row.active_subscriber_count ?? 0,
     poolPaise: row.pool_paise ?? 0,
@@ -188,6 +191,7 @@ export class SupabaseDrawRepository implements DrawRepository {
     const { data, error } = await this.db.rpc("save_simulation", {
       p_draw_id: write.drawId,
       p_mode: write.mode,
+      p_weight_strength_bps: write.weightStrengthBps,
       p_numbers: [...write.numbers],
       p_active_subscriber_count: write.activeSubscriberCount,
       p_pool_paise: write.poolPaise,
@@ -257,24 +261,34 @@ export class SupabaseDrawRepository implements DrawRepository {
     return data ? toSummary(data) : null;
   }
 
-  /** Every published draw, with this member's own entry and result where they exist (RLS enforces "own"). */
+  /** Every published draw, with this member's own entry, result and claim where they exist (RLS enforces "own"). */
   async listMemberOutcomes(userId: string): Promise<MemberDrawOutcome[]> {
-    const [summaries, { data: entries, error: e1 }, { data: results, error: e2 }] =
-      await Promise.all([
-        this.listSummaries(),
-        this.db.from("draw_entries").select("draw_id, scores, match_count").eq("user_id", userId),
-        this.db.from("draw_results").select("draw_id, prize_paise").eq("user_id", userId),
-      ]);
-    if (e1) throw new ExternalServiceError("Draws", e1);
-    if (e2) throw new ExternalServiceError("Draws", e2);
+    const [summaries, entries, results, claims] = await Promise.all([
+      this.listSummaries(),
+      this.db.from("draw_entries").select("draw_id, scores, match_count").eq("user_id", userId),
+      this.db.from("draw_results").select("draw_id, prize_paise").eq("user_id", userId),
+      this.db
+        .from("winner_verifications")
+        .select("id, payout_status, draw_results!inner(draw_id)")
+        .eq("user_id", userId),
+    ]);
+    for (const { error } of [entries, results, claims])
+      if (error) throw new ExternalServiceError("Draws", error);
     const entryByDraw = new Map(
-      entries.map((e) => [e.draw_id, { scores: e.scores, matchCount: e.match_count }]),
+      entries.data!.map((e) => [e.draw_id, { scores: e.scores, matchCount: e.match_count }]),
     );
-    const prizeByDraw = new Map(results.map((r) => [r.draw_id, r.prize_paise]));
+    const prizeByDraw = new Map(results.data!.map((r) => [r.draw_id, r.prize_paise]));
+    const claimByDraw = new Map(
+      claims.data!.map((c) => [
+        c.draw_results.draw_id,
+        { verificationId: c.id, paid: c.payout_status === "paid" },
+      ]),
+    );
     return summaries.map((draw) => ({
       draw,
       entry: entryByDraw.get(draw.drawId) ?? null,
       prizePaise: prizeByDraw.get(draw.drawId) ?? null,
+      claim: claimByDraw.get(draw.drawId) ?? null,
     }));
   }
 }

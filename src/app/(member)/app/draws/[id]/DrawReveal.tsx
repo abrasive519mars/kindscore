@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, LazyMotion, domAnimation, m, useReducedMotion } from "motion/react";
+import Link from "next/link";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import type { WinningTier } from "@/engine/draw/match";
 import { formatInr } from "@/engine/money/paise";
@@ -14,6 +15,9 @@ interface DrawRevealProps {
   readonly scores: readonly number[] | null;
   readonly matchCount: number;
   readonly prizePaise: number | null;
+  /** The member's claim page when they won this draw; the CTA that follows the outcome line. */
+  readonly claimHref: string | null;
+  readonly claimPaid: boolean;
   readonly tierPools: Readonly<Record<WinningTier, number>>;
   readonly winners: Readonly<Record<WinningTier, number>>;
   readonly rolloverOutPaise: number;
@@ -109,6 +113,8 @@ function RevealFrame({
   scores,
   matchCount,
   prizePaise,
+  claimHref,
+  claimPaid,
   tierPools,
   winners,
   rolloverOutPaise,
@@ -179,6 +185,8 @@ function RevealFrame({
               scores={scores}
               matchCount={matchCount}
               prizePaise={prizePaise}
+              claimHref={claimHref}
+              claimPaid={claimPaid}
               tierPools={tierPools}
               winners={winners}
               rolloverOutPaise={rolloverOutPaise}
@@ -224,13 +232,22 @@ function Tile({
 
 type OutcomeProps = Pick<
   DrawRevealProps,
-  "scores" | "matchCount" | "prizePaise" | "tierPools" | "winners" | "rolloverOutPaise"
+  | "scores"
+  | "matchCount"
+  | "prizePaise"
+  | "claimHref"
+  | "claimPaid"
+  | "tierPools"
+  | "winners"
+  | "rolloverOutPaise"
 >;
 
 function OutcomeLine({
   scores,
   matchCount,
   prizePaise,
+  claimHref,
+  claimPaid,
   tierPools,
   winners,
   rolloverOutPaise,
@@ -245,16 +262,25 @@ function OutcomeLine({
     const tier = matchCount as WinningTier;
     const others = winners[tier] - 1;
     return (
-      <p className="text-2xl">
-        <strong className="text-saffron">
-          {matchCount === 5 ? "Jackpot — all five" : `${matchCount} matches`}
-        </strong>{" "}
-        — you win <strong className="num">{formatInr(prizePaise)}</strong>
-        {others > 0
-          ? ` (${formatInr(tierPools[tier])} shared with ${others} other ${others === 1 ? "member" : "members"})`
-          : " — the whole tier"}
-        . Upload your proof to get paid.
-      </p>
+      <div className="flex flex-col items-start gap-4">
+        <p className="text-2xl">
+          <strong className="text-saffron">
+            {matchCount === 5 ? "Jackpot — all five" : `${matchCount} matches`}
+          </strong>{" "}
+          — you win <strong className="num">{formatInr(prizePaise)}</strong>
+          {others > 0
+            ? ` (${formatInr(tierPools[tier])} shared with ${others} other ${others === 1 ? "member" : "members"})`
+            : " — the whole tier"}
+          {claimPaid ? ". Paid." : ". Upload your proof to get paid."}
+        </p>
+        {claimHref && (
+          <Link href={claimHref}>
+            <Button variant={claimPaid ? "ink" : "saffron"}>
+              {claimPaid ? "See your payout →" : "Claim your prize →"}
+            </Button>
+          </Link>
+        )}
+      </div>
     );
   }
   return (

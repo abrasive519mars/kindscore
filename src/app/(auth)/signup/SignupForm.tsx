@@ -5,6 +5,7 @@ import { signUp } from "@/app/(auth)/actions";
 import { SPLIT, type PlanInterval } from "@/config/constants";
 import { Button } from "@/components/ui/Button";
 import { InputField, SelectField } from "@/components/ui/FormField";
+import { PasswordField } from "@/components/ui/PasswordField";
 import { Rule } from "@/components/ui/primitives";
 import { SplitSlider } from "@/components/ui/Split";
 
@@ -62,14 +63,12 @@ export function SignupForm({ charities, defaultCharityId, plan }: SignupFormProp
         onChange={(event) => setEmail(event.target.value)}
         error={fieldError("email")}
       />
-      <InputField
+      <PasswordField
         id="password"
         name="password"
-        type="password"
         label="Password"
         autoComplete="new-password"
         required
-        hint="At least 8 characters"
         error={fieldError("password")}
       />
 
