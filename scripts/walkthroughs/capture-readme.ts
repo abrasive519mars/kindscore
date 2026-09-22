@@ -13,6 +13,12 @@ const BASE = process.env.WALKTHROUGH_BASE ?? "http://localhost:3000";
 const OUT = "docs/screenshots";
 const PASSWORD = process.env.SEED_PASSWORD ?? "Kindscore!2026";
 
+/** Streaming pages render loading.tsx first; wait for the real heading before shooting. */
+async function settled(page: Page, heading: RegExp) {
+  await page.getByRole("heading", { name: heading }).first().waitFor({ timeout: 60_000 });
+  await page.waitForTimeout(3000); // odometer + reveals
+}
+
 async function save(
   page: Page,
   name: string,
@@ -45,16 +51,17 @@ async function desktop(browser: Browser) {
   const page = await context.newPage();
 
   await page.goto(BASE);
-  await page.waitForTimeout(3000); // odometer + reveals settle
+  await settled(page, /could fund a classroom/);
   await save(page, "01-landing");
   await page.goto(`${BASE}/charities/udaan-girls-sports`);
   await page.waitForTimeout(500);
   await save(page, "02-charity-profile", { fullPage: true });
 
   await login(page, "priya@kindscore.app");
-  await page.waitForTimeout(3000); // odometer + reveals settle
+  await settled(page, /Your month at a glance/);
   await save(page, "03-member-dashboard", { fullPage: true });
   await page.goto(`${BASE}/app/scores`);
+  await settled(page, /Your rounds/);
   await save(page, "04-scores");
   await page.goto(`${BASE}/app/draws`);
   const august = page.getByRole("link", { name: "August 2026" }).first();
@@ -63,6 +70,7 @@ async function desktop(browser: Browser) {
   await page.waitForTimeout(2600);
   await save(page, "05-draw-reveal");
   await page.goto(`${BASE}/app/winnings`);
+  await settled(page, /Winnings/);
   await save(page, "06-winnings");
   await page.goto(`${BASE}/app/settings`);
   await page.getByRole("button", { name: "Log out" }).click();
@@ -70,7 +78,7 @@ async function desktop(browser: Browser) {
 
   await login(page, "admin@kindscore.app");
   await page.goto(`${BASE}/admin`);
-  await page.waitForTimeout(500);
+  await settled(page, /Overview/);
   await save(page, "07-admin-overview");
   await page.goto(`${BASE}/admin/draws`);
   const open = page.getByRole("button", { name: /Open .*'s draw/ });
@@ -93,8 +101,10 @@ async function desktop(browser: Browser) {
   await page.waitForTimeout(800);
   await save(page, "08-admin-draw-simulated", { fullPage: true });
   await page.goto(`${BASE}/admin/winners`);
+  await settled(page, /Winners/);
   await save(page, "09-admin-winners");
   await page.goto(`${BASE}/admin/reports`);
+  await settled(page, /Reports/);
   await save(page, "10-admin-reports", { fullPage: true });
   await context.close();
 }
@@ -108,7 +118,7 @@ async function mobile(browser: Browser) {
   });
   const page = await context.newPage();
   await login(page, "priya@kindscore.app");
-  await page.waitForTimeout(3000); // odometer + reveals settle
+  await settled(page, /Your month at a glance/);
   await save(page, "11-mobile-dashboard");
   await page.goto(`${BASE}/charities`);
   await page.waitForTimeout(500);
