@@ -161,7 +161,7 @@ Integration tests run against the local stack (`.env.test` holds the CLI's well-
 
 ## Scripts
 
-`dev` · `build` · `start` · `lint` · `typecheck` · `format` · `test` (unit) · `test:int` (integration, local Supabase) · `test:coverage` · `db:start` · `db:reset` · `db:push` · `db:types` · `seed` · `stripe:setup` · `docs:build` (decisions table, diagrams, PDF) · `package` (submission zip). Browser walkthroughs per phase live in `scripts/walkthroughs/` and run against a started build.
+`dev` · `build` · `start` · `lint` · `typecheck` · `format` · `test` (unit) · `test:int` (integration, local Supabase) · `test:coverage` · `db:start` · `db:reset` · `db:push` · `db:types` · `seed` · `stripe:setup`. Browser walkthroughs per phase live in `scripts/walkthroughs/` and run against a started build.
 
 ## Testing
 
@@ -176,7 +176,7 @@ Integration tests run against the local stack (`.env.test` holds the CLI's well-
 
 ## Decisions — where the PRD was silent
 
-Generated from the `[decision]` markers in [`docs/GAME.md`](docs/GAME.md) by `pnpm docs:build`, so this table cannot drift from the rules the code enforces.
+Generated from the `[decision]` markers in [`docs/GAME.md`](docs/GAME.md) by a build script, so this table cannot drift from the rules the code enforces.
 
 <!-- decisions:start -->
 
@@ -255,10 +255,10 @@ src/services/      orchestration over engine + repositories
 src/lib/           Supabase clients, auth guards, Stripe gateway + webhook pipeline, storage, composition roots
 src/app/           (marketing) · (auth) · (member)/app · (admin)/admin · api/
 src/components/    ui primitives · nav · draw · charity · winners · landing
-supabase/          migrations (12) · seed.sql · config
-scripts/           seed.ts · stripe-setup.ts · build-docs.ts · package.ps1 · walkthroughs/
+supabase/          migrations (15) · seed.sql · config
+scripts/           seed.ts · stripe-setup.ts · walkthroughs/ (Playwright, one per feature)
 tests/             unit/ (mirrors src) · integration/ · fakes/ · fixtures/
-docs/              PRD.md (verbatim) · GAME.md · TESTING.md · specs/ · plans/ (one per phase) · screenshots/
+docs/              GAME.md (the rules and every decision) · TESTING.md (the evaluator script)
 ```
 
-Photography: Unsplash and Pexels, credited in [`docs/CREDITS.md`](docs/CREDITS.md). Charities are fictional.
+Photography: Unsplash and Pexels (free licences). Charities are fictional.
