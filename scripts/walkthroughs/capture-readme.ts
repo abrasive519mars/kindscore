@@ -45,14 +45,14 @@ async function desktop(browser: Browser) {
   const page = await context.newPage();
 
   await page.goto(BASE);
-  await page.waitForTimeout(1200);
+  await page.waitForTimeout(3000); // odometer + reveals settle
   await save(page, "01-landing");
   await page.goto(`${BASE}/charities/udaan-girls-sports`);
   await page.waitForTimeout(500);
   await save(page, "02-charity-profile", { fullPage: true });
 
   await login(page, "priya@kindscore.app");
-  await page.waitForTimeout(1200);
+  await page.waitForTimeout(3000); // odometer + reveals settle
   await save(page, "03-member-dashboard", { fullPage: true });
   await page.goto(`${BASE}/app/scores`);
   await save(page, "04-scores");
@@ -108,7 +108,7 @@ async function mobile(browser: Browser) {
   });
   const page = await context.newPage();
   await login(page, "priya@kindscore.app");
-  await page.waitForTimeout(1200);
+  await page.waitForTimeout(3000); // odometer + reveals settle
   await save(page, "11-mobile-dashboard");
   await page.goto(`${BASE}/charities`);
   await page.waitForTimeout(500);
