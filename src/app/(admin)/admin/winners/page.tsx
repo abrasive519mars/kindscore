@@ -18,7 +18,7 @@ const FILTERS: ReadonlyArray<{ key: Filter; label: string; match: (c: ClaimRow) 
   { key: "awaiting", label: "Awaiting proof", match: (c) => c.review === "awaiting_proof" },
   {
     key: "unpaid",
-    label: "Approved · unpaid",
+    label: "Awaiting claim",
     match: (c) => c.review === "approved" && c.payout === "pending",
   },
   { key: "paid", label: "Paid", match: (c) => c.payout === "paid" },

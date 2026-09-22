@@ -1,12 +1,12 @@
 import { RuleViolationError } from "@/engine/errors";
 
 /**
- * A winner uploads proof; admin approves or rejects; payout goes Pending → Paid.
+ * A winner uploads proof; admin approves or rejects; the winner claims the payout: Pending → Paid.
  * Modelled as an explicit state machine so every illegal move is a rule violation, not a bug.
  */
 export type ReviewStatus = "awaiting_proof" | "submitted" | "approved" | "rejected";
 export type PayoutStatus = "pending" | "paid";
-export type VerificationEvent = "submit_proof" | "approve" | "reject" | "mark_paid";
+export type VerificationEvent = "submit_proof" | "approve" | "reject" | "claim_payout";
 
 export interface VerificationState {
   readonly review: ReviewStatus;
@@ -41,8 +41,9 @@ const reject: Transition = (state) => {
   return { ...state, review: "rejected" };
 };
 
-const markPaid: Transition = (state) => {
-  if (state.review !== "approved" || state.payout !== "pending") throw illegal(state, "mark_paid");
+const claimPayout: Transition = (state) => {
+  if (state.review !== "approved" || state.payout !== "pending")
+    throw illegal(state, "claim_payout");
   return { ...state, payout: "paid" };
 };
 
@@ -50,7 +51,7 @@ const TRANSITIONS: Readonly<Record<VerificationEvent, Transition>> = {
   submit_proof: submitProof,
   approve,
   reject,
-  mark_paid: markPaid,
+  claim_payout: claimPayout,
 };
 
 function illegal(state: VerificationState, event: VerificationEvent): RuleViolationError {

@@ -3,6 +3,7 @@ import { transition, type VerificationState } from "@/engine/verification/stateM
 import type { ProofStorage } from "@/lib/storage/ProofStorage";
 import type {
   ClaimRow,
+  PayoutMethod,
   WinnerRepository,
   WinningRecord,
 } from "@/repositories/interfaces/WinnerRepository";
@@ -32,8 +33,12 @@ export class FakeWinnerRepository implements WinnerRepository {
       reviewedAt: "2026-09-22T09:00:00Z",
     });
   }
-  async markPaid(id: string) {
-    return this.apply(id, "mark_paid", { paidAt: "2026-09-23T09:00:00Z" });
+  async claimPayout(id: string, method: PayoutMethod, reference: string) {
+    return this.apply(id, "claim_payout", {
+      paidAt: "2026-09-23T09:00:00Z",
+      payoutMethod: method,
+      payoutReference: reference,
+    });
   }
 
   private apply(
@@ -89,6 +94,8 @@ export function claim(overrides: Partial<ClaimRow> = {}): ClaimRow {
     reviewNote: null,
     reviewedAt: null,
     paidAt: null,
+    payoutMethod: null,
+    payoutReference: null,
     createdAt: "2026-09-01T10:00:00Z",
     fullName: "Priya Test",
     email: "priya@kindscore.test",

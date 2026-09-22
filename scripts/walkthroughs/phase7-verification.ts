@@ -186,21 +186,24 @@ async function main() {
   log("resubmitted", "Under review");
   await logout(page);
 
-  // 4. Admin approves, marks paid
+  // 4. Admin approves — and that is the admin's last move
   await login(page, adminUser.email);
   await page.goto(`${BASE}/admin/winners/${claimId}`);
   await page.getByRole("button", { name: "Approve" }).click();
-  await page.getByRole("button", { name: "Mark as paid" }).waitFor();
-  log("approved", "Mark as paid offered");
+  await page.getByText(/Approved\. The member claims the payout/).waitFor();
+  log("approved", "waiting for the member to claim");
   await shot(page, "08-admin-approved");
-  await page.getByRole("button", { name: "Mark as paid" }).click();
-  await page.getByText("Paid. Nothing more to do.").waitFor();
-  log("paid", "done");
-  await shot(page, "09-admin-paid");
   await logout(page);
 
-  // 5. Winner: dashboard and winnings show Paid
+  // 5. Winner claims: Stripe credits the prize (test mode) and the win is paid
   await login(page, winner.email);
+  await page.goto(`${BASE}/app/winnings/${claimId}`);
+  await page.getByRole("button", { name: "Claim as subscription credit" }).click();
+  await page.getByRole("button", { name: "Confirm claim" }).click();
+  await page.getByText(/Stripe ref cbtxn_/).waitFor({ timeout: 45_000 });
+  log("paid", (await page.getByText(/Stripe ref/).textContent())?.trim().slice(0, 90));
+  await shot(page, "09-member-paid-credit");
+  await page.goto(`${BASE}/app`);
   log(
     "dashboard total won",
     (await page.getByText("Total won").locator("..").textContent())?.replace(/\s+/g, " ").trim(),

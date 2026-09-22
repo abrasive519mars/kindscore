@@ -167,7 +167,7 @@ Because real money is involved, a winner must prove their scores were genuine:
 
 1. The winner uploads a **screenshot of their scores from their golf platform** (the app/club system where the round was recorded).
 2. The admin reviews it and clicks **Approve** or **Reject**.
-3. An approved win has a payout status of **Pending**. When the admin has sent the money, they mark it **Paid**.
+3. An approved win has a payout status of **Pending** until the winner **claims** it. The claim credits the prize to the winner's Kindscore billing account through Stripe — applied automatically to their next renewals — and the win becomes **Paid**, with Stripe's transaction id as the record. The admin does nothing after approving.
 
 Only winners go through this — ordinary subscribers never have to upload anything.
 
@@ -178,6 +178,8 @@ The rules around it **[decision]**:
 - **A rejection needs a reason** (up to 200 characters) and the member reads it verbatim.
 - **Proof images are private** to the winner and the admins — served through ten-minute signed links, stored under a path built from ids, never from the file name. Nothing is ever public.
 - **A lapsed subscriber can still claim a prize they won while active.** The win happened; the subscription gate is for playing, not for being paid.
+- **[decision]** The winner claims the payout themselves and it is paid as subscription credit through Stripe, verified by Stripe's transaction id — no human marks anything paid. Stripe cannot send cash to an Indian individual from this platform (Connect cross-border payouts exclude India; Global Payouts needs Treasury), and a credit against future renewals is the one payout the customer we already hold can receive instantly. A cash rail (RazorpayX, Stripe Connect) is another implementation of the same `PayoutGateway`.
+- **[decision]** A member who never checked out (a seeded demo account) gets a Stripe customer created at claim time, so the credit is real and waits for their first invoice.
 
 ---
 

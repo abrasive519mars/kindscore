@@ -93,7 +93,7 @@ export default async function DashboardPage() {
               won.unverifiedCount > 0
                 ? `${won.unverifiedCount} ${won.unverifiedCount === 1 ? "win" : "wins"} awaiting verification`
                 : won.awaitingPayoutPaise > 0
-                  ? `${formatInr(won.paidPaise)} paid · ${formatInr(won.awaitingPayoutPaise)} on its way`
+                  ? `${formatInr(won.awaitingPayoutPaise)} approved — claim it under Winnings`
                   : won.totalWonPaise > 0
                     ? "All paid"
                     : "Winnings appear here after a draw"

@@ -6,6 +6,7 @@ import {
 } from "@/engine/errors";
 import type {
   ClaimRow,
+  PayoutMethod,
   WinnerRepository,
   WinningRecord,
 } from "@/repositories/interfaces/WinnerRepository";
@@ -16,7 +17,7 @@ type VerificationRow = Database["public"]["Tables"]["winner_verifications"]["Row
 
 /** One select shape for every read: the claim, what was won, and the draw it came from. */
 const CLAIM_SELECT = `
-  id, user_id, proof_path, review_status, payout_status, resubmissions, review_note, reviewed_at, paid_at, created_at,
+  id, user_id, proof_path, review_status, payout_status, resubmissions, review_note, reviewed_at, paid_at, payout_method, payout_reference, created_at,
   draw_results!inner ( draw_id, match_count, prize_paise, draw_entries!inner ( scores ), draws!inner ( draw_month, numbers ) ),
   profiles!winner_verifications_user_id_fkey!inner ( full_name, email )
 `;
@@ -31,6 +32,8 @@ interface JoinedRow {
   review_note: string | null;
   reviewed_at: string | null;
   paid_at: string | null;
+  payout_method: string | null;
+  payout_reference: string | null;
   created_at: string;
   draw_results: {
     draw_id: string;
@@ -75,6 +78,8 @@ function toClaim(row: JoinedRow): ClaimRow {
     reviewNote: row.review_note,
     reviewedAt: row.reviewed_at,
     paidAt: row.paid_at,
+    payoutMethod: row.payout_method as PayoutMethod | null,
+    payoutReference: row.payout_reference,
     createdAt: row.created_at,
     fullName: row.profiles.full_name,
     email: row.profiles.email,
@@ -147,8 +152,16 @@ export class SupabaseWinnerRepository implements WinnerRepository {
     return this.requireClaim(verificationId);
   }
 
-  async markPaid(verificationId: string): Promise<WinningRecord> {
-    const { error } = await this.db.rpc("mark_winner_paid", { p_verification_id: verificationId });
+  async claimPayout(
+    verificationId: string,
+    method: PayoutMethod,
+    reference: string,
+  ): Promise<WinningRecord> {
+    const { error } = await this.db.rpc("claim_payout", {
+      p_verification_id: verificationId,
+      p_method: method,
+      p_reference: reference,
+    });
     if (error) throw mapRpcError(error);
     return this.requireClaim(verificationId);
   }

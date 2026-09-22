@@ -9,7 +9,12 @@ import { summariseWinnings } from "@/services/WinnerService";
 import { Button } from "@/components/ui/Button";
 import { Badge, Card, EmptyState, Figure } from "@/components/ui/primitives";
 import { Stepper } from "@/components/ui/Stepper";
-import { canSubmitProof, claimStatus, claimSteps } from "@/components/winners/claimSteps";
+import {
+  canClaimPayout,
+  canSubmitProof,
+  claimStatus,
+  claimSteps,
+} from "@/components/winners/claimSteps";
 
 export const metadata: Metadata = { title: "Winnings" };
 
@@ -42,7 +47,7 @@ export default async function WinningsPage() {
         </Card>
         <Card>
           <Figure
-            label="Awaiting payout"
+            label="Ready to claim"
             value={formatInr(summary.awaitingPayoutPaise)}
             hint={summary.unverifiedCount ? `${summary.unverifiedCount} more to verify` : undefined}
           />
@@ -83,6 +88,13 @@ function WinCard({ record }: { record: WinningRecord }) {
           <Link href={href}>
             <Button size="sm" variant="saffron">
               {record.review === "rejected" ? "Upload again" : "Upload proof"}
+            </Button>
+          </Link>
+        )}
+        {canClaimPayout(record) && (
+          <Link href={href}>
+            <Button size="sm" variant="saffron">
+              Claim payout
             </Button>
           </Link>
         )}

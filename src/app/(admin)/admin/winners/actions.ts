@@ -15,7 +15,6 @@ const reviewSchema = z.object({
     .max(REVIEW_NOTE_MAX, `Keep the note under ${REVIEW_NOTE_MAX} characters.`)
     .default(""),
 });
-const idSchema = z.object({ verificationId: z.uuid() });
 
 function revalidateWinners() {
   revalidatePath("/admin/winners", "layout");
@@ -32,18 +31,6 @@ export async function reviewClaim(
     await requireAdmin();
     const { verificationId, decision, note } = reviewSchema.parse(Object.fromEntries(formData));
     await (await createWinnerService()).review(verificationId, decision === "approve", note);
-    revalidateWinners();
-  });
-}
-
-export async function markClaimPaid(
-  _prev: ActionResult | null,
-  formData: FormData,
-): Promise<ActionResult> {
-  return runAction(async () => {
-    await requireAdmin();
-    const { verificationId } = idSchema.parse(Object.fromEntries(formData));
-    await (await createWinnerService()).markPaid(verificationId);
     revalidateWinners();
   });
 }

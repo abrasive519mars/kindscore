@@ -75,12 +75,9 @@ describe("review and payout", () => {
     await service.submitProof("user-1", "ver-1", pngFile());
   });
 
-  it("approves, then marks paid", async () => {
-    expect((await service.review("ver-1", true, "")).review).toBe("approved");
-    expect(await service.markPaid("ver-1")).toMatchObject({
-      payout: "paid",
-      paidAt: expect.any(String),
-    });
+  it("approves; the payout itself is the winner's move (ClaimPayoutService)", async () => {
+    const approved = await service.review("ver-1", true, "");
+    expect(approved).toMatchObject({ review: "approved", payout: "pending" });
   });
 
   it("rejecting needs a reason the member will see", async () => {
@@ -94,10 +91,6 @@ describe("review and payout", () => {
 
   it("keeps notes under the limit", async () => {
     await expect(service.review("ver-1", false, "x".repeat(201))).rejects.toThrow(/200/);
-  });
-
-  it("cannot mark paid before approval", async () => {
-    await expect(service.markPaid("ver-1")).rejects.toBeInstanceOf(RuleViolationError);
   });
 });
 

@@ -222,10 +222,12 @@ describe("winner verification RPCs mirror the state machine", () => {
     });
     expect(resubmitted.data!.resubmissions).toBe(1);
 
-    const paidTooEarly = await asAdmin.rpc("mark_winner_paid", {
+    const claimedTooEarly = await asWinner.rpc("claim_payout", {
       p_verification_id: verificationId,
+      p_method: "stripe_credit",
+      p_reference: "cbtxn_early",
     });
-    expect(paidTooEarly.error?.code).toBe(PG.raiseException);
+    expect(claimedTooEarly.error?.code).toBe(PG.raiseException);
 
     const approved = await asAdmin.rpc("review_winner", {
       p_verification_id: verificationId,
@@ -233,21 +235,30 @@ describe("winner verification RPCs mirror the state machine", () => {
     });
     expect(approved.data!.review_status).toBe("approved");
 
-    const paid = await asAdmin.rpc("mark_winner_paid", { p_verification_id: verificationId });
-    expect(paid.data!.payout_status).toBe("paid");
+    const claim = {
+      p_verification_id: verificationId,
+      p_method: "stripe_credit",
+      p_reference: "cbtxn_test",
+    };
+    const paid = await asWinner.rpc("claim_payout", claim);
+    expect(paid.data).toMatchObject({ payout_status: "paid", payout_reference: "cbtxn_test" });
 
-    const paidAgain = await asAdmin.rpc("mark_winner_paid", { p_verification_id: verificationId });
+    const paidAgain = await asWinner.rpc("claim_payout", claim);
     expect(paidAgain.error?.code).toBe(PG.raiseException);
   });
 
-  it("member cannot review or mark paid", async () => {
+  it("member cannot review; nobody but the winner can claim", async () => {
     const review = await asWinner.rpc("review_winner", {
       p_verification_id: verificationId,
       p_approve: true,
     });
     expect(review.error?.code).toBe(PG.insufficientPrivilege);
-    const paid = await asWinner.rpc("mark_winner_paid", { p_verification_id: verificationId });
-    expect(paid.error?.code).toBe(PG.insufficientPrivilege);
+    const byAdmin = await asAdmin.rpc("claim_payout", {
+      p_verification_id: verificationId,
+      p_method: "stripe_credit",
+      p_reference: "cbtxn_admin",
+    });
+    expect(byAdmin.error?.code).toBe(PG.insufficientPrivilege);
   });
 
   it("reporting views reflect the paid prize", async () => {

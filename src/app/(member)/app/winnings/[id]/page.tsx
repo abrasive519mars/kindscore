@@ -5,12 +5,20 @@ import { formatInr } from "@/engine/money/paise";
 import { formatMonth } from "@/engine/time/dates";
 import { getAccess, type SignedInAccess } from "@/lib/auth/access";
 import { createWinnerService } from "@/lib/winners";
+import { BillingPortalButton } from "@/app/(member)/app/winnings/[id]/BillingPortalButton";
+import { ClaimPayoutCard } from "@/app/(member)/app/winnings/[id]/ClaimPayoutCard";
 import { ProofForm } from "@/app/(member)/app/winnings/[id]/ProofForm";
 import { DrawNumbers } from "@/components/draw/DrawNumbers";
 import { ScoreRow } from "@/components/app/ScoreRow";
 import { Badge, Banner, Card, Figure, Rule } from "@/components/ui/primitives";
 import { Stepper } from "@/components/ui/Stepper";
-import { canSubmitProof, claimStatus, claimSteps } from "@/components/winners/claimSteps";
+import {
+  canClaimPayout,
+  canSubmitProof,
+  claimStatus,
+  claimSteps,
+  describePayout,
+} from "@/components/winners/claimSteps";
 
 export const metadata: Metadata = { title: "Your win" };
 
@@ -70,9 +78,18 @@ export default async function WinningPage({ params }: PageProps<"/app/winnings/[
           </Banner>
         )}
         {record.payout === "paid" && (
-          <Banner tone="success">Paid. Thank you for playing — and for giving.</Banner>
+          <div className="flex flex-col gap-3">
+            <Banner tone="success">
+              {describePayout(record)} Thank you for playing — and for giving.
+            </Banner>
+            {record.payoutMethod === "stripe_credit" && <BillingPortalButton />}
+          </div>
         )}
       </Card>
+
+      {canClaimPayout(record) && (
+        <ClaimPayoutCard verificationId={record.verificationId} prizePaise={record.prizePaise} />
+      )}
 
       <Card className="flex flex-col gap-4">
         <h2 className="text-2xl">Proof of your scores</h2>

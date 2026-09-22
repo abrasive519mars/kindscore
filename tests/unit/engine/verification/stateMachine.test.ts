@@ -13,7 +13,7 @@ function run(events: VerificationEvent[], from: VerificationState = initialVerif
 
 describe("legal paths", () => {
   it("awaiting → submitted → approved → paid", () => {
-    expect(run(["submit_proof", "approve", "mark_paid"])).toEqual({
+    expect(run(["submit_proof", "approve", "claim_payout"])).toEqual({
       review: "approved",
       payout: "paid",
       resubmissions: 0,
@@ -29,7 +29,7 @@ describe("legal paths", () => {
   });
 
   it("can approve a resubmission and pay it", () => {
-    expect(run(["submit_proof", "reject", "submit_proof", "approve", "mark_paid"]).payout).toBe(
+    expect(run(["submit_proof", "reject", "submit_proof", "approve", "claim_payout"]).payout).toBe(
       "paid",
     );
   });
@@ -39,13 +39,13 @@ describe("illegal transitions", () => {
   const cases: Array<[string, VerificationEvent[], VerificationEvent]> = [
     ["approve before any proof", [], "approve"],
     ["reject before any proof", [], "reject"],
-    ["pay before approval", ["submit_proof"], "mark_paid"],
-    ["pay a rejected claim", ["submit_proof", "reject"], "mark_paid"],
+    ["pay before approval", ["submit_proof"], "claim_payout"],
+    ["pay a rejected claim", ["submit_proof", "reject"], "claim_payout"],
     ["reject after approval", ["submit_proof", "approve"], "reject"],
     ["submit again while under review", ["submit_proof"], "submit_proof"],
     ["submit after approval", ["submit_proof", "approve"], "submit_proof"],
-    ["pay twice", ["submit_proof", "approve", "mark_paid"], "mark_paid"],
-    ["reject after payment", ["submit_proof", "approve", "mark_paid"], "reject"],
+    ["pay twice", ["submit_proof", "approve", "claim_payout"], "claim_payout"],
+    ["reject after payment", ["submit_proof", "approve", "claim_payout"], "reject"],
   ];
 
   it.each(cases)("%s", (_label, path, event) => {
@@ -54,8 +54,8 @@ describe("illegal transitions", () => {
   });
 
   it("explains which state blocked the move", () => {
-    expect(() => transition(initialVerificationState(), "mark_paid")).toThrow(
-      /Cannot mark paid while review is "awaiting_proof"/,
+    expect(() => transition(initialVerificationState(), "claim_payout")).toThrow(
+      /Cannot claim payout while review is "awaiting_proof"/,
     );
   });
 });

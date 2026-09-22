@@ -2,7 +2,7 @@
 
 import { useActionState, useState } from "react";
 import type { PayoutStatus, ReviewStatus } from "@/engine/verification/stateMachine";
-import { markClaimPaid, reviewClaim } from "@/app/(admin)/admin/winners/actions";
+import { reviewClaim } from "@/app/(admin)/admin/winners/actions";
 import type { ActionResult } from "@/lib/errors/action-result";
 import { REVIEW_NOTE_MAX } from "@/services/WinnerService";
 import { Button } from "@/components/ui/Button";
@@ -11,17 +11,19 @@ interface ReviewPanelProps {
   readonly verificationId: string;
   readonly review: ReviewStatus;
   readonly payout: PayoutStatus;
+  /** "Paid · ₹… credited … · Stripe ref …" once the member has claimed. */
+  readonly payoutLine: string;
 }
 
 /**
- * Only the legal moves are offered (PRD §09): Approve / Reject while submitted, Mark paid once
- * approved, nothing once paid. Reject reveals a reason field inline — the member reads it verbatim.
+ * Only the legal moves are offered (PRD §09): Approve / Reject while submitted. The payout is the
+ * member's own move, so once approved there is nothing left for the admin but to read the record.
+ * Reject reveals a reason field inline — the member reads it verbatim.
  */
-export function ReviewPanel({ verificationId, review, payout }: ReviewPanelProps) {
+export function ReviewPanel({ verificationId, review, payout, payoutLine }: ReviewPanelProps) {
   const [reviewState, reviewAction, reviewing] = useActionState(reviewClaim, null);
-  const [paidState, paidAction, paying] = useActionState(markClaimPaid, null);
   const [rejecting, setRejecting] = useState(false);
-  const error = [reviewState, paidState].find((s) => s && !s.ok);
+  const error = reviewState && !reviewState.ok ? reviewState : null;
 
   if (review === "submitted") {
     return (
@@ -78,30 +80,15 @@ export function ReviewPanel({ verificationId, review, payout }: ReviewPanelProps
     );
   }
 
-  if (review === "approved" && payout === "pending") {
-    return (
-      <form action={paidAction} className="flex flex-col gap-3 border-t border-line pt-4">
-        <input type="hidden" name="verificationId" value={verificationId} />
-        <div className="flex flex-wrap items-center gap-3">
-          <Button type="submit" variant="saffron" pending={paying}>
-            Mark as paid
-          </Button>
-          <span className="text-sm text-ink-2">
-            Once the transfer has been sent. This can&apos;t be undone.
-          </span>
-        </div>
-        <ActionError error={error} />
-      </form>
-    );
-  }
-
   return (
     <p className="border-t border-line pt-4 text-sm text-ink-2">
       {payout === "paid"
-        ? "Paid. Nothing more to do."
-        : review === "rejected"
-          ? "Rejected. The member may upload once more if they haven't already."
-          : "Waiting for the member's screenshot."}
+        ? payoutLine
+        : review === "approved"
+          ? "Approved. The member claims the payout from their Winnings page — it is credited to their subscription through Stripe and recorded here."
+          : review === "rejected"
+            ? "Rejected. The member may upload once more if they haven't already."
+            : "Waiting for the member's screenshot."}
     </p>
   );
 }

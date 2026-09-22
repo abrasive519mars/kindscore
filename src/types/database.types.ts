@@ -749,6 +749,8 @@ export type Database = {
           created_at: string;
           id: string;
           paid_at: string | null;
+          payout_method: string | null;
+          payout_reference: string | null;
           payout_status: Database["public"]["Enums"]["payout_status"];
           proof_path: string | null;
           resubmissions: number;
@@ -764,6 +766,8 @@ export type Database = {
           created_at?: string;
           id?: string;
           paid_at?: string | null;
+          payout_method?: string | null;
+          payout_reference?: string | null;
           payout_status?: Database["public"]["Enums"]["payout_status"];
           proof_path?: string | null;
           resubmissions?: number;
@@ -779,6 +783,8 @@ export type Database = {
           created_at?: string;
           id?: string;
           paid_at?: string | null;
+          payout_method?: string | null;
+          payout_reference?: string | null;
           payout_status?: Database["public"]["Enums"]["payout_status"];
           proof_path?: string | null;
           resubmissions?: number;
@@ -901,14 +907,18 @@ export type Database = {
           isSetofReturn: false;
         };
       };
-      has_active_access: { Args: { uid: string }; Returns: boolean };
-      is_admin: { Args: never; Returns: boolean };
-      mark_winner_paid: {
-        Args: { p_verification_id: string };
+      claim_payout: {
+        Args: {
+          p_method: string;
+          p_reference: string;
+          p_verification_id: string;
+        };
         Returns: {
           created_at: string;
           id: string;
           paid_at: string | null;
+          payout_method: string | null;
+          payout_reference: string | null;
           payout_status: Database["public"]["Enums"]["payout_status"];
           proof_path: string | null;
           resubmissions: number;
@@ -927,6 +937,8 @@ export type Database = {
           isSetofReturn: false;
         };
       };
+      has_active_access: { Args: { uid: string }; Returns: boolean };
+      is_admin: { Args: never; Returns: boolean };
       next_rollover_in: { Args: never; Returns: number };
       publish_draw: {
         Args: { p_draw_id: string };
@@ -966,6 +978,8 @@ export type Database = {
           created_at: string;
           id: string;
           paid_at: string | null;
+          payout_method: string | null;
+          payout_reference: string | null;
           payout_status: Database["public"]["Enums"]["payout_status"];
           proof_path: string | null;
           resubmissions: number;
@@ -1038,6 +1052,8 @@ export type Database = {
           created_at: string;
           id: string;
           paid_at: string | null;
+          payout_method: string | null;
+          payout_reference: string | null;
           payout_status: Database["public"]["Enums"]["payout_status"];
           proof_path: string | null;
           resubmissions: number;

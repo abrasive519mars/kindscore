@@ -36,6 +36,7 @@ let asWinner: WinnerService;
 let asStranger: WinnerService;
 let asAdmin: WinnerService;
 let adminDb: Db;
+let winnerDb: Db;
 let strangerDb: Db;
 
 function serviceOn(db: Db) {
@@ -49,12 +50,13 @@ beforeAll(async () => {
     createUser(),
   ]);
   await Promise.all([grantActiveSubscription(winner.id), grantActiveSubscription(stranger.id)]);
-  const [winnerDb, sDb, aDb] = await Promise.all([
+  const [wDb, sDb, aDb] = await Promise.all([
     clientAs(winner),
     clientAs(stranger),
     clientAs(adminUser),
   ]);
   adminDb = aDb;
+  winnerDb = wDb;
   strangerDb = sDb;
   asWinner = serviceOn(winnerDb);
   asStranger = serviceOn(sDb);
@@ -152,9 +154,24 @@ describe("winner verification end to end", () => {
     expect(again).toMatchObject({ review: "submitted", resubmissions: 1 });
   });
 
-  it("approve → mark paid; the summary and the reports agree", async () => {
+  it("approve → the winner claims the payout; a stranger and the admin are refused", async () => {
     await asAdmin.review(verificationId, true, "");
-    await expect(asAdmin.markPaid(verificationId)).resolves.toMatchObject({ payout: "paid" });
+    await expect(
+      new SupabaseWinnerRepository(strangerDb).claimPayout(verificationId, "seed", "x"),
+    ).rejects.toBeInstanceOf(Error);
+    await expect(
+      new SupabaseWinnerRepository(adminDb).claimPayout(verificationId, "seed", "x"),
+    ).rejects.toBeInstanceOf(Error);
+    const paid = await new SupabaseWinnerRepository(winnerDb).claimPayout(
+      verificationId,
+      "stripe_credit",
+      "cbtxn_test_1",
+    );
+    expect(paid).toMatchObject({
+      payout: "paid",
+      payoutMethod: "stripe_credit",
+      payoutReference: "cbtxn_test_1",
+    });
     const summary = summariseWinnings(await asWinner.listWinnings(winner.id));
     expect(summary).toEqual({
       totalWonPaise: 7_485,

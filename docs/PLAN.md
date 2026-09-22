@@ -196,6 +196,14 @@ Files (write → test → explain):
 - [x] Winning draw → **Claim your prize →** on the reveal and the dashboard
 - [x] `docs/TESTING.md` rewritten as a human script; designed PDF
 
+### Phase 13 — Winners claim their payout ✅ done 2026-09-22 (plan: `docs/plans/phase-13-claim-payout.md`)
+
+- [x] Stripe rails checked from this sandbox: Connect cross-border excludes India; Global Payouts needs Treasury; refunds cap at the charge → **customer-balance credit** is the one instant, verifiable payout
+- [x] Migration 14: `payout_method`, `payout_reference`, RPC `claim_payout` (owner only, approved · pending → paid); `mark_winner_paid` dropped
+- [x] `PayoutGateway` port + `StripePayoutGateway` (customer create, idempotent credit) + `ClaimPayoutService`; admin's Mark-as-paid removed
+- [x] Member: **Claim as subscription credit** card → Paid banner with Stripe reference + billing-portal button; winnings list **Claim payout**; admin reads the same record
+- [x] Tests: state machine event renamed, `creditMonths`, `ClaimPayoutService` ×6, integration claim RPC (stranger/admin refused); walkthrough 7 claims as the winner
+
 ## Verification (end-to-end)
 
 Run PRD §16.1 as the acceptance suite on the deployed URL with seeded credentials: signup → subscribe monthly with 4242 → enter 5 scores (+ a 6th to see eviction, + a duplicate date to see rejection) → admin simulate Sep (both modes) → publish → member sees Draw Reveal → winner uploads proof → admin approves → marks paid → dashboard shows total won and Paid → lapse a subscription and confirm restricted access → mobile pass. Unit suite: `pnpm test`; integration: `pnpm test:int` against the seeded project.

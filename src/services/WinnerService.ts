@@ -37,8 +37,9 @@ export function summariseWinnings(records: readonly WinningRecord[]): WinningsSu
 }
 
 /**
- * Member and admin sides of PRD §09. Every state change is the engine's state machine, checked
- * here first (for a friendly message, before any upload) and again inside the RPC (for safety).
+ * Member and admin sides of PRD §09 up to approval; the payout itself is ClaimPayoutService.
+ * Every state change is the engine's state machine, checked here first (for a friendly message,
+ * before any upload) and again inside the RPC (for safety).
  */
 export class WinnerService {
   constructor(
@@ -76,10 +77,6 @@ export class WinnerService {
       throw new ValidationError(`Keep the note under ${REVIEW_NOTE_MAX} characters.`, "note");
     }
     return this.winners.review(verificationId, approve, trimmed.length ? trimmed : null);
-  }
-
-  markPaid(verificationId: string): Promise<WinningRecord> {
-    return this.winners.markPaid(verificationId);
   }
 
   listQueue(): Promise<ClaimRow[]> {

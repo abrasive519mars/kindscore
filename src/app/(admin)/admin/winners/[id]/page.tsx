@@ -9,7 +9,7 @@ import { DrawNumbers } from "@/components/draw/DrawNumbers";
 import { ScoreRow } from "@/components/app/ScoreRow";
 import { Badge, Banner, Card, Rule } from "@/components/ui/primitives";
 import { Stepper } from "@/components/ui/Stepper";
-import { claimStatus, claimSteps } from "@/components/winners/claimSteps";
+import { claimStatus, claimSteps, describePayout } from "@/components/winners/claimSteps";
 
 export const metadata: Metadata = { title: "Claim" };
 
@@ -86,6 +86,10 @@ export default async function AdminClaimPage({ params }: PageProps<"/admin/winne
           verificationId={claim.verificationId}
           review={claim.review}
           payout={claim.payout}
+          payoutLine={describePayout(claim).replace(
+            "your subscription account",
+            "the member's subscription account",
+          )}
         />
       </Card>
     </div>

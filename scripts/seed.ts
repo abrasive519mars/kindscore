@@ -500,7 +500,17 @@ async function main() {
     await service.submitProof(userId, record.verificationId, await proofPng(label));
     if (final === "paid") {
       await adminWinners.review(record.verificationId, true, "");
-      await adminWinners.markPaid(record.verificationId);
+      // Demo history: recorded as paid without a Stripe call; a live claim goes through Stripe.
+      const { error } = await admin
+        .from("winner_verifications")
+        .update({
+          payout_status: "paid",
+          paid_at: new Date().toISOString(),
+          payout_method: "seed",
+          payout_reference: "seeded demo payout",
+        })
+        .eq("id", record.verificationId);
+      if (error) throw new Error(`payout: ${error.message}`);
     }
     log(
       `claim ${email.split("@")[0]} ${month.slice(0, 7)}`,

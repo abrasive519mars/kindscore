@@ -2,6 +2,9 @@ import type { Paise } from "@/engine/money/paise";
 import type { IsoDate } from "@/engine/time/dates";
 import type { PayoutStatus, ReviewStatus } from "@/engine/verification/stateMachine";
 
+/** How a prize was paid: Stripe customer credit today; `seed` marks demo history. */
+export type PayoutMethod = "stripe_credit" | "seed";
+
 /** One win and where its claim stands — the verification row joined to what was won. */
 export interface WinningRecord {
   readonly verificationId: string;
@@ -19,6 +22,9 @@ export interface WinningRecord {
   readonly reviewNote: string | null;
   readonly reviewedAt: string | null;
   readonly paidAt: string | null;
+  readonly payoutMethod: PayoutMethod | null;
+  /** The provider's transaction id — the proof the prize was paid. */
+  readonly payoutReference: string | null;
   readonly createdAt: string;
 }
 
@@ -36,5 +42,10 @@ export interface WinnerRepository {
   /** The three RPCs. Each re-checks the state machine and raises on an illegal move. */
   submitProof(verificationId: string, proofPath: string): Promise<WinningRecord>;
   review(verificationId: string, approve: boolean, note: string | null): Promise<WinningRecord>;
-  markPaid(verificationId: string): Promise<WinningRecord>;
+  /** The winner's own move: approved · pending → paid, with how and the provider's reference. */
+  claimPayout(
+    verificationId: string,
+    method: PayoutMethod,
+    reference: string,
+  ): Promise<WinningRecord>;
 }

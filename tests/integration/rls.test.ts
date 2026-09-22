@@ -134,7 +134,11 @@ describe("member", () => {
 
 describe("admin", () => {
   it("reads every member's scores", async () => {
-    const { data } = await asAdmin.from("scores").select("user_id");
+    // Narrowed to the two members: a seeded database holds more scores than one page returns.
+    const { data } = await asAdmin
+      .from("scores")
+      .select("user_id")
+      .in("user_id", [member.id, other.id]);
     const owners = new Set(data!.map((s) => s.user_id));
     expect(owners.has(member.id) && owners.has(other.id)).toBe(true);
   });

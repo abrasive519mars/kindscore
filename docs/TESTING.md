@@ -32,8 +32,8 @@ Ten minutes, in the order of PRD §16.1. The site is live and seeded — nothing
    _The reveal: five tiles roll in, her `33 36 29` light up, "3 matches — you win ₹…", then **Claim your prize →**. Reload: result first, **Watch the draw again**._
 8. **Proof** — **Claim your prize** → choose any PNG/JPG → **Upload proof**.
    _Status **Under review**._
-9. **Verify & pay** — as `admin@`: **Winners → To review** → Priya → **Reject…** with a reason → as `priya@` read the reason and upload again → as `admin@` **Approve** → **Mark as paid**.
-   _Priya's page shows the reason verbatim and one more attempt; after approval "Awaiting payout"; after marking, **Paid** — and her Home "Total won" counts it. `member017@` shows the whole path already completed._
+9. **Verify & claim** — as `admin@`: **Winners → To review** → Priya → **Reject…** with a reason → as `priya@` read the reason and upload again → as `admin@` **Approve**. Then as `priya@`: **Winnings → Claim payout → Claim as subscription credit → Confirm claim**.
+   _Priya's page shows the reason verbatim and one more attempt; after approval the admin has nothing left to do; Priya's claim is credited through Stripe (test mode) and the win reads **Paid · ₹… credited … · Stripe ref cbtxn\_…**, with **See it in your billing portal**. Home "Total won" counts it; the admin sees the same reference. `member017@` shows the whole path already completed._
 10. **Lapsed** — as `anita@`: **Home**, then **Scores**.
     _"Your subscription has lapsed. Your scores are safe — renew…"; the scores page is locked; her June win is **Paid** under Winnings; **Subscription** offers **Renew**._
 11. **Admin tour** — as `admin@`: **Users** (search, open a member: edit profile, scores, grant/end subscription — everything audited) · **Charities** (images, events, spotlight, hide) · **Reports** (totals, by month, charity totals, draw statistics, CSV).
@@ -50,6 +50,6 @@ Ten minutes, in the order of PRD §16.1. The site is live and seeded — nothing
 
 ## Not in the demo
 
-Real payouts — the admin marks paid after paying outside the app, as PRD §09 describes (Stripe collects; paying individuals out needs Stripe Connect or RazorpayX, listed as the next step). Email notifications. Stripe India (test mode on a US sandbox; INR works unchanged).
+Cash payouts — a prize is paid as subscription credit through Stripe (real in test mode, verified by Stripe's transaction id); paying cash to an Indian bank needs a rail this sandbox cannot reach (Stripe Connect excludes India, RazorpayX needs its own account) and sits behind the same gateway interface. Email notifications. Stripe India (test mode on a US sandbox; INR works unchanged).
 
 _Last verified: `<LIVE_VERIFIED>`_

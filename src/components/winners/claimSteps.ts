@@ -1,3 +1,4 @@
+import { formatInr } from "@/engine/money/paise";
 import type { WinningRecord } from "@/repositories/interfaces/WinnerRepository";
 import type { Step } from "@/components/ui/Stepper";
 
@@ -45,7 +46,7 @@ export type ClaimTone = "neutral" | "warn" | "success" | "danger" | "pool";
 /** One word for lists and chips. */
 export function claimStatus(record: WinningRecord): { label: string; tone: ClaimTone } {
   if (record.payout === "paid") return { label: "Paid", tone: "success" };
-  if (record.review === "approved") return { label: "Approved · awaiting payout", tone: "pool" };
+  if (record.review === "approved") return { label: "Approved · claim your payout", tone: "pool" };
   if (record.review === "submitted") return { label: "Under review", tone: "warn" };
   if (record.review === "rejected") {
     return record.resubmissions >= 1
@@ -53,6 +54,21 @@ export function claimStatus(record: WinningRecord): { label: string; tone: Claim
       : { label: "Rejected · upload again", tone: "danger" };
   }
   return { label: "Awaiting your proof", tone: "warn" };
+}
+
+/** Approved and not yet paid: the winner's one remaining move. */
+export function canClaimPayout(record: WinningRecord): boolean {
+  return record.review === "approved" && record.payout === "pending";
+}
+
+/** "Paid · ₹1,565.20 credited 22 Sep to your subscription account · Stripe ref cbtxn_…" */
+export function describePayout(record: WinningRecord): string {
+  const when = stamp(record.paidAt);
+  const amount = formatInr(record.prizePaise);
+  if (record.payoutMethod === "stripe_credit") {
+    return `Paid · ${amount} credited ${when ?? ""} to your subscription account · Stripe ref ${record.payoutReference ?? "—"}.`;
+  }
+  return `Paid · ${amount}${when ? ` on ${when}` : ""}.`;
 }
 
 export function canSubmitProof(record: WinningRecord): boolean {
