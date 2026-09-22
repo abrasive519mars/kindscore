@@ -14,12 +14,18 @@ interface PlanChooserProps {
   readonly charityBps: number;
   /** "Subscribe" for a first-timer, "Renew" for someone coming back. */
   readonly verb: "Subscribe" | "Renew";
+  /** The plan chosen on a pricing card before signing up; it gets the accent and the focus. */
+  readonly preferred?: PlanInterval;
 }
 
 /** Two plan cards, one form each. Submitting sends the member to Stripe Checkout. */
-export function PlanChooser({ charityBps, verb }: PlanChooserProps) {
+export function PlanChooser({ charityBps, verb, preferred }: PlanChooserProps) {
   const [state, action, pending] = useActionState(startCheckout, null);
   const error = state && !state.ok ? state.error.message : null;
+  const badgeFor = (interval: PlanInterval) => {
+    if (preferred) return interval === preferred ? "Your pick" : undefined;
+    return interval === "year" ? "Best value" : undefined;
+  };
 
   return (
     <section className="flex flex-col gap-4" aria-label="Plans">
@@ -32,6 +38,8 @@ export function PlanChooser({ charityBps, verb }: PlanChooserProps) {
           verb={verb}
           action={action}
           pending={pending}
+          badge={badgeFor("month")}
+          autoFocus={preferred === "month"}
         />
         <PlanCard
           interval="year"
@@ -41,7 +49,8 @@ export function PlanChooser({ charityBps, verb }: PlanChooserProps) {
           verb={verb}
           action={action}
           pending={pending}
-          badge="Best value"
+          badge={badgeFor("year")}
+          autoFocus={preferred === "year"}
         />
       </div>
       {error && (
@@ -62,6 +71,7 @@ interface PlanCardProps {
   readonly action: (formData: FormData) => void;
   readonly pending: boolean;
   readonly badge?: string;
+  readonly autoFocus?: boolean;
 }
 
 function PlanCard({
@@ -73,6 +83,7 @@ function PlanCard({
   action,
   pending,
   badge,
+  autoFocus = false,
 }: PlanCardProps) {
   const plan = PLANS[interval];
   return (
@@ -93,6 +104,7 @@ function PlanCard({
           pending={pending}
           variant={badge ? "saffron" : "ink"}
           className="w-full"
+          autoFocus={autoFocus}
         >
           {verb} {plan.label.toLowerCase()}
         </Button>

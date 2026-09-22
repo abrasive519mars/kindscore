@@ -225,7 +225,7 @@ async function wipe() {
     const { data } = await admin.auth.admin.listUsers({ page, perPage: 1000 });
     const mine = data.users.filter((u) => u.email?.endsWith(`@${DOMAIN}`));
     for (const u of mine) {
-      await admin.auth.admin.deleteUser(u.id);
+      await retryAuthCall(() => admin.auth.admin.deleteUser(u.id), `delete ${u.email}`);
       removed++;
     }
     if (data.users.length < 1000) break;
@@ -241,13 +241,17 @@ async function createAccount(
   charity: string,
   bps: number,
 ): Promise<string> {
-  const { data, error } = await admin.auth.admin.createUser({
-    email,
-    password: PASSWORD,
-    email_confirm: true,
-    user_metadata: { full_name: name, charity_id: charity, charity_bps: bps },
-  });
-  if (error || !data.user) throw error ?? new Error(`could not create ${email}`);
+  const { data } = await retryAuthCall(
+    () =>
+      admin.auth.admin.createUser({
+        email,
+        password: PASSWORD,
+        email_confirm: true,
+        user_metadata: { full_name: name, charity_id: charity, charity_bps: bps },
+      }),
+    `create ${email}`,
+  );
+  if (!data.user) throw new Error(`could not create ${email}`);
   if (role === "admin")
     await admin.from("profiles").update({ role: "admin" }).eq("id", data.user.id);
   return data.user.id;
@@ -265,13 +269,48 @@ async function sessionFor(email: string): Promise<Db> {
   });
 }
 
+const BATCH = 400;
+const NETWORK_RETRIES = 3;
+
+/** Each batch is one PostgREST request, i.e. one transaction — a dropped connection is retried whole. */
 async function insertBatched<T extends "scores" | "payments" | "subscriptions">(
   table: T,
   rows: Database["public"]["Tables"][T]["Insert"][],
 ) {
-  for (let i = 0; i < rows.length; i += 400) {
-    const { error } = await admin.from(table).insert(rows.slice(i, i + 400) as never);
+  for (let i = 0; i < rows.length; i += BATCH) {
+    const batch = rows.slice(i, i + BATCH) as never;
+    const { error } = await retryOnNetworkError(() => admin.from(table).insert(batch));
     if (error) throw new Error(`${table}: ${error.message}`);
+  }
+}
+
+/**
+ * auth-js returns network failures as `{ error }` (AuthRetryableFetchError) instead of throwing;
+ * a hosted project on a flaky connection drops a few of 300 calls, so those are retried and any
+ * other error is fatal — a half-wiped or half-created world must never pass silently.
+ */
+async function retryAuthCall<R extends { error: { message: string; name: string } | null }>(
+  request: () => PromiseLike<R>,
+  what: string,
+): Promise<R> {
+  for (let attempt = 1; ; attempt++) {
+    const result = await request();
+    if (!result.error) return result;
+    const retryable = result.error.name === "AuthRetryableFetchError";
+    if (!retryable || attempt >= NETWORK_RETRIES)
+      throw new Error(`${what}: ${result.error.message}`);
+    await new Promise((resolve) => setTimeout(resolve, 1000 * attempt));
+  }
+}
+
+async function retryOnNetworkError<R>(request: () => PromiseLike<R>): Promise<R> {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await request();
+    } catch (error) {
+      if (attempt >= NETWORK_RETRIES || !(error instanceof TypeError)) throw error;
+      await new Promise((resolve) => setTimeout(resolve, 1000 * attempt));
+    }
   }
 }
 

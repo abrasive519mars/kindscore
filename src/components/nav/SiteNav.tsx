@@ -1,6 +1,4 @@
 import Link from "next/link";
-import { PLANS } from "@/config/constants";
-import { formatInr } from "@/engine/money/paise";
 import { getAccess } from "@/lib/auth/access";
 import { Button } from "@/components/ui/Button";
 import { Wordmark } from "@/components/ui/Wordmark";
@@ -40,7 +38,7 @@ export async function SiteNav() {
             {accountLabel}
           </Link>
           <Link href={signedIn ? "/app/subscription" : "/signup"}>
-            <Button size="sm">Subscribe · {formatInr(PLANS.month.pricePaise)}/mo</Button>
+            <Button size="sm">Subscribe</Button>
           </Link>
           <MobileMenu links={LINKS} accountHref={accountHref} accountLabel={accountLabel} />
         </div>

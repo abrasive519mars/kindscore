@@ -2,8 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { PLANS } from "@/config/constants";
-import { formatInr } from "@/engine/money/paise";
 import { Button } from "@/components/ui/Button";
 
 /**
@@ -32,7 +30,7 @@ export function MobileSubscribePill() {
     >
       <Link href="/signup">
         <Button variant="saffron" size="lg" className="shadow-nav">
-          Subscribe · {formatInr(PLANS.month.pricePaise)}/mo
+          Subscribe
         </Button>
       </Link>
     </div>

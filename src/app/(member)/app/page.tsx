@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { LOCALE, PLANS, SCORE } from "@/config/constants";
-import { formatInr } from "@/engine/money/paise";
+import { LOCALE, PLANS, SCORE, SPLIT } from "@/config/constants";
+import { applyBps, formatInr } from "@/engine/money/paise";
 import { formatMonth, nextDrawMonth, todayInTimezone } from "@/engine/time/dates";
 import { getAccess, type SignedInAccess } from "@/lib/auth/access";
 import { createDrawRepository, createDrawService } from "@/lib/draws";
@@ -20,6 +20,14 @@ import { LockedCard } from "@/components/app/LockedCard";
 import { ScoreRow } from "@/components/app/ScoreRow";
 
 export const metadata: Metadata = { title: "Dashboard" };
+
+const MIN_CHARITY_MONTHLY = applyBps(PLANS.month.pricePaise, SPLIT.CHARITY_MIN_BPS);
+
+interface CharityChoice {
+  readonly name: string;
+  readonly city: string;
+  readonly outcome_line: string;
+}
 
 /** PRD §10 — every module the dashboard must include, wired to real data where it exists yet. */
 export default async function DashboardPage() {
@@ -135,23 +143,7 @@ export default async function DashboardPage() {
       <section className="grid gap-6 md:grid-cols-2" aria-label="Charity and draws">
         <Card className="flex flex-col gap-4">
           <h2 className="text-2xl">Your charity</h2>
-          {charity ? (
-            <>
-              <p className="font-medium">
-                {charity.name} <span className="text-ink-2">· {charity.city}</span>
-              </p>
-              <SplitBar
-                amountPaise={PLANS.month.pricePaise}
-                charityBps={access.profile.charity_bps}
-              />
-              <p className="text-sm text-ink-2">{charity.outcome_line}</p>
-            </>
-          ) : (
-            <EmptyState
-              title="Choose a charity"
-              body="Part of every payment goes to a cause you pick."
-            />
-          )}
+          <CharityModule charity={charity} access={access} />
         </Card>
         <Card className="flex flex-col gap-4">
           <div className="flex items-baseline justify-between">
@@ -225,6 +217,57 @@ function DrawsModule({
       )}
     </div>
   );
+}
+
+/**
+ * PRD §10 "selected charity + percentage". Rupee figures appear only for money that is actually
+ * being paid — a member who has not subscribed sees their share, not a split of a fee they owe.
+ */
+function CharityModule({
+  charity,
+  access,
+}: {
+  charity: CharityChoice | null;
+  access: SignedInAccess;
+}) {
+  if (!charity) {
+    return (
+      <EmptyState title="Choose a charity" body="Part of every payment goes to a cause you pick." />
+    );
+  }
+  const { hasAccess, interval } = access.subscription;
+  const paying = access.kind !== "admin" && hasAccess && interval !== null;
+  const plan = PLANS[interval ?? "month"];
+  return (
+    <>
+      <p className="font-medium">
+        {charity.name} <span className="text-ink-2">· {charity.city}</span>
+      </p>
+      <SplitBar
+        amountPaise={plan.pricePaise}
+        charityBps={access.profile.charity_bps}
+        compact={!paying}
+      />
+      <p className="text-sm text-ink-2">{charityCaption(access, paying)}</p>
+      {!paying && access.kind !== "admin" && (
+        <Link href="/app/subscription" className="text-sm underline underline-offset-4">
+          Choose a plan →
+        </Link>
+      )}
+      <p className="text-sm text-ink-2">{charity.outcome_line}</p>
+    </>
+  );
+}
+
+function charityCaption(access: SignedInAccess, paying: boolean): string {
+  const share = `${access.profile.charity_bps / 100}%`;
+  if (access.kind === "admin") return `${share} share`;
+  if (!paying) {
+    return `${share} of every payment will go here once you subscribe — at least ${formatInr(MIN_CHARITY_MONTHLY)} a month.`;
+  }
+  const plan = PLANS[access.subscription.interval ?? "month"];
+  const cadence = access.subscription.interval === "year" ? "yearly" : "monthly";
+  return `${share} of every ${formatInr(plan.pricePaise)} ${cadence} payment`;
 }
 
 function SubscriptionValue({ access }: { access: SignedInAccess }) {

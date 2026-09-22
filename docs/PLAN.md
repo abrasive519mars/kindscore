@@ -180,6 +180,7 @@ Files (write → test → explain):
 - [x] Repository hygiene: per-phase screenshot folders removed, walkthroughs under `scripts/walkthroughs/`, evidence output git-ignored
 - [x] `README.md` (single source of truth: Mermaid architecture + ERD, features by §, setup, runbook, generated decisions table), `docs/TESTING.md` (12-step evaluator script), `docs/SUBMISSION_NOTES.md` (1562/2048 chars), `scripts/build-docs.ts` → `docs/architecture.png`, `docs/schema.png`, `docs/submission/Kindscore-Submission.pdf` (Playwright)
 - [x] `scripts/package.ps1`: zip = `git archive` + PDF + PNGs; asserts < 50 MB and no `.env`
+- [x] From user testing (2026-09-22): CTAs say "Subscribe" (no price); subscribing is a two-step flow (account + charity → plan + Stripe); the dashboard charity card shows rupees only for money being paid — `docs/plans/phase-11b-signup-flow.md`
 - [x] Found while seeding at scale: PostgREST's 1000-row cap silently truncated reports and (above 1000 members) draw entrants → `fetchAllRows` paging in every list that feeds arithmetic; `listCandidates` chunked
 - [ ] GitHub repo (public) → push; rotate the Supabase service-role key → `pnpm seed --env .env.cloud.local --yes`
 - [ ] New Vercel account: import repo, env vars (incl. `NEXT_PUBLIC_DEMO_ACCOUNTS=1`), cron; Stripe webhook → Vercel URL; Supabase Auth site + redirect URLs

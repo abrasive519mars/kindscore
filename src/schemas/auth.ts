@@ -18,12 +18,17 @@ export const charityBpsSchema = z
     `Choose in steps of ${SPLIT.CHARITY_STEP_BPS / 100}%`,
   );
 
+/** The two plans — the same list the subscription page and Stripe setup use (`PLANS`). */
+export const planIntervalSchema = z.enum(["month", "year"]);
+
 export const signupSchema = z.object({
   fullName: z.string().trim().min(2, "Tell us your name").max(80, "That name is a bit long"),
   email: z.email("Enter a valid email address").trim().toLowerCase(),
   password: z.string().min(PASSWORD_MIN, `Use at least ${PASSWORD_MIN} characters`),
   charityId: z.uuid("Choose a charity"),
   charityBps: z.coerce.number().pipe(charityBpsSchema),
+  /** Carried from a pricing card so step 2 can pre-select it; absent when they came from a plain CTA. */
+  plan: planIntervalSchema.optional(),
 });
 
 export const loginSchema = z.object({

@@ -2,7 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { signUp } from "@/app/(auth)/actions";
-import { SPLIT } from "@/config/constants";
+import { SPLIT, type PlanInterval } from "@/config/constants";
 import { Button } from "@/components/ui/Button";
 import { InputField, SelectField } from "@/components/ui/FormField";
 import { Rule } from "@/components/ui/primitives";
@@ -24,9 +24,11 @@ interface SignupFormProps {
   readonly charities: readonly CharityOption[];
   /** From a charity profile page (`/signup?charity=<slug>`). */
   readonly defaultCharityId?: string;
+  /** From a pricing card (`/signup?plan=year`); step 2 pre-selects it. */
+  readonly plan?: PlanInterval;
 }
 
-export function SignupForm({ charities, defaultCharityId }: SignupFormProps) {
+export function SignupForm({ charities, defaultCharityId, plan }: SignupFormProps) {
   const [state, action, pending] = useActionState(signUp, null);
   const [charityId, setCharityId] = useState(defaultCharityId ?? charities[0]?.id ?? "");
   // React 19 resets the form after every action; keep what was typed so a server error isn't punishing.
@@ -38,6 +40,7 @@ export function SignupForm({ charities, defaultCharityId }: SignupFormProps) {
 
   return (
     <form action={action} className="flex flex-col gap-6" noValidate>
+      {plan && <input type="hidden" name="plan" value={plan} />}
       <InputField
         id="fullName"
         name="fullName"
@@ -106,7 +109,8 @@ export function SignupForm({ charities, defaultCharityId }: SignupFormProps) {
         Create account
       </Button>
       <p className="text-xs text-ink-2">
-        You can change your charity and share at any time. Cancel anytime.
+        Next: choose monthly or yearly. You can change your charity and share at any time. Cancel
+        anytime.
       </p>
     </form>
   );

@@ -44,7 +44,10 @@ export function SubscriptionBanner({ subscription }: { subscription: Subscriptio
   if (status === "none") {
     return (
       <Banner tone="saffron">
-        You&apos;re not subscribed yet. Subscribe to log scores and enter the monthly draw. {link}
+        You&apos;re not subscribed yet — pick a plan to log scores and enter the monthly draw.{" "}
+        <Link href="/app/subscription" className="font-medium underline underline-offset-4">
+          Choose a plan
+        </Link>
       </Banner>
     );
   }

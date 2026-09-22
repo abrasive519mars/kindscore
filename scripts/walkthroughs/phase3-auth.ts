@@ -39,8 +39,9 @@ async function main() {
   await page.selectOption("#charityId", { label: "Udaan Girls' Sports Collective · featured" });
   await page.locator('input[name="charityBps"]').fill("2500");
   await page.getByRole("button", { name: "Create account" }).click();
-  await page.waitForURL(`${BASE}/app`);
-  log("signup → /app", page.url());
+  await page.waitForURL(`${BASE}/app/subscription`);
+  log("signup → step 2 (plans)", page.url());
+  await page.goto(`${BASE}/app`);
   await shot(page, "02-dashboard-locked");
 
   const banner = await page.locator('[role="status"]').first().textContent();

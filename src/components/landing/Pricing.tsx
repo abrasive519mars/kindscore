@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { MONTHS_PER_YEAR, PLANS, SPLIT } from "@/config/constants";
+import { MONTHS_PER_YEAR, PLANS, SPLIT, type PlanInterval } from "@/config/constants";
 import { formatInr } from "@/engine/money/paise";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/primitives";
@@ -26,12 +26,14 @@ export function Pricing({ headingLevel = 2 }: { headingLevel?: 1 | 2 }) {
         </header>
         <div className="grid gap-6 md:grid-cols-2">
           <PlanCard
+            interval="month"
             title="Monthly"
             price={`${formatInr(PLANS.month.pricePaise)}/month`}
             sub="incl. GST · cancel anytime"
             amountPaise={PLANS.month.pricePaise}
           />
           <PlanCard
+            interval="year"
             title="Yearly"
             price={`${formatInr(PLANS.year.pricePaise)}/year`}
             sub={`${formatInr(YEARLY_PER_MONTH)}/mo · ${MONTHS_FREE} months free · incl. GST`}
@@ -50,12 +52,14 @@ export function Pricing({ headingLevel = 2 }: { headingLevel?: 1 | 2 }) {
 }
 
 function PlanCard({
+  interval,
   title,
   price,
   sub,
   amountPaise,
   badge,
 }: {
+  interval: PlanInterval;
   title: string;
   price: string;
   sub: string;
@@ -73,7 +77,7 @@ function PlanCard({
         {badge && <Badge tone="saffron">{badge}</Badge>}
       </div>
       <SplitBar amountPaise={amountPaise} charityBps={SPLIT.CHARITY_MIN_BPS} compact />
-      <Link href="/signup">
+      <Link href={`/signup?plan=${interval}`}>
         <Button variant={badge ? "saffron" : "ink"} className="w-full">
           Subscribe {title.toLowerCase()}
         </Button>

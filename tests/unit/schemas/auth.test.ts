@@ -24,6 +24,16 @@ describe("signupSchema", () => {
     expect(signupSchema.safeParse({ ...valid, charityBps: String(bps) }).success).toBe(false);
   });
 
+  it("carries the plan picked on a pricing card, or none", () => {
+    expect(signupSchema.parse(valid).plan).toBeUndefined();
+    expect(signupSchema.parse({ ...valid, plan: "year" }).plan).toBe("year");
+    expect(signupSchema.parse({ ...valid, plan: "month" }).plan).toBe("month");
+  });
+
+  it("rejects a plan that is not one of the two", () => {
+    expect(signupSchema.safeParse({ ...valid, plan: "weekly" }).success).toBe(false);
+  });
+
   it("rejects a short password, a short name and a bad charity id", () => {
     expect(signupSchema.safeParse({ ...valid, password: "1234567" }).success).toBe(false);
     expect(signupSchema.safeParse({ ...valid, fullName: "P" }).success).toBe(false);

@@ -6,8 +6,9 @@ import { z } from "zod";
 import { requireUser } from "@/lib/auth/guards";
 import { runAction, type ActionResult } from "@/lib/errors/action-result";
 import { createCheckoutService } from "@/lib/stripe/billing";
+import { planIntervalSchema } from "@/schemas/auth";
 
-const intervalSchema = z.object({ interval: z.enum(["month", "year"]) });
+const intervalSchema = z.object({ interval: planIntervalSchema });
 
 /**
  * Each action: who is asking → the CheckoutService (scoped to that user) → either a redirect to

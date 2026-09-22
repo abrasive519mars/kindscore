@@ -55,7 +55,7 @@ export function Hero({ featured }: { featured: CharityListing | null }) {
         <div className="flex flex-wrap items-center gap-3">
           <Link href="/signup">
             <Button variant="saffron" size="lg">
-              Subscribe &amp; fund a cause · {formatInr(PLANS.month.pricePaise)}/mo
+              Subscribe &amp; fund a cause
             </Button>
           </Link>
           <Link
@@ -66,7 +66,8 @@ export function Hero({ featured }: { featured: CharityListing | null }) {
           </Link>
         </div>
         <p className="text-sm text-ink-2">
-          Cancel anytime · at least {formatInr(MIN_CHARITY)} to your charity · payments by Stripe
+          {formatInr(PLANS.month.pricePaise)}/month or {formatInr(PLANS.year.pricePaise)}/year ·
+          cancel anytime · at least {formatInr(MIN_CHARITY)} to your charity · payments by Stripe
         </p>
       </FadeIn>
     </section>

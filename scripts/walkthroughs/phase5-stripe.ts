@@ -68,8 +68,7 @@ async function main() {
   await page.selectOption("#charityId", { label: "Udaan Girls' Sports Collective · featured" });
   await page.locator('input[name="charityBps"]').fill("1500");
   await page.getByRole("button", { name: "Create account" }).click();
-  await page.waitForURL(`${BASE}/app`);
-  await page.goto(`${BASE}/app/subscription`);
+  await page.waitForURL(`${BASE}/app/subscription`);
   log(
     "status before",
     (await page.getByText("Not subscribed", { exact: true }).textContent())?.trim(),

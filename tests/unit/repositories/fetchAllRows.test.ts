@@ -1,3 +1,4 @@
+import { PostgrestError } from "@supabase/supabase-js";
 import { describe, expect, it } from "vitest";
 import { fetchAllRows } from "@/repositories/supabase/db";
 
@@ -43,7 +44,7 @@ describe("fetchAllRows", () => {
   });
 
   it("throws the PostgREST error instead of returning a partial list", async () => {
-    const error = { message: "boom", details: "", hint: "", code: "42P01", name: "PostgrestError" };
+    const error = new PostgrestError({ message: "boom", details: "", hint: "", code: "42P01" });
     await expect(fetchAllRows(() => Promise.resolve({ data: null, error }))).rejects.toBe(error);
   });
 });

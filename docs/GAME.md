@@ -18,7 +18,7 @@ A user subscribes for **₹499/month** or **₹4,999/year** (yearly ≈ two mont
 
 Users can also make a **one-off donation** to any charity at any time, unrelated to the game (§08.1). **[decision]** Donations need an account (signup is free) so every rupee in the ledger belongs to a member and "you have given ₹X" is honest; the minimum is ₹10, whole rupees, capped at ₹1,00,000 per transaction as a sanity limit. **[decision]** Exactly one charity is the homepage spotlight; featuring another un-features the last. **[decision]** Charities are never hard-deleted — "Hide" removes one from the directory and signup while existing supporters keep contributing until they change, and the admin sees how many that is before hiding.
 
-Only users with an **active** subscription can use the app's features and enter draws. Subscriptions can renew, be cancelled, or lapse (payment failed / expired) — a lapsed user drops back to restricted access (§04). The app checks subscription status on **every** request from a logged-in user, not just at login.
+Only users with an **active** subscription can use the app's features and enter draws. Subscriptions can renew, be cancelled, or lapse (payment failed / expired) — a lapsed user drops back to restricted access (§04). The app checks subscription status on **every** request from a logged-in user, not just at login. **[decision]** Subscribing is two steps — account and charity first, plan and Stripe payment second. Someone who stops between the two is a registered non-subscriber with restricted access: they can browse, change their charity, pick a plan later and claim a prize won while active, but cannot log scores or enter a draw.
 
 **[decision]** "Restricted access" means a _locked shell_, not a lockout: a member without an active subscription still sees the app, their charity and the jackpot, with score entry and draw participation dimmed behind one "Subscribe to unlock" button. **[decision]** Signup is one page — name, email, password, charity, percentage — and plan/payment come _after_ the account exists, so an abandoned checkout still leaves a member and the split is seen before money is asked for.
 
@@ -185,7 +185,7 @@ The rules around it **[decision]**:
 
 - Subscription: active / inactive, next renewal date
 - Their 5 scores, with entry and edit
-- Their charity and contribution percentage
+- Their charity and contribution percentage. **[decision]** Rupee figures appear only for money actually being paid — an active member sees the split of their own ₹499 or ₹4,999 payment; a non-subscriber sees their percentage and what it will fund once they subscribe.
 - Draws entered, next draw date
 - Total won and current payout status
 

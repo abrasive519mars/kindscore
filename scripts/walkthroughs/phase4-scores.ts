@@ -86,7 +86,7 @@ async function main() {
   await page.fill("#password", password);
   await page.selectOption("#charityId", { label: "Udaan Girls' Sports Collective · featured" });
   await page.getByRole("button", { name: "Create account" }).click();
-  await page.waitForURL(`${BASE}/app`);
+  await page.waitForURL(`${BASE}/app/subscription`);
   await page.goto(`${BASE}/app/scores`);
   log("locked scores page", (await page.locator("h1").textContent())?.trim());
   await shot(page, "01-scores-locked");

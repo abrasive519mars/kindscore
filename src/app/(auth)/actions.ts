@@ -29,9 +29,11 @@ export async function signUp(
       },
     });
     if (error) throw mapSignupError(error.code, error.message);
+    return input.plan;
   });
   if (!result.ok) return result;
-  redirect("/app");
+  // Step 2 of 2 is the plan; a plan picked on a pricing card rides along to be pre-selected.
+  redirect(result.data ? `/app/subscription?plan=${result.data}` : "/app/subscription");
 }
 
 export async function logIn(_prev: ActionResult | null, formData: FormData): Promise<ActionResult> {
