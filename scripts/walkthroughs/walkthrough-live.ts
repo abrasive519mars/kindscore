@@ -134,17 +134,17 @@ async function scores(page: Page) {
     await page.fill("#score", String(score));
     await page.fill("#playedOn", iso(days));
     await page.getByRole("button", { name: "Add round" }).click();
-    await page.locator("button[type=submit][aria-busy]").waitFor({ state: "hidden" });
+    await page.locator("button[type=submit][aria-busy]").waitFor({ state: "hidden", timeout: 90_000 });
   }
   await page.fill("#score", "40");
   await page.fill("#playedOn", iso(1));
   await page.getByRole("button", { name: "Add round" }).click();
-  await page.locator("button[type=submit][aria-busy]").waitFor({ state: "hidden" });
+  await page.locator("button[type=submit][aria-busy]").waitFor({ state: "hidden", timeout: 90_000 });
   check("sixth round evicts the oldest", (await text(page, /Replaced your/)).length > 0);
   await page.fill("#score", "22");
   await page.fill("#playedOn", iso(2));
   await page.getByRole("button", { name: "Add round" }).click();
-  await page.locator("button[type=submit][aria-busy]").waitFor({ state: "hidden" });
+  await page.locator("button[type=submit][aria-busy]").waitFor({ state: "hidden", timeout: 90_000 });
   check("duplicate date refused", (await text(page, /already logged a round/)).length > 0);
   await shot(page, "04-scores");
   await page.goto(`${BASE}/app`);

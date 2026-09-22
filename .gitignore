@@ -54,7 +54,6 @@ docs/SUBMISSION_NOTES.md
 docs/CREDITS.md
 docs/plans/
 docs/specs/
-docs/screenshots/
 docs/submission/
 docs/*.png
 scripts/build-docs.ts

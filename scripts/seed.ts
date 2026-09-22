@@ -222,7 +222,12 @@ function log(step: string, detail = "") {
 async function wipe() {
   let removed = 0;
   for (let page = 1; ; page++) {
-    const { data } = await admin.auth.admin.listUsers({ page, perPage: 1000 });
+    // Checked and retried like every other auth call: a silent empty page here would leave the
+    // old accounts in place and make every create below fail with "already registered".
+    const { data } = await retryAuthCall(
+      () => admin.auth.admin.listUsers({ page, perPage: 1000 }),
+      `list users page ${page}`,
+    );
     const mine = data.users.filter((u) => u.email?.endsWith(`@${DOMAIN}`));
     for (const u of mine) {
       await retryAuthCall(() => admin.auth.admin.deleteUser(u.id), `delete ${u.email}`);
