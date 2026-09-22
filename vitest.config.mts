@@ -37,8 +37,11 @@ export default defineConfig({
     ],
     coverage: {
       provider: "v8",
-      include: ["src/engine/**/*.ts"],
-      thresholds: { lines: 100, functions: 100, branches: 95, statements: 100 },
+      include: ["src/engine/**/*.ts", "src/services/**/*.ts"],
+      thresholds: {
+        "src/engine/**": { lines: 100, functions: 100, branches: 95, statements: 100 },
+        "src/services/**": { lines: 85, functions: 85, branches: 75, statements: 85 },
+      },
     },
   },
 });

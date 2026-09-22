@@ -30,8 +30,8 @@ function verifyOrThrow(deps: WebhookDeps, rawBody: string, signature: string | n
 /**
  * The webhook, minus HTTP plumbing and minus construction — so an integration test can run it
  * against a real database with a stubbed Stripe. Order matters: verify → claim the event id
- * (duplicates stop here with a 200) → apply → mark processed. Any failure after the claim is a
- * 500, which makes Stripe retry; the claim row is left unprocessed as the audit trail.
+ * (duplicates stop here with a 200) → apply → mark processed. Any failure after the claim
+ * releases the claim and is a 500, so Stripe's retry is processed instead of answered "duplicate".
  */
 export async function processWebhook(
   rawBody: string,
@@ -48,7 +48,12 @@ export async function processWebhook(
   const fresh = await deps.events.claim(event.id, event.type);
   if (!fresh) return Response.json({ received: true, duplicate: true });
 
-  const result = await handleStripeEvent(event, deps.fetcher, deps.sync, deps.donations);
-  await deps.events.markProcessed(event.id);
-  return Response.json({ received: true, ...result });
+  try {
+    const result = await handleStripeEvent(event, deps.fetcher, deps.sync, deps.donations);
+    await deps.events.markProcessed(event.id);
+    return Response.json({ received: true, ...result });
+  } catch (error) {
+    await deps.events.release(event.id);
+    throw error;
+  }
 }

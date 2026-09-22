@@ -102,6 +102,29 @@ describe("access gate (§04)", () => {
     expect(await keptDates(nonSubscriber.id)).toEqual([]);
   });
 
+  it("a lapsed member can read but not edit or delete their kept rounds", async () => {
+    const { data: row } = await admin
+      .from("scores")
+      .insert({ user_id: nonSubscriber.id, score: 30, played_on: "2026-08-15" })
+      .select("id")
+      .single();
+    const { data: edited } = await asNonSubscriber
+      .from("scores")
+      .update({ score: 44 })
+      .eq("id", row!.id)
+      .select("score");
+    expect(edited).toEqual([]);
+    const { data: deleted } = await asNonSubscriber
+      .from("scores")
+      .delete()
+      .eq("id", row!.id)
+      .select("id");
+    expect(deleted).toEqual([]);
+    const { data: still } = await asNonSubscriber.from("scores").select("score").eq("id", row!.id);
+    expect(still).toEqual([{ score: 30 }]);
+    await admin.from("scores").delete().eq("id", row!.id);
+  });
+
   it("refuses a score written under another member's id", async () => {
     const { error } = await asSubscriber
       .from("scores")

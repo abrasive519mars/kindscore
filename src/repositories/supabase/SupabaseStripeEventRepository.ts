@@ -12,6 +12,15 @@ export class SupabaseStripeEventRepository implements StripeEventRepository {
     throw new ExternalServiceError("Stripe events", error);
   }
 
+  async release(eventId: string): Promise<void> {
+    const { error } = await this.db
+      .from("stripe_events")
+      .delete()
+      .eq("id", eventId)
+      .is("processed_at", null);
+    if (error) throw new ExternalServiceError("Stripe events", error);
+  }
+
   async markProcessed(eventId: string): Promise<void> {
     const { error } = await this.db
       .from("stripe_events")

@@ -3,7 +3,7 @@ import type { IsoDate } from "@/engine/time/dates";
 import type { PayoutStatus, ReviewStatus } from "@/engine/verification/stateMachine";
 
 /** How a prize was paid: Stripe customer credit today; `seed` marks demo history. */
-export type PayoutMethod = "stripe_credit" | "seed";
+export type PayoutMethod = "stripe_credit" | "manual" | "seed";
 
 /** One win and where its claim stands — the verification row joined to what was won. */
 export interface WinningRecord {
@@ -48,4 +48,6 @@ export interface WinnerRepository {
     method: PayoutMethod,
     reference: string,
   ): Promise<WinningRecord>;
+  /** Admin only: a payout settled outside Stripe, recorded with its reference and audited. */
+  recordPayout(verificationId: string, reference: string): Promise<WinningRecord>;
 }

@@ -86,7 +86,7 @@ Layers: **U** = Vitest unit on pure `src/engine` (no I/O) · **I** = Vitest inte
    SEED_PASSWORD=
    ```
    `vercel.json` cron `0 3 * * *` → `/api/cron/keepalive` (one SELECT) to stop free-tier pausing. `export const maxDuration = 60` on the simulate action.
-4. **Post-deploy smoke (10 min):** landing loads · signup new email → 4242 → success page shows Active · webhook log 200 · enter 5 scores · priya dashboard modules · admin simulate Sep → publish → priya sees reveal · proof upload → approve → mark paid · 390px pass · `robots.txt` / OG image.
+4. **Post-deploy smoke (10 min):** landing loads · signup new email → 4242 → success page shows Active · webhook log 200 · enter 5 scores · priya dashboard modules · admin simulate Sep → publish → priya sees reveal · proof upload → approve → winner claims payout → Paid · 390px pass · `robots.txt` / OG image.
 
 ## 5. Submission PDF (8 pages)
 

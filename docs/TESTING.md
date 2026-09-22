@@ -48,6 +48,22 @@ Ten minutes, in the order of PRD §16.1. The site is live and seeded — nothing
 - `/how-it-works` and `/pricing` state every rule the software enforces.
 - Every place the PRD was silent and what we decided is marked `[decision]` in `docs/GAME.md` and listed in the README.
 
+## Error handling — try these
+
+| Do                                                                   | Expect                                                                                |
+| -------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| Log in with a wrong password                                         | "Email or password is incorrect" (the same message for an unknown email)              |
+| Sign up with an email that exists                                    | "An account with that email already exists — try logging in"                          |
+| Add a score of `0`, `46`, `1.5` or a future date                     | Refused inline, nothing saved                                                         |
+| Add a round on a date you already used                               | "You already logged a round on … — edit it instead" with the link                     |
+| As a lapsed member, open **Scores**                                  | The page is locked; the database refuses the write too, not only the button           |
+| Upload a PDF or a 6 MB file as proof                                 | "PNG, JPG or WebP up to 5 MB" — nothing is stored                                     |
+| Open `/admin` as a member                                            | "That door is for admins."                                                            |
+| Admin: edit any member's score after simulating, then try to publish | "Scores changed since this simulation" — Publish stays disabled until you re-simulate |
+| Admin: publish the same draw from two tabs                           | The second tab reads "already published"; one set of numbers, once                    |
+| Abandon Stripe Checkout with the back button                         | "No charge was made. Pick a plan when you're ready."                                  |
+| Replay a Stripe webhook (Dashboard → Webhooks → Resend)              | 200 `duplicate: true`; no second payment row                                          |
+
 ## Not in the demo
 
 Cash payouts — a prize is paid as subscription credit through Stripe (real in test mode, verified by Stripe's transaction id); paying cash to an Indian bank needs a rail this sandbox cannot reach (Stripe Connect excludes India, RazorpayX needs its own account) and sits behind the same gateway interface. Email notifications. Stripe India (test mode on a US sandbox; INR works unchanged).

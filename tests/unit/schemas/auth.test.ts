@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { loginSchema, signupSchema } from "@/schemas/auth";
+import { loginSchema, passwordChangeSchema, signupSchema } from "@/schemas/auth";
 
 const valid = {
   fullName: "Priya Sharma",
@@ -38,6 +38,13 @@ describe("signupSchema", () => {
     expect(signupSchema.safeParse({ ...valid, password: "1234567" }).success).toBe(false);
     expect(signupSchema.safeParse({ ...valid, fullName: "P" }).success).toBe(false);
     expect(signupSchema.safeParse({ ...valid, charityId: "not-a-uuid" }).success).toBe(false);
+  });
+});
+
+describe("passwordChangeSchema", () => {
+  it("applies the signup minimum", () => {
+    expect(passwordChangeSchema.safeParse({ password: "1234567" }).success).toBe(false);
+    expect(passwordChangeSchema.safeParse({ password: "Kindscore!2026" }).success).toBe(true);
   });
 });
 

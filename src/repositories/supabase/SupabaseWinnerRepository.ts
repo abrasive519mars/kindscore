@@ -166,6 +166,15 @@ export class SupabaseWinnerRepository implements WinnerRepository {
     return this.requireClaim(verificationId);
   }
 
+  async recordPayout(verificationId: string, reference: string): Promise<WinningRecord> {
+    const { error } = await this.db.rpc("record_payout", {
+      p_verification_id: verificationId,
+      p_reference: reference,
+    });
+    if (error) throw mapRpcError(error);
+    return this.requireClaim(verificationId);
+  }
+
   /** The RPCs return the bare row; callers want the joined record, so re-read it. */
   private async requireClaim(verificationId: string): Promise<WinningRecord> {
     const claim = await this.findClaim(verificationId);

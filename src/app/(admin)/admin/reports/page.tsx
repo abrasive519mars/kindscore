@@ -53,7 +53,7 @@ export default async function AdminReportsPage() {
           <Figure
             label="Pool this month"
             value={formatInr(summary.poolThisMonthPaise)}
-            hint={`+ ${formatInr(summary.currentRolloverPaise)} carried jackpot`}
+            hint={`+ ${formatInr(summary.currentRolloverPaise)} carried jackpot · ${formatInr(summary.poolTotalPaise)} pooled since launch`}
           />
         </Card>
         <Card>
@@ -96,6 +96,24 @@ export default async function AdminReportsPage() {
                 </tr>
               ))}
             </tbody>
+            <tfoot className="border-t-2 border-line font-medium">
+              <tr>
+                <td className="py-2">All time</td>
+                <td className="num py-2 text-right">{sumBy(byMonth, (m) => m.payments)}</td>
+                <td className="num py-2 text-right">
+                  {formatInr(sumBy(byMonth, (m) => m.amountPaise))}
+                </td>
+                <td className="num py-2 text-right text-pool">
+                  {formatInr(sumBy(byMonth, (m) => m.poolPaise))}
+                </td>
+                <td className="num py-2 text-right text-saffron">
+                  {formatInr(sumBy(byMonth, (m) => m.charityPaise))}
+                </td>
+                <td className="num py-2 text-right text-ink-2">
+                  {formatInr(sumBy(byMonth, (m) => m.platformPaise))}
+                </td>
+              </tr>
+            </tfoot>
           </table>
         )}
       </Card>
@@ -180,4 +198,8 @@ export default async function AdminReportsPage() {
       </Card>
     </div>
   );
+}
+
+function sumBy<T>(rows: readonly T[], pick: (row: T) => number): number {
+  return rows.reduce((total, row) => total + pick(row), 0);
 }

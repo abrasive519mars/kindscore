@@ -28,7 +28,15 @@ interface Decision {
   text: string;
 }
 
-/** Every sentence that starts at a "[decision]" marker, up to the end of that sentence, with its section heading. */
+const MARKER = "**[decision]**";
+/** A marker followed by ":" or a few words introduces a list; the decisions are the bullets. */
+const MIN_DECISION_LENGTH = 24;
+
+/**
+ * Every "[decision]" sentence in GAME.md with its section heading. The line is cut at each marker
+ * first (the next sentence usually begins with another marker, which no sentence regex sees), then
+ * the first sentence of each cut is kept. The legend above the first section is skipped.
+ */
 async function extractDecisions(): Promise<Decision[]> {
   const md = await readFile(GAME, "utf8");
   const decisions: Decision[] = [];
@@ -36,15 +44,17 @@ async function extractDecisions(): Promise<Decision[]> {
   for (const line of md.split("\n")) {
     const heading = /^##\s+(.+)$/.exec(line);
     if (heading) section = heading[1].replace(/\(§.*?\)/g, "").trim();
-    const marker = /\*\*\[decision\]\*\*/g;
-    let match: RegExpExecArray | null;
-    while ((match = marker.exec(line))) {
-      const rest = line.slice(match.index + match[0].length).trim();
-      const sentence = rest.split(/(?<=[.!?])\s+(?=[A-Z"“])/)[0];
-      decisions.push({ section, text: clean(sentence) });
+    if (!section) continue;
+    for (const cut of line.split(MARKER).slice(1)) {
+      const text = clean(firstSentence(cut));
+      if (text.length >= MIN_DECISION_LENGTH) decisions.push({ section, text });
     }
   }
   return decisions;
+}
+
+function firstSentence(text: string): string {
+  return text.trim().split(/(?<=[.!?])\s+(?=[A-Z"“(])/)[0];
 }
 
 function clean(markdown: string): string {

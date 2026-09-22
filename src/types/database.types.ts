@@ -862,6 +862,7 @@ export type Database = {
           charity_total_paise: number | null;
           current_rollover_paise: number | null;
           pool_this_month_paise: number | null;
+          pool_total_paise: number | null;
           prizes_awarded_paise: number | null;
           prizes_paid_paise: number | null;
           proofs_awaiting_review: number | null;
@@ -968,6 +969,32 @@ export type Database = {
         SetofOptions: {
           from: "*";
           to: "draws";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
+      record_payout: {
+        Args: { p_reference: string; p_verification_id: string };
+        Returns: {
+          created_at: string;
+          id: string;
+          paid_at: string | null;
+          payout_method: string | null;
+          payout_reference: string | null;
+          payout_status: Database["public"]["Enums"]["payout_status"];
+          proof_path: string | null;
+          resubmissions: number;
+          result_id: string;
+          review_note: string | null;
+          review_status: Database["public"]["Enums"]["review_status"];
+          reviewed_at: string | null;
+          reviewed_by: string | null;
+          updated_at: string;
+          user_id: string;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "winner_verifications";
           isOneToOne: true;
           isSetofReturn: false;
         };

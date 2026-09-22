@@ -68,6 +68,9 @@ export function describePayout(record: WinningRecord): string {
   if (record.payoutMethod === "stripe_credit") {
     return `Paid · ${amount} credited ${when ?? ""} to your subscription account · Stripe ref ${record.payoutReference ?? "—"}.`;
   }
+  if (record.payoutMethod === "manual") {
+    return `Paid · ${amount}${when ? ` on ${when}` : ""} outside Stripe · ref ${record.payoutReference ?? "—"}.`;
+  }
   return `Paid · ${amount}${when ? ` on ${when}` : ""}.`;
 }
 

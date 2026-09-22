@@ -37,7 +37,8 @@ export default async function AdminWinnersPage({ searchParams }: PageProps<"/adm
       <header className="flex flex-col gap-1">
         <h1 className="text-4xl">Winners</h1>
         <p className="text-ink-2">
-          Verify the screenshot, approve or reject, then mark paid once the money has gone.
+          Verify the screenshot, approve or reject. Winners then claim their own payout; you see it
+          land here.
         </p>
       </header>
 

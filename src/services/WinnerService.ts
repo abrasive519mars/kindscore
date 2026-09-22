@@ -79,6 +79,20 @@ export class WinnerService {
     return this.winners.review(verificationId, approve, trimmed.length ? trimmed : null);
   }
 
+  /** §11.04 escape hatch: a prize settled outside Stripe. The reference is the audit trail. */
+  async recordPayout(verificationId: string, reference: string): Promise<WinningRecord> {
+    const trimmed = reference.trim();
+    if (trimmed.length === 0)
+      throw new ValidationError("Enter the payment reference.", "reference");
+    if (trimmed.length > REVIEW_NOTE_MAX) {
+      throw new ValidationError(
+        `Keep the reference under ${REVIEW_NOTE_MAX} characters.`,
+        "reference",
+      );
+    }
+    return this.winners.recordPayout(verificationId, trimmed);
+  }
+
   listQueue(): Promise<ClaimRow[]> {
     return this.winners.listQueue();
   }

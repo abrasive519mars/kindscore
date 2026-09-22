@@ -4,6 +4,7 @@ import { logOut } from "@/app/(auth)/actions";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/primitives";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import { PasswordForm } from "@/app/(member)/app/settings/PasswordForm";
 import { ProfileForm } from "@/app/(member)/app/settings/ProfileForm";
 
 export const metadata: Metadata = { title: "Settings" };
@@ -18,6 +19,11 @@ export default async function SettingsPage() {
       <Card className="flex flex-col gap-4">
         <h2 className="text-xl">Profile</h2>
         <ProfileForm fullName={access.profile.full_name} email={access.profile.email} />
+      </Card>
+
+      <Card className="flex flex-col gap-4">
+        <h2 className="text-xl">Password</h2>
+        <PasswordForm />
       </Card>
 
       <Card className="flex items-center justify-between gap-4">

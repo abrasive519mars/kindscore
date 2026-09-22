@@ -80,6 +80,18 @@ describe("review and payout", () => {
     expect(approved).toMatchObject({ review: "approved", payout: "pending" });
   });
 
+  it("an admin can record a payout settled outside Stripe, with a reference", async () => {
+    await service.review("ver-1", true, "");
+    await expect(service.recordPayout("ver-1", "  ")).rejects.toBeInstanceOf(ValidationError);
+    const paid = await service.recordPayout("ver-1", " UTR 427118 ");
+    expect(paid).toMatchObject({
+      payout: "paid",
+      payoutMethod: "manual",
+      payoutReference: "UTR 427118",
+    });
+    await expect(service.recordPayout("ver-1", "again")).rejects.toBeInstanceOf(RuleViolationError);
+  });
+
   it("rejecting needs a reason the member will see", async () => {
     await expect(service.review("ver-1", false, "   ")).rejects.toBeInstanceOf(ValidationError);
     const rejected = await service.review("ver-1", false, "  Screenshot shows a different date  ");

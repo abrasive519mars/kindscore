@@ -116,10 +116,11 @@ async function main() {
     p_active_subscriber_count: 1,
     p_pool_paise: 14_970,
     p_rollover_in_paise: 0,
-    p_jackpot_pool_paise: 5_988,
+    // The jackpot absorbs the rounding paisa: 5,989 + 5,239 + 3,742 = 14,970 (the DB checks this).
+    p_jackpot_pool_paise: 5_989,
     p_four_pool_paise: 5_239,
     p_three_pool_paise: 3_742,
-    p_rollover_out_paise: 5_988,
+    p_rollover_out_paise: 5_989,
     p_unclaimed_retained_paise: 5_239,
     p_entries_hash: "walk7",
     p_entries: [{ user_id: winner.id, scores: [28, 33, 31, 36, 29], match_count: 3 }],

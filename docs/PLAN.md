@@ -204,6 +204,14 @@ Files (write → test → explain):
 - [x] Member: **Claim as subscription credit** card → Paid banner with Stripe reference + billing-portal button; winnings list **Claim payout**; admin reads the same record
 - [x] Tests: state machine event renamed, `creditMonths`, `ClaimPayoutService` ×6, integration claim RPC (stranger/admin refused); walkthrough 7 claims as the winner
 
+### Phase 14 — Audit fixes ✅ done 2026-09-22 (plan: `docs/plans/phase-14-audit-fixes.md`)
+
+- [x] Four parallel PRD line-by-line audits (§01–§16.1) with evaluator scores; every finding closed
+- [x] Bugs: webhook retry after a failed event, no second checkout for `past_due`, RLS gate on score edit/delete, stale guard covers the funding base
+- [x] Data model: `draws_tiers_sum` + `draws_rollover_is_jackpot` checks, calendar-month cadence, admin `record_payout` escape hatch, lifetime pool in reports
+- [x] Artefacts: decisions table generator fixed, stale "mark paid" copy removed, repo URL, `.env.example`, README invariants + §13/§14 scale section, TESTING error-handling table
+- [x] Polish: loading skeletons, change password, engine score rule in the schema, coverage over services, DESIGN.md consistency, "Manage plan" for members
+
 ## Verification (end-to-end)
 
 Run PRD §16.1 as the acceptance suite on the deployed URL with seeded credentials: signup → subscribe monthly with 4242 → enter 5 scores (+ a 6th to see eviction, + a duplicate date to see rejection) → admin simulate Sep (both modes) → publish → member sees Draw Reveal → winner uploads proof → admin approves → marks paid → dashboard shows total won and Paid → lapse a subscription and confirm restricted access → mobile pass. Unit suite: `pnpm test`; integration: `pnpm test:int` against the seeded project.

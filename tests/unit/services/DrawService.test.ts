@@ -38,11 +38,14 @@ describe("openNextDraw", () => {
     expect(repo.draws).toHaveLength(1);
   });
 
-  it("opens the month after the last published draw", async () => {
+  it("opens the month after the last published draw once that month has begun", async () => {
     const draw = await repo.create("2026-09-01");
     await repo.saveSimulation(simulationOf(draw.id));
     await repo.publish(draw.id);
-    const next = await service.openNextDraw(new Date("2026-09-25T10:00:00+05:30"));
+    await expect(
+      service.openNextDraw(new Date("2026-09-25T10:00:00+05:30")),
+    ).rejects.toBeInstanceOf(RuleViolationError);
+    const next = await service.openNextDraw(new Date("2026-10-02T10:00:00+05:30"));
     expect(next.drawMonth).toBe("2026-10-01");
   });
 });
@@ -144,6 +147,28 @@ describe("freshness and publish", () => {
     const { draw: simulated } = await service.simulate(draw.id, "random", zeros());
     repo.candidates[3] = candidate("d-four-scores", [10, 11, 12, 14]);
     expect(await service.checkFreshness(simulated)).toEqual({ stale: false });
+  });
+
+  it("a funder lapsing makes the draft stale even though no ticket changed", async () => {
+    const draw = await service.openNextDraw();
+    const { draw: simulated } = await service.simulate(draw.id, "random", zeros());
+    repo.candidates = repo.candidates.filter((c) => c.userId !== "d-four-scores");
+    expect(await service.checkFreshness(simulated)).toEqual({ stale: true });
+  });
+
+  it("every winner in a tier is paid from that tier's pool, and the tier is paid out in full", async () => {
+    repo.candidates = [
+      candidate("a", [1, 2, 3, 4, 5]),
+      candidate("b", [1, 2, 3, 4, 6]),
+      candidate("c", [1, 2, 3, 40, 41]),
+      candidate("d", [1, 2, 3, 42, 43]),
+    ];
+    const draw = await service.openNextDraw();
+    const { draw: simulated, prizes } = await service.simulate(draw.id, "random", zeros());
+    for (const tier of [5, 4, 3] as const) {
+      const paid = prizes.filter((p) => p.tier === tier).reduce((s, p) => s + p.prizePaise, 0);
+      expect(paid).toBe(simulated.tierPools[tier]);
+    }
   });
 
   it("publish refuses a bare draft, refuses a stale draft, and passes a fresh one", async () => {

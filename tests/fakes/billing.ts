@@ -94,6 +94,7 @@ export class FakePaymentRepository implements PaymentRepository {
 export class FakeStripeEventRepository implements StripeEventRepository {
   claimed = new Map<string, string>();
   processed: string[] = [];
+  released: string[] = [];
   async claim(id: string, type: string) {
     if (this.claimed.has(id)) return false;
     this.claimed.set(id, type);
@@ -101,6 +102,10 @@ export class FakeStripeEventRepository implements StripeEventRepository {
   }
   async markProcessed(id: string) {
     this.processed.push(id);
+  }
+  async release(id: string) {
+    this.claimed.delete(id);
+    this.released.push(id);
   }
 }
 

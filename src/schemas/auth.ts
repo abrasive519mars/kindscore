@@ -31,6 +31,11 @@ export const signupSchema = z.object({
   plan: planIntervalSchema.optional(),
 });
 
+/** Settings → change password. The same minimum as signup; the current password is the session. */
+export const passwordChangeSchema = z.object({
+  password: z.string().min(PASSWORD_MIN, `Use at least ${PASSWORD_MIN} characters`),
+});
+
 export const loginSchema = z.object({
   email: z.email("Enter a valid email address").trim().toLowerCase(),
   password: z.string().min(1, "Enter your password"),

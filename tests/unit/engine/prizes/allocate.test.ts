@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { SPLIT, TIER_SHARE_BPS } from "@/config/constants";
 import type { MatchedEntry } from "@/engine/draw/match";
 import { allocatePrizes, splitTierPools, type PrizeAllocation } from "@/engine/prizes/allocate";
 import {
@@ -22,6 +23,12 @@ function assertConserved(allocation: PrizeAllocation, poolPaise: number, rollove
     totalPaidOut(allocation) + allocation.rolloverOutPaise + allocation.unclaimedRetainedPaise,
   ).toBe(poolPaise + rolloverInPaise);
 }
+
+describe("tier shares", () => {
+  it("40 / 35 / 25 sum to the whole pool", () => {
+    expect(TIER_SHARE_BPS[5] + TIER_SHARE_BPS[4] + TIER_SHARE_BPS[3]).toBe(SPLIT.BPS_DENOMINATOR);
+  });
+});
 
 describe("pool", () => {
   it("prices a month at 14,970 paise and a year at 12,497 paise per month", () => {

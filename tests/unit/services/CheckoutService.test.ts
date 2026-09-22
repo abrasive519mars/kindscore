@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { ForbiddenError, NotFoundError } from "@/engine/errors";
+import { ConflictError, ForbiddenError, NotFoundError } from "@/engine/errors";
 import { toInvoiceSnapshot, toSubscriptionSnapshot } from "@/lib/stripe/snapshots";
 import { CheckoutService } from "@/services/CheckoutService";
 import { SubscriptionSyncService } from "@/services/SubscriptionSyncService";
@@ -30,6 +30,26 @@ beforeEach(() => {
 });
 
 describe("startCheckout", () => {
+  it("refuses a second checkout while a subscription is live (past_due included)", async () => {
+    profiles.profiles = [billingProfile()];
+    subscriptions.rows = [
+      {
+        id: "row-live",
+        userId: "user_test_1",
+        stripeSubscriptionId: "sub_live",
+        status: "past_due",
+        interval: "month",
+        currentPeriodEnd: "2026-10-01T00:00:00Z",
+        cancelAtPeriodEnd: false,
+        lastEventAt: null,
+      },
+    ];
+    await expect(service.startCheckout("user_test_1", "month")).rejects.toBeInstanceOf(
+      ConflictError,
+    );
+    expect(gateway.checkoutRequests).toEqual([]);
+  });
+
   it("sends the member to Stripe with the right price and their identity attached", async () => {
     profiles.profiles = [billingProfile()];
     const { url } = await service.startCheckout("user_test_1", "year");

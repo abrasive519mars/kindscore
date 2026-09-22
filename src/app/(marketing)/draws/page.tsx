@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 };
 export const revalidate = 60;
 
-/** Public history (PRD §06 "results visible to all users"). Counts only — never who. */
+/** Public history (GAME.md §9 decision: results are public, identities never). Counts only. */
 export default async function PublicDrawsPage() {
   const [repo, service] = await Promise.all([createDrawRepository(), createDrawService()]);
   const [draws, lastMonth, jackpot] = await Promise.all([

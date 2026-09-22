@@ -18,6 +18,7 @@ export async function SiteNav() {
   const signedIn = access.kind !== "anonymous";
   const accountHref = signedIn ? (access.kind === "admin" ? "/admin" : "/app") : "/login";
   const accountLabel = signedIn ? (access.kind === "admin" ? "Admin" : "Dashboard") : "Log in";
+  const subscribed = access.kind === "member" && access.subscription.hasAccess;
 
   return (
     <header className="relative sticky top-0 z-20 border-b border-line bg-bg/90 shadow-nav backdrop-blur">
@@ -38,7 +39,7 @@ export async function SiteNav() {
             {accountLabel}
           </Link>
           <Link href={signedIn ? "/app/subscription" : "/signup"}>
-            <Button size="sm">Subscribe</Button>
+            <Button size="sm">{subscribed ? "Manage plan" : "Subscribe"}</Button>
           </Link>
           <MobileMenu links={LINKS} accountHref={accountHref} accountLabel={accountLabel} />
         </div>

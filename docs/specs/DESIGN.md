@@ -34,7 +34,7 @@ Chosen 2026-09-21 against PRD §12. Governing sentence: **"Design must be emotio
 | `warn`        | pending / draft / lapsing                                                            | `#8F6414`       | `#E8B04C` |
 | `danger`      | rejected / errors (always with icon + text)                                          | `#933A2B`       | `#F08A7A` |
 
-Rules: saffron appears **once per viewport** as a highlight (a rule, a figure, a button) and always as the charity slice in any money diagram — "the saffron part is the part that goes to charity" is literally true everywhere. No green anywhere in the product. Dark mode: no shadows, hairline borders only, saffron desaturated 8%.
+Rules: saffron appears **once per viewport** as a highlight (a rule, a figure, a button) and always as the charity slice in any money diagram — "the saffron part is the part that goes to charity" is literally true everywhere. No green as a brand colour — the `success` token is the one exception, reserved for state words (Active, Paid, Eligible), never for decoration. Dark mode: no shadows, hairline borders only, saffron desaturated 8%.
 
 ### 2.2 Type
 
@@ -84,7 +84,7 @@ Documentary, dignity-framed, one person or a small group _doing_ something (lear
 | 7   | **Pricing**                             | Two cards: **Monthly ₹499** · **Yearly ₹4,999** with "₹417/mo · 2 months free" beneath; "incl. GST"; each card shows its Split at 10%; line "Lapsed members keep their scores but sit out the draw."                                                                                                                                                                                                                                                                                                                                                                                       | Selected card gets the saffron rule.                                                                     | Indian D2C conventions (research §4.2)                               |
 | 8   | **Closing CTA**                         | Ivory band: "Play your round. Fund a cause. _The fair way._" `Subscribe & fund a cause` + "Try a demo account →" (evaluator on-ramp).                                                                                                                                                                                                                                                                                                                                                                                                                                                      | Headline fade.                                                                                           | Tagline lands last                                                   |
 
-Nav (≤6): `Charities · How it works · Draws · Pricing` + `Log in` + `Subscribe` (ink pill; on mobile becomes a fixed bottom-centre pill once the hero CTA scrolls off).
+Nav (≤6): `Charities · How it works · Draws · Pricing` + `Log in` + `Subscribe` (ink pill; on `/` it becomes a fixed bottom-centre pill once the hero scrolls off — other pages keep the nav pill; an active member sees `Manage plan` instead).
 
 ---
 

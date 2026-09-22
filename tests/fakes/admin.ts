@@ -67,6 +67,7 @@ export class FakeReportsRepository implements ReportsRepository {
     totalMembers: 3,
     activeSubscribers: 2,
     poolThisMonthPaise: 29_940,
+    poolTotalPaise: 119_760,
     charityTotalPaise: 9_980,
     prizesAwardedPaise: 0,
     prizesPaidPaise: 0,

@@ -18,6 +18,7 @@ export class SupabaseReportsRepository implements ReportsRepository {
       totalMembers: data.total_members ?? 0,
       activeSubscribers: data.active_subscribers ?? 0,
       poolThisMonthPaise: data.pool_this_month_paise ?? 0,
+      poolTotalPaise: data.pool_total_paise ?? 0,
       charityTotalPaise: data.charity_total_paise ?? 0,
       prizesAwardedPaise: data.prizes_awarded_paise ?? 0,
       prizesPaidPaise: data.prizes_paid_paise ?? 0,

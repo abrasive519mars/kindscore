@@ -6,6 +6,8 @@ export interface ReportSummary {
   readonly totalMembers: number;
   readonly activeSubscribers: number;
   readonly poolThisMonthPaise: Paise;
+  /** Every pool slice ever collected (§11.05 "total prize pool"). */
+  readonly poolTotalPaise: Paise;
   readonly charityTotalPaise: Paise;
   readonly prizesAwardedPaise: Paise;
   readonly prizesPaidPaise: Paise;

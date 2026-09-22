@@ -33,6 +33,13 @@ export class FakeWinnerRepository implements WinnerRepository {
       reviewedAt: "2026-09-22T09:00:00Z",
     });
   }
+  async recordPayout(id: string, reference: string) {
+    return this.apply(id, "claim_payout", {
+      paidAt: "2026-09-23T09:00:00Z",
+      payoutMethod: "manual",
+      payoutReference: reference,
+    });
+  }
   async claimPayout(id: string, method: PayoutMethod, reference: string) {
     return this.apply(id, "claim_payout", {
       paidAt: "2026-09-23T09:00:00Z",

@@ -259,6 +259,17 @@ describe("winner verification RPCs mirror the state machine", () => {
       p_reference: "cbtxn_admin",
     });
     expect(byAdmin.error?.code).toBe(PG.insufficientPrivilege);
+    const manualByMember = await asWinner.rpc("record_payout", {
+      p_verification_id: verificationId,
+      p_reference: "UTR 1",
+    });
+    expect(manualByMember.error?.code).toBe(PG.insufficientPrivilege);
+    // Already paid by the winner's claim: the admin's escape hatch obeys the same state rule.
+    const manualTwice = await asAdmin.rpc("record_payout", {
+      p_verification_id: verificationId,
+      p_reference: "UTR 1",
+    });
+    expect(manualTwice.error?.code).toBe(PG.raiseException);
   });
 
   it("reporting views reflect the paid prize", async () => {

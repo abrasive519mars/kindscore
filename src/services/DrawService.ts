@@ -1,7 +1,7 @@
 import { DRAW, LOCALE } from "@/config/constants";
 import { NotFoundError, RuleViolationError } from "@/engine/errors";
 import { selectEligibleEntries, type EligibleEntry } from "@/engine/draw/eligibility";
-import { entriesFingerprint } from "@/engine/draw/fingerprint";
+import { entriesFingerprint, type FundingBase } from "@/engine/draw/fingerprint";
 import { buildFrequencyMap } from "@/engine/draw/frequency";
 import { generateNumbers, type DrawMode } from "@/engine/draw/generateNumbers";
 import { matchEntries, type WinningTier } from "@/engine/draw/match";
@@ -9,7 +9,7 @@ import type { Paise } from "@/engine/money/paise";
 import { allocatePrizes, splitTierPools, type Prize } from "@/engine/prizes/allocate";
 import { computePoolPaise, computePoolPaiseFromCounts } from "@/engine/prizes/pool";
 import { secureRng, type Rng } from "@/engine/draw/rng";
-import { nextDrawMonth, todayInTimezone } from "@/engine/time/dates";
+import { firstOfMonth, formatMonth, nextDrawMonth, todayInTimezone } from "@/engine/time/dates";
 import type {
   DrawCandidate,
   DrawRecord,
@@ -37,12 +37,19 @@ export const STALE_MESSAGE = "Scores changed since simulation — re-simulate be
 export class DrawService {
   constructor(private readonly draws: DrawRepository) {}
 
-  /** The open draw, or a new draft for the month after the last published one. */
+  /**
+   * The open draw, or a new draft for the month after the last published one — but never a month
+   * that has not begun: the cadence is calendar time (§06 "monthly"), not just order.
+   */
   async openNextDraw(now = new Date()): Promise<DrawRecord> {
     const open = await this.draws.findOpen();
     if (open) return open;
-    const last = await this.draws.lastPublishedMonth();
-    return this.draws.create(nextDrawMonth(last, todayInTimezone(now, LOCALE.TIMEZONE)));
+    const today = todayInTimezone(now, LOCALE.TIMEZONE);
+    const month = nextDrawMonth(await this.draws.lastPublishedMonth(), today);
+    if (month > firstOfMonth(today)) {
+      throw new RuleViolationError(`${formatMonth(month)}'s draw opens on the first of the month.`);
+    }
+    return this.draws.create(month);
   }
 
   /** `weightStrengthBps` is the admin's dial for algorithmic mode (§11); random mode ignores it. */
@@ -61,24 +68,21 @@ export class DrawService {
     const rolloverInPaise = await this.draws.nextRolloverIn();
     const numbers = generateNumbers(mode, buildFrequencyMap(entries), rng, weightStrengthBps);
     const matched = matchEntries(numbers, entries);
-    const allocation = allocatePrizes({
-      poolPaise: computePoolPaise(candidates),
-      rolloverInPaise,
-      matched,
-    });
+    const funding = fundingOf(candidates);
+    const allocation = allocatePrizes({ poolPaise: funding.poolPaise, rolloverInPaise, matched });
 
     const saved = await this.draws.saveSimulation({
       drawId,
       mode,
       weightStrengthBps,
       numbers,
-      activeSubscriberCount: candidates.length,
-      poolPaise: computePoolPaise(candidates),
+      activeSubscriberCount: funding.activeSubscriberCount,
+      poolPaise: funding.poolPaise,
       rolloverInPaise,
       tierPools: allocation.tierPools,
       rolloverOutPaise: allocation.rolloverOutPaise,
       unclaimedRetainedPaise: allocation.unclaimedRetainedPaise,
-      entriesHash: entriesFingerprint(entries),
+      entriesHash: entriesFingerprint(entries, funding),
       entries: matched.map((m) => ({
         userId: m.userId,
         scores: m.scores,
@@ -98,11 +102,12 @@ export class DrawService {
     };
   }
 
-  /** Has any eligible member's ticket changed since the draft was simulated? */
+  /** Has any eligible ticket, or the pool that funds the prizes, changed since the simulation? */
   async checkFreshness(draw: DrawRecord): Promise<Freshness> {
     if (draw.status !== "simulated" || !draw.entriesHash) return { stale: false };
-    const entries = selectEligibleEntries(await this.draws.listCandidates());
-    return { stale: entriesFingerprint(entries) !== draw.entriesHash };
+    const candidates = await this.draws.listCandidates();
+    const entries = selectEligibleEntries(candidates);
+    return { stale: entriesFingerprint(entries, fundingOf(candidates)) !== draw.entriesHash };
   }
 
   async publish(drawId: string): Promise<DrawRecord> {
@@ -137,5 +142,9 @@ export class DrawService {
 }
 
 const JACKPOT_TIER: WinningTier = 5;
+
+function fundingOf(candidates: readonly DrawCandidate[]): FundingBase {
+  return { activeSubscriberCount: candidates.length, poolPaise: computePoolPaise(candidates) };
+}
 
 export type { EligibleEntry };

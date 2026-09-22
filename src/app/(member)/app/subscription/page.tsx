@@ -57,7 +57,8 @@ export default async function SubscriptionPage({ searchParams }: PageProps<"/app
       <ReturnNotice search={search} />
       <StatusCard subscription={subscription} isAdmin={access.kind === "admin"} />
 
-      {!subscription.hasAccess && (
+      {/* past_due keeps its live subscription: the card is fixed in the portal, not by a second checkout. */}
+      {!subscription.hasAccess && subscription.status !== "past_due" && (
         <PlanChooser
           charityBps={access.profile.charity_bps}
           verb={subscription.status === "none" ? "Subscribe" : "Renew"}

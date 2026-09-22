@@ -28,6 +28,15 @@ describe("entriesFingerprint", () => {
     expect(entriesFingerprint([priya])).not.toBe(entriesFingerprint([reordered]));
   });
 
+  it("changes when the funding base changes, even with identical entries", () => {
+    const base = { activeSubscriberCount: 10, poolPaise: 149_700 };
+    expect(entriesFingerprint([priya], base)).not.toBe(entriesFingerprint([priya]));
+    expect(entriesFingerprint([priya], base)).not.toBe(
+      entriesFingerprint([priya], { ...base, activeSubscriberCount: 11 }),
+    );
+    expect(entriesFingerprint([priya], base)).toBe(entriesFingerprint([priya], { ...base }));
+  });
+
   it("canonical form sorts by user id", () => {
     expect(canonicalEntries([priya, raj])).toBe("a-raj:30,30,41,22,35|b-priya:28,33,31,36,29");
   });

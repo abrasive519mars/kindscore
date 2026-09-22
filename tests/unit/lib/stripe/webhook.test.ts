@@ -83,6 +83,26 @@ describe("processWebhook", () => {
     expect(subscriptions.rows[0].stripeSubscriptionId).toBe("sub_from_checkout");
   });
 
+  it("releases the claim when handling fails, so Stripe's retry is processed", async () => {
+    const event = eventOf("checkout.session.completed", checkoutSessionObject("sub_retry"));
+    const fetchOnce = deps.fetcher.retrieveSubscription;
+    let calls = 0;
+    deps = {
+      ...deps,
+      fetcher: {
+        retrieveSubscription: async (id) => {
+          if (calls++ === 0) throw new Error("stripe down");
+          return fetchOnce(id);
+        },
+      },
+    };
+    await expect(post(event)).rejects.toThrow("stripe down");
+    expect(events.released).toEqual([event.id]);
+    const retry = await post(event);
+    expect(await retry.json()).toMatchObject({ received: true, handled: true });
+    expect(events.processed).toEqual([event.id]);
+  });
+
   it("ignores a checkout session with no subscription (a one-off payment)", async () => {
     const response = await post(eventOf("checkout.session.completed", checkoutSessionObject(null)));
     expect(await response.json()).toMatchObject({ handled: false, reason: "not_a_subscription" });

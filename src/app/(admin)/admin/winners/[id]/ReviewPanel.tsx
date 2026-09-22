@@ -2,7 +2,7 @@
 
 import { useActionState, useState } from "react";
 import type { PayoutStatus, ReviewStatus } from "@/engine/verification/stateMachine";
-import { reviewClaim } from "@/app/(admin)/admin/winners/actions";
+import { recordManualPayout, reviewClaim } from "@/app/(admin)/admin/winners/actions";
 import type { ActionResult } from "@/lib/errors/action-result";
 import { REVIEW_NOTE_MAX } from "@/services/WinnerService";
 import { Button } from "@/components/ui/Button";
@@ -22,8 +22,9 @@ interface ReviewPanelProps {
  */
 export function ReviewPanel({ verificationId, review, payout, payoutLine }: ReviewPanelProps) {
   const [reviewState, reviewAction, reviewing] = useActionState(reviewClaim, null);
+  const [payoutState, payoutAction, recording] = useActionState(recordManualPayout, null);
   const [rejecting, setRejecting] = useState(false);
-  const error = reviewState && !reviewState.ok ? reviewState : null;
+  const error = [reviewState, payoutState].find((s) => s && !s.ok) ?? null;
 
   if (review === "submitted") {
     return (
@@ -80,15 +81,46 @@ export function ReviewPanel({ verificationId, review, payout, payoutLine }: Revi
     );
   }
 
+  if (review === "approved" && payout === "pending") {
+    return (
+      <div className="flex flex-col gap-3 border-t border-line pt-4 text-sm text-ink-2">
+        <p>
+          Approved. The member claims the payout from their Winnings page — it is credited to their
+          subscription through Stripe and recorded here.
+        </p>
+        <details className="rounded-md border border-line p-3">
+          <summary className="cursor-pointer font-medium text-ink">
+            Paid outside Stripe? Record it
+          </summary>
+          <form action={payoutAction} className="mt-3 flex flex-wrap items-end gap-3">
+            <input type="hidden" name="verificationId" value={verificationId} />
+            <label className="flex flex-col gap-1.5">
+              <span className="text-sm font-medium text-ink">Payment reference (UTR)</span>
+              <input
+                name="reference"
+                required
+                maxLength={REVIEW_NOTE_MAX}
+                className="h-10 rounded-md border border-line bg-surface px-3 text-sm text-ink focus:border-ink focus:outline-none"
+                placeholder="e.g. UTR 427118"
+              />
+            </label>
+            <Button type="submit" size="sm" pending={recording}>
+              Record as paid
+            </Button>
+          </form>
+          <ActionError error={error} />
+        </details>
+      </div>
+    );
+  }
+
   return (
     <p className="border-t border-line pt-4 text-sm text-ink-2">
       {payout === "paid"
         ? payoutLine
-        : review === "approved"
-          ? "Approved. The member claims the payout from their Winnings page — it is credited to their subscription through Stripe and recorded here."
-          : review === "rejected"
-            ? "Rejected. The member may upload once more if they haven't already."
-            : "Waiting for the member's screenshot."}
+        : review === "rejected"
+          ? "Rejected. The member may upload once more if they haven't already."
+          : "Waiting for the member's screenshot."}
     </p>
   );
 }

@@ -45,7 +45,7 @@ Rules:
 - **[decision]** Dates are calendar dates in India (Asia/Kolkata). A round logged at 00:30 on 13 Sep is 13 Sep, whatever the server's clock says.
 - **[decision]** Future dates are refused — a round can't have been played tomorrow.
 - **[decision]** Deleting a round is allowed and immediate (§05: "an existing entry may only be edited or deleted"). Dropping to four rounds makes the member ineligible for the next draw, and the page says so.
-- **[decision]** Editing a round to a date another kept round already has is refused the same way as adding one — one score per date holds across edits too.
+- **[decision]** Editing a kept round to any past date is allowed — it stays one of your five; the "older than your five" rule exists to refuse a sixth round that would be evicted on arrival. **[decision]** Editing a round to a date another kept round already has is refused the same way as adding one — one score per date holds across edits too.
 
 Example — Priya's current 5 scores: **28, 33, 31, 36, 29**
 
@@ -134,7 +134,7 @@ Money is calculated in whole paise so splits always add up exactly.
 | Feb   | ₹60,000 + ₹60,000 = ₹1,20,000   | No   | ₹1,20,000             |
 | Mar   | ₹60,000 + ₹1,20,000 = ₹1,80,000 | Yes  | ₹0                    |
 
-It keeps growing until someone wins it. This is the engagement hook — a jackpot counter that visibly climbs. The 4-match and 3-match prizes **do not** roll over; if nobody wins one, it simply isn't paid that month (**[decision]** retained by the platform and shown in admin reports).
+It keeps growing until someone wins it. This is the engagement hook — a jackpot counter that visibly climbs. The 4-match and 3-match prizes **do not** roll over; if nobody wins one, it simply isn't paid that month (**[decision]** retained by the platform and shown in admin reports). **[decision]** Rollover is decided by the draw, not by verification: the jackpot carries only when nobody matched five. If a five-match winner is later rejected or never claims, that prize is retained like an unclaimed lower tier — the ladder never re-rolls money that was announced as won. **[decision]** A draw can be opened only once its month has begun (calendar time, not just order), so two months can never be drawn in one.
 
 ---
 
@@ -198,7 +198,7 @@ The rules around it **[decision]**:
 - **Users** — view/edit profiles, edit scores, manage subscriptions. **[decision]** Admin-granted subscriptions are marked `admin` and never touch Stripe (support and demos). **[decision]** Every admin edit of member data — profile, scores, subscription — is audited with who, what, before and after. **[decision]** Admins edit scores under the same rules as members (five kept by date, one per date, 1–45). **[decision]** Ending a subscription takes effect on the member's next request, because the gate reads the database every time — nothing is cached per session.
 - **Draws** — choose mode, simulate, publish
 - **Charities** — add/edit/delete, manage images and events
-- **Winners** — full list, verify proofs, mark paid
+- **Winners** — full list, verify proofs, watch payouts land (winners claim their own; an admin can record one settled outside Stripe)
 - **Reports** — total users, total prize pool, charity totals, draw statistics
 - **[decision]** An admin who logs in lands in the admin panel, and the member area shows an **Admin** tab — the two roles are one account with two front doors.
 
@@ -207,6 +207,7 @@ The rules around it **[decision]**:
 - Landing page: what you do, how you win, the charity impact, and a prominent Subscribe button
 - Charity directory with search/filter, charity profile pages, featured charity spotlight
 - How the draw works
+- Published results — the five numbers, winner counts per tier and the rollover for every month. **[decision]** The PRD never says results are public, but a lottery whose outcomes are visible only to entrants is not credible; counts are public, identities never.
 
 ## 10. The demo world (seed)
 

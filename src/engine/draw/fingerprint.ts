@@ -29,6 +29,16 @@ export function canonicalEntries(entries: readonly EligibleEntry[]): string {
     .join("|");
 }
 
-export function entriesFingerprint(entries: readonly EligibleEntry[]): string {
-  return fnv1a64(canonicalEntries(entries));
+/** What funds the pool at simulate time — a funder joining or lapsing must also stale the draft. */
+export interface FundingBase {
+  readonly activeSubscriberCount: number;
+  readonly poolPaise: number;
+}
+
+export function entriesFingerprint(
+  entries: readonly EligibleEntry[],
+  funding?: FundingBase,
+): string {
+  const base = funding ? `#${funding.activeSubscriberCount}:${funding.poolPaise}` : "";
+  return fnv1a64(canonicalEntries(entries) + base);
 }

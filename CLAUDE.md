@@ -109,7 +109,7 @@ These cut across schema, API, and UI — get them right in the data layer first.
 ### Required surfaces
 
 - **User dashboard (§10):** subscription status (active/inactive/renewal date), score entry/edit, selected charity + percentage, participation summary (draws entered, upcoming), winnings overview (total won, payment status).
-- **Admin dashboard (§11):** user management (edit profiles/scores/subscriptions), draw management (configure logic, simulate, publish), charity CRUD + media, winners list/verify/mark paid, reports (total users, total prize pool, charity totals, draw stats).
+- **Admin dashboard (§11):** user management (edit profiles/scores/subscriptions), draw management (configure logic, simulate, publish), charity CRUD + media, winners list/verify (winners claim their own payout; admin can record an out-of-band one), reports (total users, total prize pool, charity totals, draw stats).
 
 ### UI/UX direction (§12)
 

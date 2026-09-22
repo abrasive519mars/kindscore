@@ -1,5 +1,5 @@
 import type { PlanInterval } from "@/config/constants";
-import { ForbiddenError, NotFoundError } from "@/engine/errors";
+import { ConflictError, ForbiddenError, NotFoundError } from "@/engine/errors";
 import type { BillingGateway } from "@/lib/stripe/BillingGateway";
 import type { ProfileRepository } from "@/repositories/interfaces/ProfileRepository";
 import type { SubscriptionRepository } from "@/repositories/interfaces/SubscriptionRepository";
@@ -26,6 +26,13 @@ export class CheckoutService {
 
   async startCheckout(userId: string, interval: PlanInterval): Promise<{ url: string }> {
     const profile = await this.requireProfile(userId);
+    // A live row (active or past_due) means a second Stripe subscription, not a renewal:
+    // the billing portal is the place to fix a card or resume.
+    if (await this.deps.subscriptions.findLiveForUser(userId)) {
+      throw new ConflictError(
+        "You already have a subscription — update your card or resume it from the billing portal.",
+      );
+    }
     return this.deps.gateway.createCheckoutSession({
       userId,
       email: profile.email,
